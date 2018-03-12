@@ -1,0 +1,27 @@
+<% include ../partials/employeeHeader%>
+<div class="container">
+  <h3>View employee</h3>
+  <table class="table">
+        <tr>
+          <td>No.</td>
+          <td>NIK</td>
+          <td>Nama</td>
+          <td>birthday</td>
+          <td>department</td>
+          <td>jam_masuk</td>
+          <td>atasan_langsung</td>
+        </tr>
+        <% for (i in employees) { %>
+            <tr>
+              <td><%= (parseInt(i)+1) %></td>
+              <td><%= employees[i].nik %></td>
+              <td><%= employees[i].first_Name +" "+(employees[i].last_Name?employees[i].last_Name:"") %></td>
+              <td><%= moment(employees[i].birthday).format("Do MMMM YYYY") %></td>
+              <td><%= employees[i].department %></td>
+              <td><%= employees[i].jam_masuk?moment(employees[i].jam_masuk).format("HH:mm:ss"):"" %></td>
+              <td><%= employees[i].atasan_langsung %></td>
+            </tr>
+        <% } %>
+    </table>
+</div>
+<% include ../partials/employeeFooter%>

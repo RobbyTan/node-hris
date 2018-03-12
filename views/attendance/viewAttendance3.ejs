@@ -1,0 +1,184 @@
+<% include ../partials/attendanceHeader%>
+<div class="container">
+  <h3>View Attendance with no filter</h3>
+  <table class="table">
+    <label class="pl-3" for="tempatlahir">From:</label>
+    <div class="md-form col-xl-3">
+      <input name="from" type="date" id="from" required>
+    </div>
+    <label class="pl-3" for="tempatlahir">To:</label>
+    <div class="md-form col-xl-3">
+      <input name="to" type="date" id="to" required>
+    </div>
+    <button type="button" class="btn btn-primary">Generate</button>
+
+      <table id="dataTable" class="table stripe" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <td>NIK</td>
+            <td>Nama</td>
+            <td>Department</td>
+            <td>Atasan Langsung</td>
+            <td>Tanggal</td>
+            <td>Jam Masuk</td>
+            <td>Sign In</td>
+            <td>Sign Out</td>
+            <td>Jam Kerja</td>
+            <td>Telat</td>
+            <td>Full Working Hours</td>
+          </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+      </table>
+
+
+  </table>
+</div>
+
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+<script src="/scripts/mdb.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
+</script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
+</script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js">
+</script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js">
+</script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
+</script>
+<script type="text/javascript">
+
+  $(document).ready(function() {
+    $(document).ready(function() {
+      $('.mdb-select').material_select();
+    });
+    $('#dataTable').DataTable( {
+      dom: 'Bfrtip',
+      "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+      buttons: [
+        'pageLength',
+          'copyHtml5',
+          'excelHtml5',
+          {
+            extend: 'pdf',
+            text: 'Pdf',
+            orientation: 'landscape'
+          }
+      ]
+    });
+  });
+
+  function loadTable(datas){
+    var result=[];
+    datas.forEach(({data,date})=>{
+      for (var i = 0; i < data.length; i++) {
+          if(data[i].absensi.length>0){
+            console.log("here 1");
+            let minTime = moment.min(getTime(data[i].absensi))
+            let maxTime = moment.max(getTime(data[i].absensi))
+            let workingHours = moment.utc(maxTime.diff(minTime))
+            let jam_masuk_toleransi = moment.utc(moment(data[i].jam_masuk).add(5,"minutes").format("HH:mm:ss"),"HH:mm:ss")
+            let jam_masuk_pertama = moment.utc(minTime.format("HH:mm:ss"),"HH:mm:ss")
+            result.push([
+              data[i].nik,
+              data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
+              data[i].department,
+              (data[i].atasan_langsung?data[i].atasan_langsung:""),
+              moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
+              (data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):""),
+              minTime.format("HH:mm:ss"),
+              maxTime.format("HH:mm:ss"),
+              workingHours.format("HH:mm:ss"),
+              (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"TELAT":""),
+              (workingHours.hours()>=9?"":"---")
+            ])
+          }else{
+            console.log("here 2");
+            result.push([
+              data[i].nik,
+              data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
+              data[i].department,
+              (data[i].atasan_langsung?data[i].atasan_langsung:""),
+              moment(date).format("D MMMM YYYY"),"-","-","-","-","","---"
+            ])
+          }
+        }
+    })
+
+
+    $('#dataTable').DataTable( {
+        destroy: true,
+        dom: 'Bfrtip',
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        buttons: [
+            'pageLength',
+            'copyHtml5',
+            'excelHtml5',
+            {
+              extend: 'pdf',
+              text: 'Pdf',
+              orientation: 'landscape'
+            }
+        ],
+        data: result,
+        columns: [
+          { title: "NIK" },
+          { title: "Nama" },
+          { title: "Department" },
+          { title: "Atasan Langsung" },
+          { title: "Tanggal" },
+          { title: "Jam Masuk" },
+          { title: "Sign In" },
+          { title: "Sign Out" },
+          { title: "Jam Kerja" },
+          { title: "Telat" },
+          { title: "Full Working Hours" }
+        ]
+    } );
+    console.log(result);
+  }
+
+  function getTime(datas){
+    return datas.map((data)=>{
+      return moment(data["date"])
+    })
+  }
+
+  $(".button-collapse").sideNav();
+
+  $('button').on('click',()=>{
+    console.log("trigger");
+    let fromDate=moment(new Date($('#from').val()));
+    let toDate=moment(new Date($('#to').val()));
+
+    let dataPromise=[]
+    let days = Math.abs(fromDate.diff(toDate, 'days')) + 1
+    for (let i = 0; i < days; i++) {
+      let fromString=fromDate.year()+"-"+(fromDate.month()+1)+"-"+fromDate.date()
+      dataPromise.push($.getJSON("/api/attendancesfull",{from:fromString,to:fromString}))
+      fromDate.add(1, 'days')
+      console.log(fromString);
+    }
+    Promise.all(dataPromise)
+      .then((data)=>{
+        console.log(data);
+        loadTable(data)
+      })
+    // let results = await Promise.all(dataPromise)
+    // $.getJSON("/api/attendancesfull",{from:fromString,to:toString})
+    // .then((data)=>{
+    //   console.log(data);
+    //   loadTable(data)
+    // })
+  })
+</script>
+</body>
+
+</html>

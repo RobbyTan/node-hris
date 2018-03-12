@@ -1,0 +1,35 @@
+{
+  "name": "hris",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": "9.1.0"
+  },
+  "scripts": {
+    "test": "standard && node index.js",
+    "dev": "standard --fix && standard && nodemon index.js",
+    "start": "node index.js"
+  },
+  "author": "robby & kenichi",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "ejs": "^2.5.7",
+    "express": "^4.16.2",
+    "method-override": "^2.3.10",
+    "moment": "^2.20.1",
+    "mongoose": "^4.13.9",
+    "multer": "^1.3.0",
+    "mysql": "^2.15.0",
+    "xlsx": "^0.11.14"
+  },
+  "devDependencies": {
+    "standard": "*"
+  },
+  "standard": {
+    "ignore": [
+      "/public/"
+    ]
+  }
+}

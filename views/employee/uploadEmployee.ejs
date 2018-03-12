@@ -1,0 +1,11 @@
+<% include ../partials/employeeHeader%>
+<div class="container">
+  <h2>Upload Employee Data</h2>
+  <form method="post" action="/employee/new/upload" class="dropzone" id="uploadExcel" enctype="multipart/form-data">
+    <div class="fallback">
+      <input name="file" type="file" multiple />
+    </div>
+  </form>
+  <p id="successText"></p>
+</div>
+<% include ../partials/employeeFooter%>

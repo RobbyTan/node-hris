@@ -1,0 +1,28 @@
+</div>
+</main>
+<!--Main Layout-->
+  <script src="/scripts/mdb.js"></script>
+  <script type="text/javascript">
+    $(".button-collapse").sideNav();
+  </script>
+  <script type="text/javascript">
+    //Dropzone
+    Dropzone.options.uploadExcel = {
+      url: "/attendance/upload",
+      paramName: "file", // The name that will be used to transfer the file
+      dictDefaultMessage: 'Drag an excel file to upload, or click to select one',
+      acceptedFiles: '.xlsx',
+      maxFilesize: 1, // MB
+      accept: function(file, done) {
+        done();
+      },
+      success: function(file, response){
+        console.log(response);
+        $('#successText').text("success");
+      }
+    };
+
+  </script>
+</body>
+
+</html>
