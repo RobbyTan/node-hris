@@ -3,13 +3,13 @@ const router = express.Router()
 const xlsx = require('xlsx')
 const { upload } = require('../middleware/upload')
 const db = require('../models')
-
+const authentication = require('../middleware/authentication.js')
 // employee route
 
-router.get('/', (req, res) => {
+router.get('/',authentication.isLoggedIn, (req, res) => {
   res.render('./employee/mainEmployee')
 })
-router.get('/view', (req, res) => {
+router.get('/view',authentication.isLoggedIn, (req, res) => {
   db.Employee.find({}, function (err, allEmployee) {
     if (err) {
       console.log(err)
@@ -18,13 +18,13 @@ router.get('/view', (req, res) => {
     }
   })
 })
-router.get('/new', (req, res) => {
+router.get('/new',authentication.isLoggedIn, (req, res) => {
   res.render('./employee/statusEmployee')
 })
-router.get('/new/upload', (req, res) => {
+router.get('/new/upload', authentication.isLoggedIn,(req, res) => {
   res.render('./employee/uploadEmployee')
 })
-router.post('/new/upload', upload.single('file'), async (req, res) => {
+router.post('/new/upload',upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(422).json({
       error: 'Please Upload a file'
@@ -82,7 +82,7 @@ router.post('/new/upload', upload.single('file'), async (req, res) => {
   return res.status(200).send(toJson(workbook))
 })
 
-router.post('/', (req, res) => {
+router.post('/',authentication.isLoggedIn, (req, res) => {
   var status = req.body.status
   res.render('./employee/newEmployee', {status: status})
 })

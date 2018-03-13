@@ -4,14 +4,15 @@ const xlsx = require('xlsx')
 const { upload } = require('../middleware/upload')
 const db = require('../models')
 const moment = require('moment')
+const authentication = require('../middleware/authentication.js')
 
-router.get('/upload/pph', (req, res) => {
+router.get('/upload/pph',authentication.isLoggedIn, (req, res) => {
 	res.render('./report/uploadPph');
 })
-router.get('/upload/pphexcel', (req, res) => {
+router.get('/upload/pphexcel',authentication.isLoggedIn, (req, res) => {
 	res.render('./report/uploadPphExcel')
 })
-router.get('/view/pph', (req, res) => {
+router.get('/view/pph',authentication.isLoggedIn, (req, res) => {
   db.Pph.find({}, function (err, allData) {
     if (err) {
       console.log(err)
@@ -20,7 +21,7 @@ router.get('/view/pph', (req, res) => {
     }
   })
 })
-router.delete("/:id",function(req,res){
+router.delete("/:id",authentication.isLoggedIn,function(req,res){
   db.Pph.findByIdAndRemove(req.params.id,function(err){
     if(err){
       console.log(err);
