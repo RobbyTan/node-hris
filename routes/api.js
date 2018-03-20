@@ -40,6 +40,15 @@ router.get('/pph',(req,res)=>{
   })
 })
 
+router.get('/employeedata',(req,res)=>{
+    db.Employee.find({}, function (err, allData) {
+    if (err) {
+      console.log(err)
+    } else {
+        res.json(allData);
+    }
+  })
+})
 // String,String,Boolean
 async function showData (from, to, full) {
   let days = Math.abs(moment(from, 'YYYY-MM-DD').diff(moment(to, 'YYYY-MM-DD'), 'days')) + 1
