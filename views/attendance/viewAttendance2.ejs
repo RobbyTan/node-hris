@@ -12,7 +12,15 @@
 			</div>
       <button type="button" class="btn btn-primary">Generate</button>
 
-      <table id="dataTable" class="table stripe" cellspacing="0" width="100%">
+      <div id="spinner" style="display: none">
+        <div class="spinner">
+          <div class="bounce1"></div>
+          <div class="bounce2"></div>
+          <div class="bounce3"></div>
+        </div>
+      </div>
+
+      <table id="dataTable" style="display: none" class="table stripe" cellspacing="0" width="100%">
         <thead>
           <tr>
             <td>NIK</td>
@@ -61,6 +69,11 @@
   $(document).ready(function() {
     $(document).ready(function() {
       $('.mdb-select').material_select();
+      $.when(
+        $("#dataTable_wrapper").hide(0) //hide parent wrapper
+      ).done(() => { 
+        $("#dataTable").show(0); //show its child element
+      });
     });
     $('#dataTable').DataTable( {
       dom: 'Bfrtip',
@@ -161,6 +174,15 @@ function compareMilli(a,b) {
 
   $('button').on('click',()=>{
     console.log("trigger");
+    
+    $.when(
+      $("button").prop("disabled", true) // disable Generate button
+    ).done(() => {
+      $("#dataTable_wrapper").fadeOut(); // hide dataTable
+    }).done(() => {
+      $("#spinner").fadeIn();  // show spinner animation
+    });
+
     let fromDate=new Date($('#from').val());
     let fromString=fromDate.getFullYear()+"-"+(fromDate.getMonth()+1)+"-"+fromDate.getDate()
     let toDate=new Date($('#to').val());
@@ -168,7 +190,15 @@ function compareMilli(a,b) {
     $.getJSON("/api/attendances",{from:fromString,to:toString})
     .then(({data})=>{
       console.log(data);
-      loadTable(data)
+      loadTable(data);
+      
+      $.when(
+        $("#spinner").fadeOut()
+      ).done(() => {
+        $("#dataTable_wrapper").fadeIn();
+      }).done(() => {
+        $("button").prop("disabled", false);
+      });
     })
   })
 </script>

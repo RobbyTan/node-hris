@@ -11,7 +11,7 @@
     "dev": "standard --fix && standard && nodemon index.js",
     "start": "node index.js"
   },
-  "author": "robby & kenichi",
+  "author": "robby, kenichi, & irvin",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",
