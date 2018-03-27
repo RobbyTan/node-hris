@@ -31,7 +31,7 @@ router.get('/attendances', async(req, res) => {
 })
 
 router.get('/pph',(req,res)=>{
-    db.Pph.find({}, function (err, allData) {
+    db.Fulldata.find({}, function (err, allData) {
     if (err) {
       console.log(err)
     } else {

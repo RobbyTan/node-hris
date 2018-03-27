@@ -7,4 +7,4 @@ mongoose.connect(DATABASE_URL)
 mongoose.Promise = Promise
 module.exports.Employee = require('./employee')
 module.exports.Absensi = require('./attendance')
-module.exports.Pph = require('./pph')
+module.exports.Fulldata = require('./fulldata')
