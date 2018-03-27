@@ -22,7 +22,7 @@ router.get('/view/pph',authentication.isLoggedIn, (req, res) => {
   })
 })
 router.delete("/:id",authentication.isLoggedIn,function(req,res){
-  db.FullData.findByIdAndRemove(req.params.id,function(err){
+  db.Fulldata.findByIdAndRemove(req.params.id,function(err){
     if(err){
       console.log(err);
       res.redirect("/report/view/pph");
