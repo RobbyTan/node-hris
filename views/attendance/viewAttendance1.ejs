@@ -36,10 +36,11 @@
           <td>Atasan Langsung</td>
           <td>Tanggal</td>
           <td>Jam Masuk</td>
-          <td>Sign In</td>
+          <td>Absensi</td>
+          <!-- <td>Sign In</td>
           <td>Sign Out</td>
           <td>Jam Kerja</td>
-          <td>Telat</td>
+          <td>Telat</td> -->
           <td>Full Working Hours</td>
         </tr>
       </thead>
@@ -97,54 +98,72 @@
 
   } );
 
-  // function loadTable(data){
-  //   $('tbody').html(null);
-  //   var tr;
-  //   for (var i = 0; i < data.length; i++) {
-  //       let minTime = moment.min(getTime(data[i].absensi))
-  //       let maxTime = moment.max(getTime(data[i].absensi))
-  //       let workingHours = moment.utc(maxTime.diff(minTime))
-  //       let jam_masuk_toleransi = moment.utc(moment(data[i].jam_masuk).add(5,"minutes").format("HH:mm:ss"),"HH:mm:ss")
-  //       let jam_masuk_pertama = moment.utc(minTime.format("HH:mm:ss"),"HH:mm:ss")
-  //       tr = $('<tr/>');
-  //       tr.append("<td>" + data[i].nik + "</td>");
-  //       tr.append("<td>" + data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:"") + "</td>");
-  //       tr.append("<td>" + data[i].department + "</td>");
-  //       tr.append("<td>" + (data[i].atasan_langsung?data[i].atasan_langsung:"") + "</td>");
-  //       tr.append("<td>" + moment(data[i].absensi[0]["date"]).format("D MMMM YYYY") + "</td>");
-  //       tr.append("<td>" + (data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):"") + "</td>");
-  //       tr.append("<td>" + minTime.format("HH:mm:ss") + "</td>");
-  //       tr.append("<td>" + maxTime.format("HH:mm:ss") + "</td>");
-  //       tr.append("<td>" + workingHours.format("HH:mm:ss") + "</td>");
-  //       console.log(data[i].first_Name+":"+moment(data[i].jam_masuk).isBefore(minTime));
-  //       tr.append("<td "+(data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"style= background-color:red":"")+"></td>");
-  //       // tr.append("<td>" + data[i].team + "</td>");
-  //       // tr.append("<td>" + data[i].team + "</td>");
-  //       $('tbody').append(tr);
-  //   }
-  // }
+  function getValidClockPairs(clocks) {
+    if (clocks.length === 0) return null;
+    
+    //sort ascending
+    clocks.sort((a, b) => a.valueOf()-b.valueOf());
+
+    let currentClock = clocks[0]; //clock valid pertama
+    let validClocks = [currentClock];
+    
+    //cari semua clock valid
+    for (let i = 1; i < clocks.length; i++) {
+      //apabila selisih lebih dari 15 menit (dalam milliseconds), berarti valid
+      if ( clocks[i].diff(currentClock) > 15*60*1000 ) {
+        currentClock = clocks[i];
+        validClocks.push(clocks[i]);
+      }
+    }
+
+    //pairing semua clock valid
+    let clockPairs = [];
+    for (let i = 0; i < validClocks.length; i += 2) {
+      if (!validClocks[i+1]) { //kalau tidak punya pasangan sign out
+        clockPairs.push({ clockIn: validClocks[i], clockOut: null, duration: 0 });
+      } else {
+        clockPairs.push({ 
+          clockIn: validClocks[i], 
+          clockOut: validClocks[i+1], 
+          duration: moment.utc(validClocks[i+1].diff(validClocks[i]))
+        });
+      }
+    }
+
+    return clockPairs;
+  }
 
   function loadTable(data){
     var result=[];
     for (var i = 0; i < data.length; i++) {
-      let minTime = moment.min(getTime(data[i].absensi))
-      let maxTime = moment.max(getTime(data[i].absensi))
-      let workingHours = moment.utc(maxTime.diff(minTime))
-      let jam_masuk_toleransi = moment.utc(moment(data[i].jam_masuk).add(5,"minutes").format("HH:mm:ss"),"HH:mm:ss")
-      let jam_masuk_pertama = moment.utc(minTime.format("HH:mm:ss"),"HH:mm:ss")
+      let clocks = data[i].absensi.map(clock => moment(clock.date))
+      let validClockPairs = getValidClockPairs(clocks);
+
+      // let minTime = moment.min(getTime(data[i].absensi))
+      // let maxTime = moment.max(getTime(data[i].absensi))
+      // let workingHours = moment.utc(maxTime.diff(minTime))
+      // let jam_masuk_toleransi = moment.utc(moment(data[i].jam_masuk).add(5,"minutes").format("HH:mm:ss"),"HH:mm:ss")
+      // let jam_masuk_pertama = moment.utc(minTime.format("HH:mm:ss"),"HH:mm:ss")
       result.push([
         data[i].nik,
         data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
         data[i].department,
         (data[i].atasan_langsung?data[i].atasan_langsung:""),
         moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
-        (data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):""),
-        minTime.format("HH:mm:ss"),
-        maxTime.format("HH:mm:ss"),
-        workingHours.format("HH:mm:ss"),
-        (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"TELAT":""),
-        (workingHours.hours()>=9?"":"---")
-        ])
+        (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
+        validClockPairs.reduce((acc, cur) => {
+            let clockInTime = cur.clockIn.format("HH:mm:ss");
+            let clockOutTime = cur.clockOut ? cur.clockOut.format("HH:mm:ss") : "[empty]";
+            let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : "";
+            return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`;
+        }, ""),
+        moment.utc(validClockPairs.reduce((acc, cur) => acc+cur.duration.valueOf(), 0)).format("HH:mm:ss")
+        // minTime.format("HH:mm:ss"),
+        // maxTime.format("HH:mm:ss"),
+        // workingHours.format("HH:mm:ss"),
+        // (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"TELAT":""),
+        // (workingHours.hours()>=9?"":"---")
+      ])
     }
     $('#dataTable').DataTable( {
       destroy: true,
@@ -162,19 +181,21 @@
       ],
       data: result,
       columns: [
-      { title: "NIK" },
-      { title: "Nama" },
-      { title: "Department" },
-      { title: "Atasan Langsung" },
-      { title: "Tanggal" },
-      { title: "Jam Masuk" },
-      { title: "Sign In" },
-      { title: "Sign Out" },
-      { title: "Jam Kerja" },
-      { title: "Telat" },
-      { title: "Full Working Hours" }
+        { title: "NIK" },
+        { title: "Nama" },
+        { title: "Department" },
+        { title: "Atasan Langsung" },
+        { title: "Tanggal" },
+        { title: "Jam Masuk" },
+        { title: "Absensi"},
+        // { title: "Sign In" },
+        // { title: "Sign Out" },
+        // { title: "Jam Kerja" },
+        // { title: "Telat" },
+        { title: "Full Working Hours" }
       ]
     } );
+    console.log("datatable result:");
     console.log(result);
   }
 
@@ -213,8 +234,6 @@
   }
 
   $('button').on('click',()=>{
-    console.log("trigger");
-
     if (!validateInput()) return;
 
     $.when(
@@ -231,7 +250,6 @@
     let toString=toDate.getFullYear()+"-"+(toDate.getMonth()+1)+"-"+toDate.getDate()
     $.getJSON("/api/attendances",{from:fromString,to:toString})
     .then(({data})=>{
-      console.log(data);
       loadTable(data);
 
       $.when(
