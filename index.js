@@ -47,9 +47,6 @@ app.get('/dashboard',authentication.isLoggedIn, (req, res) => {
 app.get('/login', (req, res) => {
   res.render('login')
 })
-app.get('/register', (req, res) => {
-  res.render('register')
-})
 app.post("/register",function(req,res){
 		var newUser = new User({username:req.body.username});
 		console.log(newUser)
