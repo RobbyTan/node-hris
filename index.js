@@ -13,6 +13,7 @@ const attendanceRoutes = require('./routes/attendance')
 const employeeRoutes = require('./routes/employee')
 const apiRoutes = require('./routes/api')
 const reportRoutes = require('./routes/report')
+const configurationRoutes = require('./routes/configuration')
 
 // apply middleware
 app.use(bodyParser.urlencoded({extended: true}))
@@ -70,6 +71,8 @@ app.use('/attendance', attendanceRoutes)
 app.use('/employee', employeeRoutes)
 app.use('/api', apiRoutes)
 app.use('/report', reportRoutes)
+app.use('/configuration',configurationRoutes)
+
 
 // port config
 const PORT = process.env.PORT || 8080
