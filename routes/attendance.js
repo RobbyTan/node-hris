@@ -13,7 +13,14 @@ router.get('/view',authentication.isLoggedIn,(req, res) => {
 })
 
 router.get('/view1',authentication.isLoggedIn, (req, res) => {
-  res.render('./attendance/viewAttendance1')
+    db.Configuration.findOne({},function(err,result){
+    if(err){
+      console.log(err);
+    }else{
+        res.render('./attendance/viewAttendance1',{maxTime: result})
+    }
+  })
+
 })
 
 router.get('/view2',authentication.isLoggedIn, (req, res) => {

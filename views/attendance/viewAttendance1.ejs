@@ -71,7 +71,10 @@
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
 </script>
 <script type="text/javascript">
-
+  var dosenTidakTetapMaxTime= '<%=maxTime.dosenTidakTetapMaxTime%>';
+  var dosenTidakTetapMaxTimeMs;
+  toMiliSeconds(dosenTidakTetapMaxTime);
+  console.log('<%=maxTime.dosenTidakTetapMaxTime%>');
   $(document).ready(function() {
     $(document).ready(function() {
       $('.mdb-select').material_select();
@@ -97,6 +100,43 @@
     } );
 
   } );
+
+  function getValidClockPairsWithMaxTime(clocks){
+    if (clocks.length === 0) return null;
+    clocks.sort((a, b) => a.valueOf()-b.valueOf());
+
+        //cari semua clock valid
+    for (let i = 1; i < clocks.length; i++) {
+      //apabila selisih lebih dari 15 menit (dalam milliseconds), berarti valid
+      if ( clocks[i].diff(currentClock) > 15*60*1000 ) {
+        currentClock = clocks[i];
+        validClocks.push(clocks[i]);
+      }
+    }
+
+    //pairing semua clock valid
+    let clockPairs = [];
+    let durationMaxTime;
+    for (let i = 0; i < validClocks.length; i += 2) {
+      if (!validClocks[i+1]) { //kalau tidak punya pasangan sign out
+        clockPairs.push({ clockIn: validClocks[i], clockOut: null, duration: 0 });
+      } else {
+        if(validClocks[i+1].diff(validClocks[i]) > dosenTidakTetapMaxTimeMs ){
+          durationMaxTime : moment.utc(dosenTidakTetapMaxTimeMs);
+        }else{
+          durationMaxTime : moment.utc(validClocks[i+1].diff(validClocks[i]))
+        }
+        clockPairs.push({ 
+          clockIn: validClocks[i], 
+          clockOut: validClocks[i+1], 
+          duration: durationMaxTime
+        });
+      }
+    }
+
+    return clockPairs;
+
+  }
 
   function getValidClockPairs(clocks) {
     if (clocks.length === 0) return null;
@@ -133,10 +173,17 @@
     return clockPairs;
   }
 
+  function toMiliSeconds(time){
+    var time;
+    var timeParts = time.split(":");
+    dosenTidakTetapMaxTimeMs = (+timeParts[0]*(60000*60))+(+timeParts[1]*60000);
+  }
   function loadTable(data){
     var result=[];
     for (var i = 0; i < data.length; i++) {
       let clocks = data[i].absensi.map(clock => moment(clock.date))
+      console.log(data[i])
+    
       let validClockPairs = getValidClockPairs(clocks);
 
       // let minTime = moment.min(getTime(data[i].absensi))
