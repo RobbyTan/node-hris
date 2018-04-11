@@ -37,10 +37,6 @@
           <td>Tanggal</td>
           <td>Jam Masuk</td>
           <td>Absensi</td>
-          <!-- <td>Sign In</td>
-          <td>Sign Out</td>
-          <td>Jam Kerja</td>
-          <td>Telat</td> -->
           <td>Full Working Hours</td>
         </tr>
       </thead>
@@ -71,10 +67,9 @@
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
 </script>
 <script type="text/javascript">
-  var dosenTidakTetapMaxTime= '<%=maxTime.dosenTidakTetapMaxTime%>';
-  var dosenTidakTetapMaxTimeMs;
-  toMiliSeconds(dosenTidakTetapMaxTime);
-  console.log('<%=maxTime.dosenTidakTetapMaxTime%>');
+  let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
+  let dosenTidakTetapMaxTimeMs = toMiliSeconds(dosenTidakTetapMaxTime);
+
   $(document).ready(function() {
     $(document).ready(function() {
       $('.mdb-select').material_select();
@@ -101,44 +96,8 @@
 
   } );
 
-  function getValidClockPairsWithMaxTime(clocks){
-    if (clocks.length === 0) return null;
-    clocks.sort((a, b) => a.valueOf()-b.valueOf());
-
-        //cari semua clock valid
-    for (let i = 1; i < clocks.length; i++) {
-      //apabila selisih lebih dari 15 menit (dalam milliseconds), berarti valid
-      if ( clocks[i].diff(currentClock) > 15*60*1000 ) {
-        currentClock = clocks[i];
-        validClocks.push(clocks[i]);
-      }
-    }
-
-    //pairing semua clock valid
-    let clockPairs = [];
-    let durationMaxTime;
-    for (let i = 0; i < validClocks.length; i += 2) {
-      if (!validClocks[i+1]) { //kalau tidak punya pasangan sign out
-        clockPairs.push({ clockIn: validClocks[i], clockOut: null, duration: 0 });
-      } else {
-        if(validClocks[i+1].diff(validClocks[i]) > dosenTidakTetapMaxTimeMs ){
-          durationMaxTime : moment.utc(dosenTidakTetapMaxTimeMs);
-        }else{
-          durationMaxTime : moment.utc(validClocks[i+1].diff(validClocks[i]))
-        }
-        clockPairs.push({ 
-          clockIn: validClocks[i], 
-          clockOut: validClocks[i+1], 
-          duration: durationMaxTime
-        });
-      }
-    }
-
-    return clockPairs;
-
-  }
-
-  function getValidClockPairs(clocks) {
+  //clocks adalah array of moment object
+  function getClockPairs(clocks) {
     if (clocks.length === 0) return null;
     
     //sort ascending
@@ -161,7 +120,7 @@
     for (let i = 0; i < validClocks.length; i += 2) {
       if (!validClocks[i+1]) { //kalau tidak punya pasangan sign out
         clockPairs.push({ clockIn: validClocks[i], clockOut: null, duration: 0 });
-      } else {
+      } else { //kalo pasangan absensi lengkap/rapi
         clockPairs.push({ 
           clockIn: validClocks[i], 
           clockOut: validClocks[i+1], 
@@ -174,23 +133,66 @@
   }
 
   function toMiliSeconds(time){
-    var time;
-    var timeParts = time.split(":");
-    dosenTidakTetapMaxTimeMs = (+timeParts[0]*(60000*60))+(+timeParts[1]*60000);
+    let timeParts = time.split(":");
+    let h = timeParts[0] ? +timeParts[0]*60*60*1000 : 0;
+    let m = timeParts[1] ? +timeParts[1]*60*1000 : 0;
+    let s = timeParts[2] ? +timeParts[2]*1000 : 0;
+    return h+m+s;
   }
+  
+  // data berisi array of JSON satu orang dengan absensi-nya utk hari itu
   function loadTable(data){
-    var result=[];
-    for (var i = 0; i < data.length; i++) {
-      let clocks = data[i].absensi.map(clock => moment(clock.date))
-      console.log(data[i])
-    
-      let validClockPairs = getValidClockPairs(clocks);
+    let result=[];
 
-      // let minTime = moment.min(getTime(data[i].absensi))
-      // let maxTime = moment.max(getTime(data[i].absensi))
-      // let workingHours = moment.utc(maxTime.diff(minTime))
-      // let jam_masuk_toleransi = moment.utc(moment(data[i].jam_masuk).add(5,"minutes").format("HH:mm:ss"),"HH:mm:ss")
-      // let jam_masuk_pertama = moment.utc(minTime.format("HH:mm:ss"),"HH:mm:ss")
+    let validatorFactory = function(pRanges) {
+      return function(clock) {
+        let ranges = pRanges;
+        for (let range of ranges) {
+          // kalau ada yang match, return clock nya aja
+          if ( toMiliSeconds(range[0]) <= toMiliSeconds(clock) && toMiliSeconds(clock) <= toMiliSeconds(range[1]) ) {
+            return clock;
+          }
+        }
+        // kalau tidak ada yang match, return clock yg sudah di-flag
+        return `<span style="color: white; background: #FF530D;">${clock}</span>`;
+      }
+    }
+
+    let validateClockInRange = validatorFactory([["08:00", "10:00"], ["16:30", "18:30"]]);
+    let validateClockOutRange = validatorFactory([["11:30", "13:30"], ["20:00", "22:00"]]);
+    let validateDurationRange = validatorFactory([[dosenTidakTetapMaxTime, "23:59"]]);
+    
+    for (let i = 0; i < data.length; i++) {
+      let clocks = data[i].absensi.map(clock => moment(clock.date))
+    
+      let clockPairs = getClockPairs(clocks);
+      
+      let clockPairsDisplay;
+      let totalWorkingTime;
+      if (data[i].department === "Dosen Tidak Tetap") {     // jika Dosen Tidak Tetap
+        clockPairsDisplay = clockPairs.reduce((acc, cur) => {
+          let clockInTime = validateClockInRange(cur.clockIn.format("HH:mm:ss"));
+          let clockOutTime = cur.clockOut ? validateClockOutRange(cur.clockOut.format("HH:mm:ss")) : "[empty]";
+          let durationTime = cur.duration ? `(${ validateDurationRange(cur.duration.format("HH:mm:ss")) })` : "";
+          return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
+        }, "");
+        totalWorkingTime = moment.utc(clockPairs.reduce(
+                                        (acc, cur) => 
+                                          acc + Math.min(dosenTidakTetapMaxTimeMs, cur.duration.valueOf())
+                                      ,0)).format("HH:mm:ss");
+      } else {
+        clockPairsDisplay = clockPairs.reduce((acc, cur) => {
+          let clockInTime = cur.clockIn.format("HH:mm:ss");
+          let clockOutTime = cur.clockOut ? cur.clockOut.format("HH:mm:ss") : "[empty]";
+          let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : "";
+          return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
+        }, "");
+        totalWorkingTime = moment.utc(clockPairs.reduce(
+                                        (acc, cur) => 
+                                          acc + cur.duration.valueOf()
+                                      ,0)).format("HH:mm:ss");
+      }
+      
       result.push([
         data[i].nik,
         data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
@@ -198,20 +200,11 @@
         (data[i].atasan_langsung?data[i].atasan_langsung:""),
         moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
         (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
-        validClockPairs.reduce((acc, cur) => {
-            let clockInTime = cur.clockIn.format("HH:mm:ss");
-            let clockOutTime = cur.clockOut ? cur.clockOut.format("HH:mm:ss") : "[empty]";
-            let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : "";
-            return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`;
-        }, ""),
-        moment.utc(validClockPairs.reduce((acc, cur) => acc+cur.duration.valueOf(), 0)).format("HH:mm:ss")
-        // minTime.format("HH:mm:ss"),
-        // maxTime.format("HH:mm:ss"),
-        // workingHours.format("HH:mm:ss"),
-        // (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"TELAT":""),
-        // (workingHours.hours()>=9?"":"---")
+        clockPairsDisplay,
+        totalWorkingTime
       ])
     }
+
     $('#dataTable').DataTable( {
       destroy: true,
       dom: 'Bfrtip',
@@ -235,15 +228,9 @@
         { title: "Tanggal" },
         { title: "Jam Masuk" },
         { title: "Absensi"},
-        // { title: "Sign In" },
-        // { title: "Sign Out" },
-        // { title: "Jam Kerja" },
-        // { title: "Telat" },
         { title: "Full Working Hours" }
       ]
     } );
-    console.log("datatable result:");
-    console.log(result);
   }
 
   function getTime(datas){
