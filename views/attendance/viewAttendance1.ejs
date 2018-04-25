@@ -144,7 +144,7 @@
   function loadTable(data){
     let result=[];
 
-    let validatorFactory = function(pRanges) {
+    let validatorFactory = function(pRanges, color) {
       return function(clock) {
         let ranges = pRanges;
         for (let range of ranges) {
@@ -154,13 +154,13 @@
           }
         }
         // kalau tidak ada yang match, return clock yg sudah di-flag
-        return `<span style="color: white; background: #FF530D;">${clock}</span>`;
+        return `<span style="color: white; background: ${color};">${clock}</span>`;
       }
     }
 
-    let validateClockInRange = validatorFactory([["08:00", "10:00"], ["16:30", "18:30"]]);
-    let validateClockOutRange = validatorFactory([["11:30", "13:30"], ["20:00", "22:00"]]);
-    let validateDurationRange = validatorFactory([[dosenTidakTetapMaxTime, "23:59"]]);
+    let validateClockInRange = validatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "red");
+    let validateClockOutRange = validatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "red");
+    let validateDurationRange = validatorFactory([[dosenTidakTetapMaxTime, "23:59"]], "green");
     
     for (let i = 0; i < data.length; i++) {
       let clocks = data[i].absensi.map(clock => moment(clock.date))
@@ -172,7 +172,7 @@
       if (data[i].department === "Dosen Tidak Tetap") {     // jika Dosen Tidak Tetap
         clockPairsDisplay = clockPairs.reduce((acc, cur) => {
           let clockInTime = validateClockInRange(cur.clockIn.format("HH:mm:ss"));
-          let clockOutTime = cur.clockOut ? validateClockOutRange(cur.clockOut.format("HH:mm:ss")) : "[empty]";
+          let clockOutTime = cur.clockOut ? validateClockOutRange(cur.clockOut.format("HH:mm:ss")) : `<span style="color: white; background: orange;">[empty]</span>`;
           let durationTime = cur.duration ? `(${ validateDurationRange(cur.duration.format("HH:mm:ss")) })` : "";
           return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
         }, "");
