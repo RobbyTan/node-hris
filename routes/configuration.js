@@ -18,14 +18,14 @@ router.get("/", authentication.isLoggedIn, (req, res) => {
 	})
 })
 
-router.post("/", authentication.isLoggedIn, (req, res) => {
-	let maxTime = req.body.maxTime;
-	db.Configuration.update({}, { $set: { 
-		dosenTidakTetapMaxTime: maxTime
-	}}, function (err) {
-		if (err) console.log(err);
-		res.redirect("/configuration")
-	});
-})
+// router.post("/", authentication.isLoggedIn, (req, res) => {
+// 	let maxTime = req.body.maxTime;
+// 	db.Configuration.update({}, { $set: { 
+// 		dosenTidakTetapMaxTime: maxTime
+// 	}}, function (err) {
+// 		if (err) console.log(err);
+// 		res.redirect("/configuration")
+// 	});
+// })
 
 module.exports = router

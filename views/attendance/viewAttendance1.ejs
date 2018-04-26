@@ -44,7 +44,7 @@
 
       </tbody>
     </table>
-<!--     <button type="button" class="btn btn-warning btn-rounded pull-right" id="btnEdit" style="visibility: hidden; ">Edit Data</button> -->
+    <!--     <button type="button" class="btn btn-warning btn-rounded pull-right" id="btnEdit" style="visibility: hidden; ">Edit Data</button> -->
 
   </table>
 </div>
@@ -69,6 +69,7 @@
 <script type="text/javascript">
   let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
   let dosenTidakTetapMaxTimeMs = toMiliSeconds(dosenTidakTetapMaxTime);
+
 
   $(document).ready(function() {
     $(document).ready(function() {
@@ -274,7 +275,6 @@
       $("button").prop("disabled", true) // disable Generate button
       ).done(() => {
       $("#dataTable_wrapper").fadeOut(); // hide dataTable
-      $("#btnEdit").css("visibility","hidden")
     }).done(() => {
       $("#spinner").fadeIn();  // show spinner animation
     });
@@ -293,10 +293,12 @@
           $("#dataTable_wrapper").fadeIn();
         }).done(() => {
           $("button").prop("disabled", false);
-          $("#btnEdit").css("visibility","visible")
         });
       })
   })
+    $('#dataTable tbody').on('contextmenu','tr',function(){
+      alert('')
+    })
   </script>
 </body>
 

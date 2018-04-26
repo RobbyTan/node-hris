@@ -50,6 +50,15 @@ router.get('/employeedata',(req,res)=>{
   })
 })
 
+router.post("/configurationDosenMaxTime",(req,res)=>{
+  let maxTime = req.headers.maxtime;
+  db.Configuration.update({}, { $set: { 
+    dosenTidakTetapMaxTime: maxTime
+  }}, function (err) {
+    if (err) console.log(err);
+    res.redirect("/configuration")
+  });
+})
 // String,String,Boolean
 async function showData (from, to, full) {
   let days = Math.abs(moment(from, 'YYYY-MM-DD').diff(moment(to, 'YYYY-MM-DD'), 'days')) + 1
