@@ -77,22 +77,22 @@
       $('.mdb-select').material_select();
       $.when(
         $("#dataTable_wrapper").hide(0) //hide parent wrapper
-      ).done(() => { 
+        ).done(() => { 
         $("#dataTable").show(0); //show its child element
       });
-    });
+      });
     $('#dataTable').DataTable( {
       dom: 'Bfrtip',
       "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
       buttons: [
-        'pageLength',
-          'copyHtml5',
-          'excelHtml5',
-          {
-            extend: 'pdf',
-            text: 'Pdf',
-            orientation: 'landscape'
-          }
+      'pageLength',
+      'copyHtml5',
+      'excelHtml5',
+      {
+        extend: 'pdf',
+        text: 'Pdf',
+        orientation: 'landscape'
+      }
       ]
     });
   });
@@ -101,68 +101,68 @@
     var result=[];
     datas.forEach(({data,date})=>{
       for (var i = 0; i < data.length; i++) {
-          if(data[i].absensi.length>0){
-            console.log("here 1");
-            let minTime = moment.min(getTime(data[i].absensi))
-            let maxTime = moment.max(getTime(data[i].absensi))
-            let workingHours = moment.utc(maxTime.diff(minTime))
-            let jam_masuk_toleransi = moment.utc(moment(data[i].jam_masuk).add(5,"minutes").format("HH:mm:ss"),"HH:mm:ss")
-            let jam_masuk_pertama = moment.utc(minTime.format("HH:mm:ss"),"HH:mm:ss")
-            result.push([
-              data[i].nik,
-              data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
-              data[i].department,
-              (data[i].atasan_langsung?data[i].atasan_langsung:""),
-              moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
-              (data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):""),
-              minTime.format("HH:mm:ss"),
-              maxTime.format("HH:mm:ss"),
-              workingHours.format("HH:mm:ss"),
-              (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"TELAT":""),
-              (workingHours.hours()>=9?"":"---")
+        if(data[i].absensi.length>0){
+          console.log("here 1");
+          let minTime = moment.min(getTime(data[i].absensi))
+          let maxTime = moment.max(getTime(data[i].absensi))
+          let workingHours = moment.utc(maxTime.diff(minTime))
+          let jam_masuk_toleransi = moment.utc(moment(data[i].jam_masuk).add(5,"minutes").format("HH:mm:ss"),"HH:mm:ss")
+          let jam_masuk_pertama = moment.utc(minTime.format("HH:mm:ss"),"HH:mm:ss")
+          result.push([
+            data[i].nik,
+            data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
+            data[i].department,
+            (data[i].atasan_langsung?data[i].atasan_langsung:""),
+            moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
+            (data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):""),
+            (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?'<span style="background : rgb(244,72,66);color:white">'+minTime.format("HH:mm:ss")+'</span>':minTime.format("HH:mm:ss")),
+            maxTime.format("HH:mm:ss"),
+            (workingHours.hours()>=9?workingHours.format("HH:mm:ss"):'<span style="background : rgb(173,244,66)">'+workingHours.format("HH:mm:ss")+'</span>'),
+            (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"TELAT":""),
+            (workingHours.hours()>=9?"":"---")
             ])
-          }else{
-            console.log("here 2");
-            result.push([
-              data[i].nik,
-              data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
-              data[i].department,
-              (data[i].atasan_langsung?data[i].atasan_langsung:""),
-              moment(date).format("D MMMM YYYY"),"-","-","-","-","","---"
+        }else{
+          console.log("here 2");
+          result.push([
+            data[i].nik,
+            data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
+            data[i].department,
+            (data[i].atasan_langsung?data[i].atasan_langsung:""),
+            moment(date).format("D MMMM YYYY"),"-","-","-","-","","---"
             ])
-          }
         }
+      }
     })
 
 
     $('#dataTable').DataTable( {
-        destroy: true,
-        dom: 'Bfrtip',
-        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-        buttons: [
-            'pageLength',
-            'copyHtml5',
-            'excelHtml5',
-            {
-              extend: 'pdf',
-              text: 'Pdf',
-              orientation: 'landscape'
-            }
-        ],
-        data: result,
-        columns: [
-          { title: "NIK" },
-          { title: "Nama" },
-          { title: "Department" },
-          { title: "Atasan Langsung" },
-          { title: "Tanggal" },
-          { title: "Jam Masuk" },
-          { title: "Sign In" },
-          { title: "Sign Out" },
-          { title: "Jam Kerja" },
-          { title: "Telat" },
-          { title: "Full Working Hours" }
-        ]
+      destroy: true,
+      dom: 'Bfrtip',
+      "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+      buttons: [
+      'pageLength',
+      'copyHtml5',
+      'excelHtml5',
+      {
+        extend: 'pdf',
+        text: 'Pdf',
+        orientation: 'landscape'
+      }
+      ],
+      data: result,
+      columns: [
+      { title: "NIK" },
+      { title: "Nama" },
+      { title: "Department" },
+      { title: "Atasan Langsung" },
+      { title: "Tanggal" },
+      { title: "Jam Masuk" },
+      { title: "Sign In" },
+      { title: "Sign Out" },
+      { title: "Jam Kerja" },
+      { title: "Telat" },
+      { title: "Full Working Hours" }
+      ]
     } );
     console.log(result);
   }
@@ -180,35 +180,35 @@
       $.when(
         $("#validation-alert").slideUp(),
         $("#dataTable_wrapper").fadeOut()
-      ).done(() => {
-        $("#validation-alert").text(content);
-      }).done(() => {
-        if (showAgain)
-          $("#validation-alert").slideDown();
-      });
-    };
-    let fromDateString = $("#from").val();
-    let toDateString = $("#to").val();
-    if (fromDateString === "" || toDateString === "") {
-      showAlert('Please fill in both "FROM" and "TO" dates.', true);
-      return false;
-    } else if (moment(fromDateString).isAfter(toDateString)) {
-      showAlert('Invalid input! "FROM" date is after "TO" date.', true);
-      return false;
-    } else {
-      showAlert('', false);
-      return true;
+        ).done(() => {
+          $("#validation-alert").text(content);
+        }).done(() => {
+          if (showAgain)
+            $("#validation-alert").slideDown();
+        });
+      };
+      let fromDateString = $("#from").val();
+      let toDateString = $("#to").val();
+      if (fromDateString === "" || toDateString === "") {
+        showAlert('Please fill in both "FROM" and "TO" dates.', true);
+        return false;
+      } else if (moment(fromDateString).isAfter(toDateString)) {
+        showAlert('Invalid input! "FROM" date is after "TO" date.', true);
+        return false;
+      } else {
+        showAlert('', false);
+        return true;
+      }
     }
-  }
 
-  $('button').on('click',()=>{
-    console.log("trigger");
-    
-    if (!validateInput()) return;
+    $('button').on('click',()=>{
+      console.log("trigger");
 
-    $.when(
+      if (!validateInput()) return;
+
+      $.when(
       $("button").prop("disabled", true) // disable Generate button
-    ).done(() => {
+      ).done(() => {
       $("#dataTable_wrapper").fadeOut(); // hide dataTable
     }).done(() => {
       $("#spinner").fadeIn();  // show spinner animation
@@ -232,12 +232,12 @@
 
       $.when(
         $("#spinner").fadeOut()
-      ).done(() => {
-        $("#dataTable_wrapper").fadeIn();
-      }).done(() => {
-        $("button").prop("disabled", false);
+        ).done(() => {
+          $("#dataTable_wrapper").fadeIn();
+        }).done(() => {
+          $("button").prop("disabled", false);
+        });
       });
-    });
     // let results = await Promise.all(dataPromise)
     // $.getJSON("/api/attendancesfull",{from:fromString,to:toString})
     // .then((data)=>{

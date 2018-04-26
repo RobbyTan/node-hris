@@ -49,6 +49,7 @@ router.get('/employeedata',(req,res)=>{
     }
   })
 })
+
 // String,String,Boolean
 async function showData (from, to, full) {
   let days = Math.abs(moment(from, 'YYYY-MM-DD').diff(moment(to, 'YYYY-MM-DD'), 'days')) + 1

@@ -14,17 +14,17 @@
     <button type="button" class="btn btn-primary">Generate</button>
     <br>  
     <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
-    <div class="spinner-layer spinner-blue-only">
-      <div class="circle-clipper left">
-        <div class="circle"></div>
+      <div class="spinner-layer spinner-blue-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
       </div>
-      <div class="gap-patch">
-        <div class="circle"></div>
-      </div>
-      <div class="circle-clipper right">
-        <div class="circle"></div>
-      </div>
-    </div>
     </div>
 
     <table id="dataTable" style="display: none" class="table stripe" cellspacing="0" width="100%">
@@ -44,7 +44,7 @@
 
       </tbody>
     </table>
-
+<!--     <button type="button" class="btn btn-warning btn-rounded pull-right" id="btnEdit" style="visibility: hidden; ">Edit Data</button> -->
 
   </table>
 </div>
@@ -78,7 +78,7 @@
         ).done(() => { 
         $("#dataTable").show(0); //show its child element
       });
-    });
+      });
     $('#dataTable').DataTable( {
       dom: 'Bfrtip',
       "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
@@ -158,13 +158,13 @@
       }
     }
 
-    let validateClockInRange = validatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "red");
-    let validateClockOutRange = validatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "red");
-    let validateDurationRange = validatorFactory([[dosenTidakTetapMaxTime, "23:59"]], "green");
+    let validateClockInRange = validatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
+    let validateClockOutRange = validatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)");
+    let validateDurationRange = validatorFactory([[dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)");
     
     for (let i = 0; i < data.length; i++) {
       let clocks = data[i].absensi.map(clock => moment(clock.date))
-    
+
       let clockPairs = getClockPairs(clocks);
       
       let clockPairsDisplay;
@@ -177,9 +177,9 @@
           return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
         }, "");
         totalWorkingTime = moment.utc(clockPairs.reduce(
-                                        (acc, cur) => 
-                                          acc + Math.min(dosenTidakTetapMaxTimeMs, cur.duration.valueOf())
-                                      ,0)).format("HH:mm:ss");
+          (acc, cur) => 
+          acc + Math.min(dosenTidakTetapMaxTimeMs, cur.duration.valueOf())
+          ,0)).format("HH:mm:ss");
       } else {
         clockPairsDisplay = clockPairs.reduce((acc, cur) => {
           let clockInTime = cur.clockIn.format("HH:mm:ss");
@@ -188,9 +188,9 @@
           return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
         }, "");
         totalWorkingTime = moment.utc(clockPairs.reduce(
-                                        (acc, cur) => 
-                                          acc + cur.duration.valueOf()
-                                      ,0)).format("HH:mm:ss");
+          (acc, cur) => 
+          acc + cur.duration.valueOf()
+          ,0)).format("HH:mm:ss");
       }
       
       result.push([
@@ -202,7 +202,7 @@
         (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
         clockPairsDisplay,
         totalWorkingTime
-      ])
+        ])
     }
 
     $('#dataTable').DataTable( {
@@ -221,16 +221,16 @@
       ],
       data: result,
       columns: [
-        { title: "NIK" },
-        { title: "Nama" },
-        { title: "Department" },
-        { title: "Atasan Langsung" },
-        { title: "Tanggal" },
-        { title: "Jam Masuk" },
-        { title: "Absensi"},
-        { title: "Full Working Hours" }
+      { title: "NIK" },
+      { title: "Nama" },
+      { title: "Department" },
+      { title: "Atasan Langsung" },
+      { title: "Tanggal" },
+      { title: "Jam Masuk" },
+      { title: "Absensi"},
+      { title: "Full Working Hours" }
       ]
-    } );
+    } )
   }
 
   function getTime(datas){
@@ -246,34 +246,35 @@
       $.when(
         $("#validation-alert").slideUp(),
         $("#dataTable_wrapper").fadeOut()
-      ).done(() => {
-        $("#validation-alert").text(content);
-      }).done(() => {
-        if (showAgain)
-          $("#validation-alert").slideDown();
-      });
-    };
-    let fromDateString = $("#from").val();
-    let toDateString = $("#to").val();
-    if (fromDateString === "" || toDateString === "") {
-      showAlert('Please fill in both "FROM" and "TO" dates.', true);
-      return false;
-    } else if (moment(fromDateString).isAfter(toDateString)) {
-      showAlert('Invalid input! "FROM" date is after "TO" date.', true);
-      return false;
-    } else {
-      showAlert('', false);
-      return true;
+        ).done(() => {
+          $("#validation-alert").text(content);
+        }).done(() => {
+          if (showAgain)
+            $("#validation-alert").slideDown();
+        });
+      };
+      let fromDateString = $("#from").val();
+      let toDateString = $("#to").val();
+      if (fromDateString === "" || toDateString === "") {
+        showAlert('Please fill in both "FROM" and "TO" dates.', true);
+        return false;
+      } else if (moment(fromDateString).isAfter(toDateString)) {
+        showAlert('Invalid input! "FROM" date is after "TO" date.', true);
+        return false;
+      } else {
+        showAlert('', false);
+        return true;
+      }
     }
-  }
 
-  $('button').on('click',()=>{
-    if (!validateInput()) return;
+    $('button').on('click',()=>{
+      if (!validateInput()) return;
 
-    $.when(
+      $.when(
       $("button").prop("disabled", true) // disable Generate button
       ).done(() => {
       $("#dataTable_wrapper").fadeOut(); // hide dataTable
+      $("#btnEdit").css("visibility","hidden")
     }).done(() => {
       $("#spinner").fadeIn();  // show spinner animation
     });
@@ -292,10 +293,11 @@
           $("#dataTable_wrapper").fadeIn();
         }).done(() => {
           $("button").prop("disabled", false);
+          $("#btnEdit").css("visibility","visible")
         });
       })
   })
-</script>
+  </script>
 </body>
 
 </html>
