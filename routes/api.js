@@ -50,15 +50,59 @@ router.get('/employeedata',(req,res)=>{
   })
 })
 
-router.post("/configurationDosenMaxTime",(req,res)=>{
+router.post("/configuration/DosenMaxTime",(req,res)=>{
   let maxTime = req.headers.maxtime;
-  db.Configuration.update({}, { $set: { 
+  db.Configuration.update({}, { $set: {
     dosenTidakTetapMaxTime: maxTime
   }}, function (err) {
     if (err) console.log(err);
-    res.redirect("/configuration")
+    res.send("success updating DosenMaxTime")
   });
 })
+
+router.get('/attendances/:nik', (req, res) => {
+  let nik = req.params.nik;
+  let date = req.query.date;
+
+  db.Absensi.aggregate([
+    {
+      $match: {
+        $and: [
+          {nik: nik},
+          {date: {$gte: new Date(date)} },
+          {date: {$lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()} }
+        ]
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        date: 1,
+        type: 1
+      }
+    }
+  ]).then(data => {
+    res.json(data);
+  }).catch(err => {
+    res.status(404).json({error: true});
+  });
+});
+
+router.post("/attendances", (req, res) => {
+  let newAttendance = {
+    nik: req.headers.nik,
+    date: req.headers.timestamp,
+    type: "manual"
+  };
+  db.Absensi.find({date: newAttendance.date}, function(attendance) {
+    if (attendance) res.status(404).json({duplicateError: true});
+  });
+  db.Absensi.create(newAttendance, (err, newlyCreated) => {
+    if (err) return res.status(404).send("error occured");
+    res.send("new attendance inserted");
+  });
+})
+
 // String,String,Boolean
 async function showData (from, to, full) {
   let days = Math.abs(moment(from, 'YYYY-MM-DD').diff(moment(to, 'YYYY-MM-DD'), 'days')) + 1

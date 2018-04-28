@@ -26,18 +26,18 @@
 			placement: 'bottom',
 			donetext: 'Done'
 		});
-		$('#formMaxTime').on('submit',function(error){
+		$('#formMaxTime').on('submit', function(error) {
 			error.preventDefault();
-			var maxTime = {
+			let maxTime = {
 				maxTime: $('#txtMaxTime').val()
 			}
-			console.log(maxTime)
+			
 			$.ajax({
 				type:'POST',
-				url : '/api/configurationDosenMaxTime',
+				url : '/api/configuration/DosenMaxTime',
 				headers : maxTime,
 				success : function(data){
-					console.log("success");
+					console.log(data);
 					toastr.options = {
 						"closeButton": false,
 						"debug": false,
@@ -47,7 +47,7 @@
 						"preventDuplicates": false,
 						"onclick": null,
 						"showDuration": 300,
-						"hideDuration": 1000,
+						"hideDuration": 500,
 						"timeOut": 3000,
 						"extendedTimeOut": 1000,
 						"showEasing": "swing",
@@ -58,7 +58,7 @@
 					toastr.info('Settings Updated');
 				},
 				error : function(){
-					console.log("error")
+					console.log("error updating DosenMaxTime")
 				}
 			})
 		})

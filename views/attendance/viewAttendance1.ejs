@@ -1,252 +1,179 @@
 <% include ../partials/attendanceHeader%>
-<div class="container">
-  <h3>View Attendance With Sign in/out</h3>
-  <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
-  <table class="table">
-    <label class="pl-3">From:</label>
-    <div class="md-form col-xl-3">
-      <input name="from" type="date" id="from" required>
-    </div>
-    <label class="pl-3">To:</label>
-    <div class="md-form col-xl-3">
-      <input name="to" type="date" id="to" required>
-    </div>
-    <button type="button" class="btn btn-primary">Generate</button>
-    <br>  
-    <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
-      <div class="spinner-layer spinner-blue-only">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div>
-        <div class="gap-patch">
-          <div class="circle"></div>
-        </div>
-        <div class="circle-clipper right">
-          <div class="circle"></div>
+  <div class="container">
+    <h3>View Attendance With Sign in/out</h3>
+    <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
+    <table class="table">
+      <label class="pl-3">From:</label>
+      <div class="md-form col-xl-3">
+        <input name="from" type="date" id="from" required>
+      </div>
+      <label class="pl-3">To:</label>
+      <div class="md-form col-xl-3">
+        <input name="to" type="date" id="to" required>
+      </div>
+      <button id="generateButton" type="button" class="btn btn-primary">Generate</button>
+      <br>
+      <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
+        <div class="spinner-layer spinner-blue-only">
+          <div class="circle-clipper left">
+            <div class="circle"></div>
+          </div>
+          <div class="gap-patch">
+            <div class="circle"></div>
+          </div>
+          <div class="circle-clipper right">
+            <div class="circle"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <table id="dataTable" style="display: none" class="table stripe" cellspacing="0" width="100%">
-      <thead>
-        <tr>
-          <td>NIK</td>
-          <td>Nama</td>
-          <td>Department</td>
-          <td>Atasan Langsung</td>
-          <td>Tanggal</td>
-          <td>Jam Masuk</td>
-          <td>Absensi</td>
-          <td>Full Working Hours</td>
-        </tr>
-      </thead>
-      <tbody>
+      <table id="dataTable" style="display: none" class="table stripe" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <td>NIK</td>
+            <td>Nama</td>
+            <td>Department</td>
+            <td>Atasan Langsung</td>
+            <td>Tanggal</td>
+            <td>Jam Masuk</td>
+            <td>Absensi</td>
+            <td>Full Working Hours</td>
+          </tr>
+        </thead>
+        <tbody>
 
-      </tbody>
+        </tbody>
+      </table>
     </table>
-    <!--     <button type="button" class="btn btn-warning btn-rounded pull-right" id="btnEdit" style="visibility: hidden; ">Edit Data</button> -->
+  </div>
 
-  </table>
-</div>
+  </div>
+  </main>
+  <br>
 
-</div>
-</main>
-<br>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+  <script src="/scripts/mdb.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
+  </script>
+  <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
+  </script>
+  <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js">
+  </script>
+  <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js">
+  </script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
+  </script>
+  <script src="/scripts/attendances/clock-list-dialog.js"></script>
+  <script src="/scripts/attendances/clock-pairing.js"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
-<script src="/scripts/mdb.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
-</script>
-<script type="text/javascript">
-  let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
-  let dosenTidakTetapMaxTimeMs = toMiliSeconds(dosenTidakTetapMaxTime);
+  <script type="text/javascript">
+    let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
+    let clockPairings = clockPairing();
+    let dosenTidakTetapMaxTimeMs = clockPairings.toMiliSeconds(dosenTidakTetapMaxTime);
 
-
-  $(document).ready(function() {
-    $(document).ready(function() {
-      $('.mdb-select').material_select();
-      $.when(
-        $("#dataTable_wrapper").hide(0) //hide parent wrapper
-        ).done(() => { 
-        $("#dataTable").show(0); //show its child element
-      });
-      });
-    $('#dataTable').DataTable( {
-      dom: 'Bfrtip',
-      "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-      buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
-      }
-      ]
-    } );
-
-  } );
-
-  //clocks adalah array of moment object
-  function getClockPairs(clocks) {
-    if (clocks.length === 0) return null;
-    
-    //sort ascending
-    clocks.sort((a, b) => a.valueOf()-b.valueOf());
-
-    let currentClock = clocks[0]; //clock valid pertama
-    let validClocks = [currentClock];
-    
-    //cari semua clock valid
-    for (let i = 1; i < clocks.length; i++) {
-      //apabila selisih lebih dari 15 menit (dalam milliseconds), berarti valid
-      if ( clocks[i].diff(currentClock) > 15*60*1000 ) {
-        currentClock = clocks[i];
-        validClocks.push(clocks[i]);
-      }
-    }
-
-    //pairing semua clock valid
-    let clockPairs = [];
-    for (let i = 0; i < validClocks.length; i += 2) {
-      if (!validClocks[i+1]) { //kalau tidak punya pasangan sign out
-        clockPairs.push({ clockIn: validClocks[i], clockOut: null, duration: 0 });
-      } else { //kalo pasangan absensi lengkap/rapi
-        clockPairs.push({ 
-          clockIn: validClocks[i], 
-          clockOut: validClocks[i+1], 
-          duration: moment.utc(validClocks[i+1].diff(validClocks[i]))
+    $(document).ready(function () {
+      $(document).ready(function () {
+        $('.mdb-select').material_select();
+        $.when(
+          $("#dataTable_wrapper").hide(0) //hide parent wrapper
+        ).done(() => {
+          $("#dataTable").show(0); //show its child element
         });
-      }
-    }
-
-    return clockPairs;
-  }
-
-  function toMiliSeconds(time){
-    let timeParts = time.split(":");
-    let h = timeParts[0] ? +timeParts[0]*60*60*1000 : 0;
-    let m = timeParts[1] ? +timeParts[1]*60*1000 : 0;
-    let s = timeParts[2] ? +timeParts[2]*1000 : 0;
-    return h+m+s;
-  }
-  
-  // data berisi array of JSON satu orang dengan absensi-nya utk hari itu
-  function loadTable(data){
-    let result=[];
-
-    let validatorFactory = function(pRanges, color) {
-      return function(clock) {
-        let ranges = pRanges;
-        for (let range of ranges) {
-          // kalau ada yang match, return clock nya aja
-          if ( toMiliSeconds(range[0]) <= toMiliSeconds(clock) && toMiliSeconds(clock) <= toMiliSeconds(range[1]) ) {
-            return clock;
+      });
+      $('#dataTable').DataTable({
+        dom: 'Bfrtip',
+        "lengthMenu": [
+          [10, 25, 50, -1],
+          [10, 25, 50, "All"]
+        ],
+        buttons: [
+          'pageLength',
+          'copyHtml5',
+          'excelHtml5',
+          {
+            extend: 'pdf',
+            text: 'Pdf',
+            orientation: 'landscape'
           }
-        }
-        // kalau tidak ada yang match, return clock yg sudah di-flag
-        return `<span style="color: white; background: ${color};">${clock}</span>`;
-      }
-    }
+        ]
+      });
+    });
 
-    let validateClockInRange = validatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
-    let validateClockOutRange = validatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)");
-    let validateDurationRange = validatorFactory([[dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)");
-    
-    for (let i = 0; i < data.length; i++) {
-      let clocks = data[i].absensi.map(clock => moment(clock.date))
+    // data berisi array of JSON of satu orang dengan absensi-nya utk hari itu
+    function loadTable(data) {
+      let result = [];
 
-      let clockPairs = getClockPairs(clocks);
-      
-      let clockPairsDisplay;
-      let totalWorkingTime;
-      if (data[i].department === "Dosen Tidak Tetap") {     // jika Dosen Tidak Tetap
-        clockPairsDisplay = clockPairs.reduce((acc, cur) => {
-          let clockInTime = validateClockInRange(cur.clockIn.format("HH:mm:ss"));
-          let clockOutTime = cur.clockOut ? validateClockOutRange(cur.clockOut.format("HH:mm:ss")) : `<span style="color: white; background: orange;">[empty]</span>`;
-          let durationTime = cur.duration ? `(${ validateDurationRange(cur.duration.format("HH:mm:ss")) })` : "";
-          return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
-        }, "");
-        totalWorkingTime = moment.utc(clockPairs.reduce(
-          (acc, cur) => 
-          acc + Math.min(dosenTidakTetapMaxTimeMs, cur.duration.valueOf())
-          ,0)).format("HH:mm:ss");
-      } else {
-        clockPairsDisplay = clockPairs.reduce((acc, cur) => {
-          let clockInTime = cur.clockIn.format("HH:mm:ss");
-          let clockOutTime = cur.clockOut ? cur.clockOut.format("HH:mm:ss") : "[empty]";
-          let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : "";
-          return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
-        }, "");
-        totalWorkingTime = moment.utc(clockPairs.reduce(
-          (acc, cur) => 
-          acc + cur.duration.valueOf()
-          ,0)).format("HH:mm:ss");
-      }
-      
-      result.push([
-        data[i].nik,
-        data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
-        data[i].department,
-        (data[i].atasan_langsung?data[i].atasan_langsung:""),
-        moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
-        (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
-        clockPairsDisplay,
-        totalWorkingTime
+      for (let i = 0; i < data.length; i++) {
+        let clocks = data[i].absensi.map(clock => moment(clock.date))
+
+        let clockPairs = clockPairings.getClockPairs(clocks);
+
+        let clockPairsDisplay = clockPairings.getFlaggedClockPairs(
+                                  clockPairs, 
+                                  data[i].department === "Dosen Tidak Tetap"
+                                );
+        let totalWorkingTime = clockPairings.getTotalWorkingTime(
+                                  clockPairs, 
+                                  data[i].department === "Dosen Tidak Tetap"
+                                );
+
+        result.push([
+          data[i].nik,
+          data[i].first_Name + " " + (data[i].last_Name ? data[i].last_Name : ""),
+          data[i].department,
+          (data[i].atasan_langsung ? data[i].atasan_langsung : ""),
+          moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
+          (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
+          '<span class="clockList">' + clockPairsDisplay + '</span>',
+          totalWorkingTime
         ])
+      }
+
+      $('#dataTable').DataTable({
+        destroy: true,
+        dom: 'Bfrtip',
+        "lengthMenu": [
+          [10, 25, 50, -1],
+          [10, 25, 50, "All"]
+        ],
+        buttons: [
+          'pageLength',
+          'copyHtml5',
+          'excelHtml5',
+          {
+            extend: 'pdf',
+            text: 'Pdf',
+            orientation: 'landscape'
+          }
+        ],
+        data: result,
+        columns: [
+          {title: "NIK"},
+          {title: "Nama"},
+          {title: "Department"},
+          {title: "Atasan Langsung"},
+          {title: "Tanggal"},
+          {title: "Jam Masuk"},
+          {title: "Absensi"},
+          {title: "Full Working Hours"}
+        ]
+      })
     }
 
-    $('#dataTable').DataTable( {
-      destroy: true,
-      dom: 'Bfrtip',
-      "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-      buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
-      }
-      ],
-      data: result,
-      columns: [
-      { title: "NIK" },
-      { title: "Nama" },
-      { title: "Department" },
-      { title: "Atasan Langsung" },
-      { title: "Tanggal" },
-      { title: "Jam Masuk" },
-      { title: "Absensi"},
-      { title: "Full Working Hours" }
-      ]
-    } )
-  }
+    function getTime(datas) {
+      return datas.map((data) => {
+        return moment(data["date"])
+      })
+    }
 
-  function getTime(datas){
-    return datas.map((data)=>{
-      return moment(data["date"])
-    })
-  }
+    $(".button-collapse").sideNav();
 
-  $(".button-collapse").sideNav();
-
-  function validateInput() {
-    let showAlert = function(content, showAgain) {
-      $.when(
-        $("#validation-alert").slideUp(),
-        $("#dataTable_wrapper").fadeOut()
+    function validateInput() {
+      let showAlert = function (content, showAgain) {
+        $.when(
+          $("#validation-alert").slideUp(),
+          $("#dataTable_wrapper").fadeOut()
         ).done(() => {
           $("#validation-alert").text(content);
         }).done(() => {
@@ -268,38 +195,49 @@
       }
     }
 
-    $('button').on('click',()=>{
+    $('#generateButton').on('click', () => {
       if (!validateInput()) return;
 
       $.when(
-      $("button").prop("disabled", true) // disable Generate button
+        $("button").prop("disabled", true) // disable Generate button
       ).done(() => {
-      $("#dataTable_wrapper").fadeOut(); // hide dataTable
-    }).done(() => {
-      $("#spinner").fadeIn();  // show spinner animation
-    });
+        $("#dataTable_wrapper").fadeOut(); // hide dataTable
+      }).done(() => {
+        $("#spinner").fadeIn(); // show spinner animation
+      });
 
-    let fromDate=new Date($('#from').val());
-    let fromString=fromDate.getFullYear()+"-"+(fromDate.getMonth()+1)+"-"+fromDate.getDate()
-    let toDate=new Date($('#to').val());
-    let toString=toDate.getFullYear()+"-"+(toDate.getMonth()+1)+"-"+toDate.getDate()
-    $.getJSON("/api/attendances",{from:fromString,to:toString})
-    .then(({data})=>{
-      loadTable(data);
+      let fromDate = new Date($('#from').val());
+      let fromString = fromDate.getFullYear() + "-" + (fromDate.getMonth() + 1) + "-" + fromDate.getDate();
+      let toDate = new Date($('#to').val());
+      let toString = toDate.getFullYear() + "-" + (toDate.getMonth() + 1) + "-" + toDate.getDate();
 
-      $.when(
-        $("#spinner").fadeOut()
-        ).done(() => {
-          $("#dataTable_wrapper").fadeIn();
-        }).done(() => {
-          $("button").prop("disabled", false);
+      $.getJSON("/api/attendances", {
+          from: fromString,
+          to: toString
+        }).then(({data}) => {
+          loadTable(data);
+          
+          clockListDialog().bind({
+            tableId: 'dataTable',
+            clockPairings: clockPairings
+          });
+
+          $.when(
+            $("#spinner").fadeOut()
+          ).done(() => {
+            $("#dataTable_wrapper").fadeIn();
+          }).done(() => {
+            $("button").prop("disabled", false);
+          });
         });
-      })
-  })
-    $('#dataTable tbody').on('contextmenu','tr',function(){
-      alert('')
     })
-  </script>
-</body>
 
-</html>
+    clockListDialog().bind({
+      tableId: 'dataTable',
+      addModalDialog: true,
+      clockPairings: clockPairings
+    });
+  </script>
+  </body>
+
+  </html>

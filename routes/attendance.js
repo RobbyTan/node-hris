@@ -17,10 +17,9 @@ router.get('/view1',authentication.isLoggedIn, (req, res) => {
     if(err){
       console.log(err);
     }else{
-        res.render('./attendance/viewAttendance1',{configuration: configuration})
+      res.render('./attendance/viewAttendance1',{configuration: configuration})
     }
   })
-
 })
 
 router.get('/view2',authentication.isLoggedIn, (req, res) => {
@@ -70,7 +69,8 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
       let newAttendance = {
         nik: attendance[2],
-        date: moment(attendance[0] + attendance[1], 'YYYYMMDDHHmmss').toDate()
+        date: moment(attendance[0] + attendance[1], 'YYYYMMDDHHmmss').toDate(),
+        type: "auto"
       }
 
       await db.Absensi.create(newAttendance, function (err, newlyCreated) {
@@ -82,16 +82,6 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         }
       })
     })
-    // await Event.create(newEvent, function (err, newlyCreated) {
-    //   if (err) {
-    //     console.log(err)
-    //   } else {
-    //     // redirect back to events page
-    //     console.log('event created')
-    //     req.flash('success', 'you created an event')
-    //     res.redirect('/admin/events')
-    //   }
-    // })
   } catch (err) {
     console.log(err)
     return res.status(422).json({

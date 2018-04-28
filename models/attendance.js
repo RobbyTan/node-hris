@@ -8,6 +8,10 @@ let attendanceSchema = new mongoose.Schema({
   nik: {
     type: String,
     ref: 'Employee'// model yang kita connect
+  },
+  type: {
+    type: String,
+    enum: ['auto', 'manual']
   }
 })
 
