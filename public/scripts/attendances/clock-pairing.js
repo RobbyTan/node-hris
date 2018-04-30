@@ -43,7 +43,6 @@ let clockPairing = function() {
         });
       }
     }
-
     return clockPairs;
   }
 
