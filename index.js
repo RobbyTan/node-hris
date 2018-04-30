@@ -17,6 +17,7 @@ const configurationRoutes = require('./routes/configuration')
 const payrollRoutes = require('./routes/payroll')
 
 // apply middleware
+require('dotenv').config()
 app.use(bodyParser.urlencoded({extended: true}))
 app.set('view engine', 'ejs')
 app.use(express.static(path.join(__dirname, '/public')))
@@ -49,6 +50,13 @@ app.get('/dashboard',authentication.isLoggedIn, (req, res) => {
 app.get('/login', (req, res) => {
   res.render('login')
 })
+// LOGOUT ROUTES
+app.get("/logout",function(req,res){
+  req.logout();
+  req.session.destroy();
+  res.redirect("/login");
+});
+
 app.post("/register",function(req,res){
 		var newUser = new User({username:req.body.username});
 		console.log(newUser)
