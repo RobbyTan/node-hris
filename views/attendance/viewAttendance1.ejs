@@ -206,15 +206,12 @@
         $("#spinner").fadeIn(); // show spinner animation
       });
 
-      let fromDate = new Date($('#from').val());
-      let fromString = fromDate.getFullYear() + "-" + (fromDate.getMonth() + 1) + "-" + fromDate.getDate();
-      let toDate = new Date($('#to').val());
-      let toString = toDate.getFullYear() + "-" + (toDate.getMonth() + 1) + "-" + toDate.getDate();
-
+      let fromString = $('#from').val();
+      let toString = $('#to').val();
       $.getJSON("/api/attendances", {
           from: fromString,
           to: toString
-        }).then(({data}) => {
+        }).then(data => {
           loadTable(data);
           
           clockListDialog().bind({
@@ -227,6 +224,12 @@
           ).done(() => {
             $("#dataTable_wrapper").fadeIn();
           }).done(() => {
+            $("button").prop("disabled", false);
+          });
+        }).catch(err => {
+          $.when(
+            $("#spinner").fadeOut()
+          ).done(() => {
             $("button").prop("disabled", false);
           });
         });

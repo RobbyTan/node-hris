@@ -121,22 +121,10 @@ router.post("/attendances", (req, res) => {
 
 // String,String,Boolean
 async function showData (from, to, full) {
-  let days = Math.abs(moment(from, 'YYYY-MM-DD').diff(moment(to, 'YYYY-MM-DD'), 'days')) + 1
-  let fromDate = moment(from, 'YYYY-MM-DD')
-  let dataPromise = []
-  for (let i = 0; i < days; i++) {
-    let fromString = fromDate.year() + '-' + (fromDate.month() + 1) + '-' + fromDate.date()
-    dataPromise.push(full ? loadResultFromDatabaseFull(fromString) : loadResultFromDatabase(fromString))
-    fromDate.add(1, 'days')
-  }
-  let results = await Promise.all(dataPromise)
-  return {data: concatArray(results), date: from}
-}
+  let fromString = from;
+  let toString = to;
 
-function concatArray (arr) {
-  if (arr.length === 1) { return arr[0] } else {
-    return arr.reduce((acc, next) => acc.concat(next), [])
-  }
+  return await full ? loadResultFromDatabaseFull(fromString) : loadResultFromDatabase(fromString, toString);
 }
 
 function loadResultFromDatabaseFull (date) {
@@ -177,41 +165,51 @@ function loadResultFromDatabaseFull (date) {
   ])
 }
 
-function loadResultFromDatabase (date) {
-  return db.Employee.aggregate([
-  {
-    $lookup:
+function loadResultFromDatabase (fromDateStr, toDateStr) {
+  return db.Absensi.aggregate([
     {
-      'from': 'attendances',
-      'localField': 'nik',
-      'foreignField': 'nik',
-      'as': 'data_absensi'
-    }
-  },
-  {
-    $project: {
-      startDate: 1,
-      nik: 1,
-      first_Name: 1,
-      last_Name: 1,
-      birthday: 1,
-      department: 1,
-      jam_masuk: 1,
-      atasan_langsung: 1,
-      absensi: {
-        $filter: {
-          input: '$data_absensi',
-          as: 'absensi',
-          cond: {$and: [{$gte: ['$$absensi.date', new Date(date)]}, {$lt: ['$$absensi.date', moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()]}]}
+      $match: {
+        date : {
+          $gte: new Date(fromDateStr), 
+          $lt: moment(toDateStr, 'YYYY-MM-DD').add(1, 'days').toDate()
+        }
+      }
+    },
+    {
+      $lookup: {
+        'from': 'employees',
+        'localField': 'nik',
+        'foreignField': 'nik',
+        'as': 'employee'
+      }
+    },
+    {
+      $unwind: "$employee"
+    },
+    {
+      $group: {
+        _id: { 
+          month: { $month: "$date" }, 
+          day: { $dayOfMonth: "$date" }, 
+          year: { $year: "$date" },
+          nik: "$nik"
+        },
+        startDate: {$first: "$employee.startDate"},
+        nik: {$first: "$employee.nik"},
+        first_Name: {$first: "$employee.first_Name"},
+        last_Name: {$first: "$employee.last_Name"},
+        birthday: {$first: "$employee.birthday"},
+        department: {$first: "$employee.department"},
+        jam_masuk: {$first: "$employee.jam_masuk"},
+        atasan_langsung: {$first: "$employee.atasan_langsung"},
+        absensi: { 
+          $push: {
+            date: "$date",
+            nik: "$nik"
+          } 
         }
       }
     }
-  },
-  {
-    $match: {
-      'absensi': {$elemMatch: {$ne: null}}
-    }
-  }
   ])
 }
 
