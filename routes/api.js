@@ -2,7 +2,9 @@ const express = require('express')
 const router = express.Router()
 const db = require('../models')
 const moment = require('moment')
+const methodOverride = require("method-override")
 
+router.use(methodOverride("_method"));
 // attendance route
 
 router.get('/attendancesfull', async(req, res) => {
@@ -29,23 +31,36 @@ router.get('/attendances', async(req, res) => {
     res.json({})
   }
 })
+// PPH routes
 
 router.get('/pph',(req,res)=>{
-    db.Fulldata.find({}, function (err, allData) {
+  db.Fulldata.find({}, function (err, allData) {
     if (err) {
       console.log(err)
     } else {
-        res.json(allData);
+      res.json(allData);
     }
   })
 })
 
+router.delete('/pph',(req,res)=>{
+  let id = req.headers.selected;
+  console.log(id)
+  db.Fulldata.findByIdAndRemove(id,function(err){
+    if(err){
+      console.log(err);
+    }else{
+      console.log("Deleted")
+      res.send("deleted")
+    }
+  })
+})
 router.get('/employeedata',(req,res)=>{
-    db.Employee.find({}, function (err, allData) {
+  db.Employee.find({}, function (err, allData) {
     if (err) {
       console.log(err)
     } else {
-        res.json(allData);
+      res.json(allData);
     }
   })
 })
@@ -60,27 +75,28 @@ router.post("/configuration/DosenMaxTime",(req,res)=>{
   });
 })
 
+
 router.get('/attendances/:nik', (req, res) => {
   let nik = req.params.nik;
   let date = req.query.date;
 
   db.Absensi.aggregate([
-    {
-      $match: {
-        $and: [
-          {nik: nik},
-          {date: {$gte: new Date(date)} },
-          {date: {$lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()} }
-        ]
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        date: 1,
-        type: 1
-      }
+  {
+    $match: {
+      $and: [
+      {nik: nik},
+      {date: {$gte: new Date(date)} },
+      {date: {$lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()} }
+      ]
     }
+  },
+  {
+    $project: {
+      _id: 0,
+      date: 1,
+      type: 1
+    }
+  }
   ]).then(data => {
     res.json(data);
   }).catch(err => {
@@ -125,77 +141,77 @@ function concatArray (arr) {
 
 function loadResultFromDatabaseFull (date) {
   return db.Employee.aggregate([
+  {
+    $lookup:
     {
-      $lookup:
-      {
-        'from': 'attendances',
-        'localField': 'nik',
-        'foreignField': 'nik',
-        'as': 'data_absensi'
-      }
-    },
-    {
-      $project: {
-        startDate: 1,
-        nik: 1,
-        first_Name: 1,
-        last_Name: 1,
-        birthday: 1,
-        department: 1,
-        jam_masuk: 1,
-        atasan_langsung: 1,
-        absensi: {
-          $filter: {
-            input: '$data_absensi',
-            as: 'absensi',
-            cond: {$and: [{$gte: ['$$absensi.date', new Date(date)]}, {$lt: ['$$absensi.date', moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()]}]}
-          }
+      'from': 'attendances',
+      'localField': 'nik',
+      'foreignField': 'nik',
+      'as': 'data_absensi'
+    }
+  },
+  {
+    $project: {
+      startDate: 1,
+      nik: 1,
+      first_Name: 1,
+      last_Name: 1,
+      birthday: 1,
+      department: 1,
+      jam_masuk: 1,
+      atasan_langsung: 1,
+      absensi: {
+        $filter: {
+          input: '$data_absensi',
+          as: 'absensi',
+          cond: {$and: [{$gte: ['$$absensi.date', new Date(date)]}, {$lt: ['$$absensi.date', moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()]}]}
         }
       }
-    },
-    {
-      $match: {
-        'department': {$nin: ['Resign', null]}
-      }
     }
+  },
+  {
+    $match: {
+      'department': {$nin: ['Resign', null]}
+    }
+  }
   ])
 }
 
 function loadResultFromDatabase (date) {
   return db.Employee.aggregate([
+  {
+    $lookup:
     {
-      $lookup:
-      {
-        'from': 'attendances',
-        'localField': 'nik',
-        'foreignField': 'nik',
-        'as': 'data_absensi'
-      }
-    },
-    {
-      $project: {
-        startDate: 1,
-        nik: 1,
-        first_Name: 1,
-        last_Name: 1,
-        birthday: 1,
-        department: 1,
-        jam_masuk: 1,
-        atasan_langsung: 1,
-        absensi: {
-          $filter: {
-            input: '$data_absensi',
-            as: 'absensi',
-            cond: {$and: [{$gte: ['$$absensi.date', new Date(date)]}, {$lt: ['$$absensi.date', moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()]}]}
-          }
+      'from': 'attendances',
+      'localField': 'nik',
+      'foreignField': 'nik',
+      'as': 'data_absensi'
+    }
+  },
+  {
+    $project: {
+      startDate: 1,
+      nik: 1,
+      first_Name: 1,
+      last_Name: 1,
+      birthday: 1,
+      department: 1,
+      jam_masuk: 1,
+      atasan_langsung: 1,
+      absensi: {
+        $filter: {
+          input: '$data_absensi',
+          as: 'absensi',
+          cond: {$and: [{$gte: ['$$absensi.date', new Date(date)]}, {$lt: ['$$absensi.date', moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()]}]}
         }
       }
-    },
-    {
-      $match: {
-        'absensi': {$elemMatch: {$ne: null}}
-      }
     }
+  },
+  {
+    $match: {
+      'absensi': {$elemMatch: {$ne: null}}
+    }
+  }
   ])
 }
 

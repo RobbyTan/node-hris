@@ -80,156 +80,173 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
-            <form id="delete" class="delete-form" action="" method="POST">
-              <button id="btnDelete" class="btn btn-primary">
+            <!-- <form id="delete" class="delete-form" action="" method="POST"> -->
+              <button id="btnDelete" class="btn btn-primary" data-dismiss="modal">
                 <span><i class="glyphicon glyphicon-remove"></i></span> Delete
               </button>
-            </form> 
+              <!-- </form>  -->
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
-    <script src="/scripts/mdb.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
-    </script>
-    <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
-    </script>
-    <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js">
-    </script>
-    <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js">
-    </script>
-    <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
-    </script>
-    <script type="text/javascript">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+      <script src="/scripts/mdb.js"></script>
+      <script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+      <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
+      </script>
+      <script type="text/javascript">
 
-      var selected=null;
-      var table;
-      $(document).ready(function() {
-        $('.mdb-select').material_select();
-        loadData();
+        var selected=null;
+        var table;
+        var row;
+        $(document).ready(function() {
+          $('.mdb-select').material_select();
+          loadData();
 
-      });
+        });
 
-      function loadData(){
-        var result=[];
-        $.getJSON("/api/pph").then(function(data){
-          console.log(data);
-          for (var i = 0; i < data.length; i++) {
-            result.push([
-              data[i].nik,
-              data[i].kategori_pegawai,
-              data[i].tanggal_mulai_kerja?moment.utc(data[i].tanggal_mulai_kerja).format("DD-MMM-YYYY") : "",
-              data[i].tanggal_mutasi_kerja?moment.utc(data[i].tanggal_mutasi_kerja).format("DD-MMM-YYYY") : "",
-              data[i].tanggal_berhenti_kerja?moment.utc(data[i].tanggal_berhenti_kerja).format("DD-MMM-YYYY") : "",
-              data[i].no_ktp,
-              data[i].tempat_lahir,
-              data[i].tanggal_lahir?moment.utc(data[i].tanggal_lahir).format("DD-MMM-YYYY"):"",
-              data[i].jenis_kelamin,
-              data[i].alamat,
-              data[i].rtrw,
-              data[i].kelurahan_desa,
-              data[i].kecamatan,
-              data[i].agama,
-              data[i].status_perkawinan,
-              data[i].kewarganegaraan,
-              data[i].jabatan,
-              data[i].grade,
-              data[i].department,
-              data[i].spesialisasi,
-              data[i].cost_center,
-              data[i].status_pegawai,
-              data[i].nomor_kontrak,
-              data[i].tanggal_kontrak_mulai?moment.utc(data[i].tanggal_kontrak_mulai).format("DD-MMM-YYYY"):"",
-              data[i].tanggal_kontrak_berakhir?moment.utc(data[i].tanggal_kontrak_berakhir).format("DD-MMM-YYYY"):"",
-              data[i].nomor_sk_rektor,
-              data[i].tanggal_isk_berlaku?moment.utc(data[i].tanggal_isk_berlaku).format("DD-MMM-YYYY"): "",
-              data[i].tanggal_isk_berhenti_berlaku?moment.utc(data[i].tanggal_isk_berhenti_berlaku).format("DD-MMM-YYYY"): "",
-              data[i].npwp,
-              data[i].nama_pajak,
-              data[i].alamat_pajak,
-              data[i].nama_kpp,
-              data[i].status_ptkp,
-              data[i].atas_nama_bank,
-              data[i].nama_bank,
-              data[i].no_rekening,
-              data[i].bpjstk,
-              data[i].bpjskis,
-              data[i]._id,
-              ])
-          }
-          $.fn.dataTable.ext.errMode = 'none';
-          $('#dataTable').DataTable( {
-            dom: 'Bfrtip',
-            "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            buttons: [
-            'pageLength',
-            'copyHtml5',
-            'excelHtml5',
-            {
-              extend: 'pdf',
-              text: 'Pdf',
-              orientation: 'landscape'
+        function loadData(){
+          var result=[];
+          $.getJSON("/api/pph").then(function(data){
+            console.log(data);
+            for (var i = 0; i < data.length; i++) {
+              result.push([
+                data[i].nik,
+                data[i].kategori_pegawai,
+                data[i].tanggal_mulai_kerja?moment.utc(data[i].tanggal_mulai_kerja).format("DD-MMM-YYYY") : "",
+                data[i].tanggal_mutasi_kerja?moment.utc(data[i].tanggal_mutasi_kerja).format("DD-MMM-YYYY") : "",
+                data[i].tanggal_berhenti_kerja?moment.utc(data[i].tanggal_berhenti_kerja).format("DD-MMM-YYYY") : "",
+                data[i].no_ktp,
+                data[i].tempat_lahir,
+                data[i].tanggal_lahir?moment.utc(data[i].tanggal_lahir).format("DD-MMM-YYYY"):"",
+                data[i].jenis_kelamin,
+                data[i].alamat,
+                data[i].rtrw,
+                data[i].kelurahan_desa,
+                data[i].kecamatan,
+                data[i].agama,
+                data[i].status_perkawinan,
+                data[i].kewarganegaraan,
+                data[i].jabatan,
+                data[i].grade,
+                data[i].department,
+                data[i].spesialisasi,
+                data[i].cost_center,
+                data[i].status_pegawai,
+                data[i].nomor_kontrak,
+                data[i].tanggal_kontrak_mulai?moment.utc(data[i].tanggal_kontrak_mulai).format("DD-MMM-YYYY"):"",
+                data[i].tanggal_kontrak_berakhir?moment.utc(data[i].tanggal_kontrak_berakhir).format("DD-MMM-YYYY"):"",
+                data[i].nomor_sk_rektor,
+                data[i].tanggal_isk_berlaku?moment.utc(data[i].tanggal_isk_berlaku).format("DD-MMM-YYYY"): "",
+                data[i].tanggal_isk_berhenti_berlaku?moment.utc(data[i].tanggal_isk_berhenti_berlaku).format("DD-MMM-YYYY"): "",
+                data[i].npwp,
+                data[i].nama_pajak,
+                data[i].alamat_pajak,
+                data[i].nama_kpp,
+                data[i].status_ptkp,
+                data[i].atas_nama_bank,
+                data[i].nama_bank,
+                data[i].no_rekening,
+                data[i].bpjstk,
+                data[i].bpjskis,
+                data[i]._id,
+                ])
             }
-            ],
-            data: result,
-            columns: [
-            {title : 'NIK'},
-            {title : 'Kategori Pegawai'},
-            {title : 'Tanggal Mulai Kerja'},
-            {title : 'Tanggal Mutasi Kerja'},
-            {title : 'Tanggal Berhenti Kerja'},
-            {title : 'No KTP'},
-            {title : 'Tempat Lahir'},
-            {title : 'Tanggal Lahir'},
-            {title : 'Jenis Kelamin'},
-            {title : 'Alamat'},
-            {title : 'RTRW'},
-            {title : 'Kelurahan Desa'},
-            {title : 'Kecamatan'},
-            {title : 'Agama'},
-            {title :'Status Perkawinan'},
-            {title :'Kewarganegaraan'},
-            {title :'Jabatan'},
-            {title :'Grade'},
-            {title :'Department'},
-            {title :'Spesialisasi'},
-            {title :'Cost Center'},
-            {title :'Status Pegawai'},
-            {title :'Nomor Kontrak'},
-            {title :'Tanggal Kontrak Mulai'},
-            {title :'Tanggal Kontrak Berakhir'},
-            {title :'Nomor sk Rektor '},
-            {title :'Tanggal ISK Berlaku'},
-            {title :'Tanggal ISK Berhenti Berlaku'},
-            {title :'NPWP'},
-            {title :'Nama Pajak'},
-            {title :'Alamat Pajak'},
-            {title :'Nama Kpp'},
-            {title :'Status Ptkp'},
-            {title :'Atas Nama Bank'},
-            {title :'Nama Bank'},
-            {title :'No Rekening'},
-            {title :'BPJSTK'},
-            {title :'BPJSKIS'},
-            ]
-          } );
-          console.log(result);
-          table=$('#dataTable').DataTable();
-        })
+            $.fn.dataTable.ext.errMode = 'none';
+            $('#dataTable').DataTable( {
+              dom: 'Bfrtip',
+              "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+              buttons: [
+              'pageLength',
+              'copyHtml5',
+              'excelHtml5',
+              {
+                extend: 'pdf',
+                text: 'Pdf',
+                orientation: 'landscape'
+              }
+              ],
+              data: result,
+              columns: [
+              {title : 'NIK'},
+              {title : 'Kategori Pegawai'},
+              {title : 'Tanggal Mulai Kerja'},
+              {title : 'Tanggal Mutasi Kerja'},
+              {title : 'Tanggal Berhenti Kerja'},
+              {title : 'No KTP'},
+              {title : 'Tempat Lahir'},
+              {title : 'Tanggal Lahir'},
+              {title : 'Jenis Kelamin'},
+              {title : 'Alamat'},
+              {title : 'RTRW'},
+              {title : 'Kelurahan Desa'},
+              {title : 'Kecamatan'},
+              {title : 'Agama'},
+              {title :'Status Perkawinan'},
+              {title :'Kewarganegaraan'},
+              {title :'Jabatan'},
+              {title :'Grade'},
+              {title :'Department'},
+              {title :'Spesialisasi'},
+              {title :'Cost Center'},
+              {title :'Status Pegawai'},
+              {title :'Nomor Kontrak'},
+              {title :'Tanggal Kontrak Mulai'},
+              {title :'Tanggal Kontrak Berakhir'},
+              {title :'Nomor sk Rektor '},
+              {title :'Tanggal ISK Berlaku'},
+              {title :'Tanggal ISK Berhenti Berlaku'},
+              {title :'NPWP'},
+              {title :'Nama Pajak'},
+              {title :'Alamat Pajak'},
+              {title :'Nama Kpp'},
+              {title :'Status Ptkp'},
+              {title :'Atas Nama Bank'},
+              {title :'Nama Bank'},
+              {title :'No Rekening'},
+              {title :'BPJSTK'},
+              {title :'BPJSKIS'},
+              ]
+            } );
+            console.log(result);
+            table=$('#dataTable').DataTable();
+          })
 }
 $(".button-collapse").sideNav();
 $('#dataTable tbody').on('click','tr',function(){
   var data = table.row(this).data();
   // console.log("You clicked "+data[0])
   $('#dataTable tr').css('background','white')
-  $(this).css('background' ,'#f9f9f9');
+  $(this).css('background' ,'#b8b8ba');
+  row = $(this);
   selected=data[38];
   console.log(selected);
 })
 $('#btnDelete').on('click',function(){
-  $('#delete').attr('action','/report/'+selected +'?_method=DELETE');
+  // $('#delete').attr('action','/report/'+selected +'?_method=DELETE');
+  $.ajax({
+    url : '/api/pph',
+    headers : {
+      selected
+    },
+    type : 'DELETE',
+    success : function(response){
+      row.remove();
+      toastr.info('Deleted');
+    },
+    error : function(error){
+      console.log(error)
+    }
+  })
+
 })
 $('#btnDeletePopup').on('click',function(){
   if(selected != null){
