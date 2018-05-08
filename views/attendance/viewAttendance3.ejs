@@ -97,10 +97,10 @@
     });
   });
 
-  function loadTable(datas){
-    var result=[];
-    datas.forEach(({data,date})=>{
-      for (var i = 0; i < data.length; i++) {
+  function loadTable(datas) {
+    var result = [];
+    datas.forEach( ({data, date}) => {
+      for (let i = 0; i < data.length; i++) {
         if(data[i].absensi.length>0){
           console.log("here 1");
           let minTime = moment.min(getTime(data[i].absensi))
@@ -121,8 +121,7 @@
             (data[i].jam_masuk && jam_masuk_toleransi.isBefore(jam_masuk_pertama)?"TELAT":""),
             (workingHours.hours()>=9?"":"---")
             ])
-        }else{
-          console.log("here 2");
+        } else {
           result.push([
             data[i].nik,
             data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
@@ -201,34 +200,32 @@
       }
     }
 
-    $('button').on('click',()=>{
-      console.log("trigger");
-
+    $('button').on('click', () => {
       if (!validateInput()) return;
 
       $.when(
       $("button").prop("disabled", true) // disable Generate button
-      ).done(() => {
+      ).done( () => {
       $("#dataTable_wrapper").fadeOut(); // hide dataTable
-    }).done(() => {
+    }).done( () => {
       $("#spinner").fadeIn();  // show spinner animation
     });
 
-    let fromDate=moment(new Date($('#from').val()));
-    let toDate=moment(new Date($('#to').val()));
+    let fromDate = moment(new Date($('#from').val()));
+    let toDate = moment(new Date($('#to').val()));
 
     let dataPromise=[]
     let days = Math.abs(fromDate.diff(toDate, 'days')) + 1
     for (let i = 0; i < days; i++) {
-      let fromString=fromDate.year()+"-"+(fromDate.month()+1)+"-"+fromDate.date()
-      dataPromise.push($.getJSON("/api/attendancesfull",{from:fromString,to:fromString}))
+      let fromString = fromDate.year()+"-"+(fromDate.month()+1)+"-"+fromDate.date()
+      dataPromise.push($.getJSON("/api/attendancesfull", {from: fromString, to: fromString}))
       fromDate.add(1, 'days')
-      console.log(fromString);
     }
+
     Promise.all(dataPromise)
-    .then((data)=>{
-      console.log(data);
-      loadTable(data);
+    .then(datas => {
+      console.log(datas);
+      loadTable(datas);
 
       $.when(
         $("#spinner").fadeOut()
@@ -238,12 +235,6 @@
           $("button").prop("disabled", false);
         });
       });
-    // let results = await Promise.all(dataPromise)
-    // $.getJSON("/api/attendancesfull",{from:fromString,to:toString})
-    // .then((data)=>{
-    //   console.log(data);
-    //   loadTable(data)
-    // })
   })
 </script>
 </body>

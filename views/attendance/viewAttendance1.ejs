@@ -211,7 +211,7 @@
       $.getJSON("/api/attendances", {
           from: fromString,
           to: toString
-        }).then(data => {
+        }).then( data => {
           loadTable(data);
           
           clockListDialog().bind({

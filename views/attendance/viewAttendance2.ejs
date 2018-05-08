@@ -155,7 +155,6 @@
           { title: "Jam Kerja" }
         ]
     } );
-    console.log(result);
   }
 
   function getTime(datas){
@@ -208,8 +207,6 @@ function compareMilli(a,b) {
   }
 
   $('button').on('click',()=>{
-    console.log("trigger");
-    
     if (!validateInput()) return;
 
     $.when(
@@ -220,13 +217,10 @@ function compareMilli(a,b) {
       $("#spinner").fadeIn();  // show spinner animation
     });
 
-    let fromDate=new Date($('#from').val());
-    let fromString=fromDate.getFullYear()+"-"+(fromDate.getMonth()+1)+"-"+fromDate.getDate()
-    let toDate=new Date($('#to').val());
-    let toString=toDate.getFullYear()+"-"+(toDate.getMonth()+1)+"-"+toDate.getDate()
-    $.getJSON("/api/attendances",{from:fromString,to:toString})
-    .then(({data})=>{
-      console.log(data);
+    let fromString = $('#from').val();
+    let toString = $('#to').val();
+    $.getJSON("/api/attendances",{ from: fromString, to: toString})
+    .then(data => {
       loadTable(data);
       
       $.when(
