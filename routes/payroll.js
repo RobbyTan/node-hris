@@ -30,7 +30,7 @@ router.get("/access",authentication.payrollAccess,(req,res)=>{
 	res.render('./payroll/access')
 })
 router.post("/access",authentication.payrollAccess,(req,res)=>{	
-	console.log(process.env.PASS)
+	console.log(process.env)
 	if(req.body.password == process.env.PASS){
 		session=req.session;
 		session.name=req.user.username;
