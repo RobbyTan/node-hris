@@ -1,5 +1,10 @@
-let clockPairing = function() {
-  function toMiliSeconds(time) {
+let ClockPairing = (function() {
+  let dosenTidakTetapMaxTime;
+  let validateClockInRange;
+  let validateClockOutRange;
+  let validateDurationRange;
+
+  function _toMiliSeconds(time) {
     let timeParts = time.split(":");
     let h = timeParts[0] ? +timeParts[0] * 60 * 60 * 1000 : 0;
     let m = timeParts[1] ? +timeParts[1] * 60 * 1000 : 0;
@@ -8,7 +13,7 @@ let clockPairing = function() {
   }
 
   //clocks adalah array of moment object
-  function getClockPairs(clocks) {
+  function _getClockPairs(clocks) {
     if (clocks.length === 0) return null;
 
     //sort ascending
@@ -46,12 +51,12 @@ let clockPairing = function() {
     return clockPairs;
   }
 
-  function clockValidatorFactory(pRanges, color) {
+  function _clockValidatorFactory(pRanges, color) {
     return function (clock) {
       let ranges = pRanges;
       for (let range of ranges) {
         // kalau ada yang match, return clock nya aja
-        if (toMiliSeconds(range[0]) <= toMiliSeconds(clock) && toMiliSeconds(clock) <= toMiliSeconds(range[1])) {
+        if (_toMiliSeconds(range[0]) <= _toMiliSeconds(clock) && _toMiliSeconds(clock) <= _toMiliSeconds(range[1])) {
           return clock;
         }
       }
@@ -60,11 +65,7 @@ let clockPairing = function() {
     }
   };
 
-  let validateClockInRange = clockValidatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
-  let validateClockOutRange = clockValidatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)");
-  let validateDurationRange = clockValidatorFactory([[dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)");
-
-  function getFlaggedClockPairs(clockPairs, isDosenTidakTetap) {
+  function _getFlaggedClockPairs(clockPairs, isDosenTidakTetap) {
     let clockPairsDisplay;
     if (isDosenTidakTetap) { // jika Dosen Tidak Tetap
       clockPairsDisplay = clockPairs.reduce((acc, cur) => {
@@ -85,12 +86,13 @@ let clockPairing = function() {
     return clockPairsDisplay;
   }
 
-  function getTotalWorkingTime (clockPairs, isDosenTidakTetap) {
+  function _getTotalWorkingTime(clockPairs, isDosenTidakTetap) {
     let totalWorkingTime;
     if (isDosenTidakTetap) { // jika Dosen Tidak Tetap
       totalWorkingTime = moment.utc(clockPairs.reduce(
         (acc, cur) =>
-        acc + Math.min(dosenTidakTetapMaxTimeMs, cur.duration.valueOf()), 0)).format("HH:mm:ss");
+        acc + Math.min(_toMiliSeconds(dosenTidakTetapMaxTime), cur.duration.valueOf()), 0))
+        .format("HH:mm:ss");
     } else {
       totalWorkingTime = moment.utc(clockPairs.reduce(
         (acc, cur) => acc + cur.duration.valueOf(), 0)).format("HH:mm:ss");
@@ -98,10 +100,25 @@ let clockPairing = function() {
     return totalWorkingTime;
   }
 
-  return {
-    getClockPairs: getClockPairs,
-    getFlaggedClockPairs: getFlaggedClockPairs,
-    getTotalWorkingTime: getTotalWorkingTime,
-    toMiliSeconds: toMiliSeconds
+  function process(clocks, options) {
+    let department = options.department;
+    dosenTidakTetapMaxTime = options.dosenTidakTetapMaxTime;
+    validateClockInRange = _clockValidatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
+    validateClockOutRange = _clockValidatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)");
+    validateDurationRange = _clockValidatorFactory([[dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)");
+
+    let clockPairs = _getClockPairs(clocks);
+    let flaggedClockPairs = _getFlaggedClockPairs(clockPairs, department === 'Dosen Tidak Tetap');
+    let totalWorkingTime = _getTotalWorkingTime(clockPairs, department === 'Dosen Tidak Tetap');
+
+    return {
+      clockPairs: clockPairs,
+      flaggedClockPairs: flaggedClockPairs,
+      totalWorkingTime: totalWorkingTime
+    };
   }
-};
+
+  return {
+    process: process
+  };
+})();

@@ -79,22 +79,22 @@ router.get('/attendances/:nik', (req, res) => {
   let date = req.query.date;
 
   db.Absensi.aggregate([
-  {
-    $match: {
-      $and: [
-      {nik: nik},
-      {date: {$gte: new Date(date)} },
-      {date: {$lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()} }
-      ]
+    {
+      $match: {
+        $and: [
+        {nik: nik},
+        {date: {$gte: new Date(date)} },
+        {date: {$lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()} }
+        ]
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        date: 1,
+        type: 1
+      }
     }
-  },
-  {
-    $project: {
-      _id: 0,
-      date: 1,
-      type: 1
-    }
-  }
   ]).then(data => {
     res.json(data);
   }).catch(err => {
@@ -108,7 +108,7 @@ router.post("/attendances", (req, res) => {
     date: req.headers.timestamp,
     type: "manual"
   };
-  db.Absensi.find({date: newAttendance.date}, function(attendance) {
+  db.Absensi.find({nik: newAttendance.nik, date: newAttendance.date}, function(attendance) {
     if (attendance) res.status(404).json({duplicateError: true});
   });
   db.Absensi.create(newAttendance, (err, newlyCreated) => {
@@ -124,16 +124,16 @@ async function getAttendancesJSON (fromString, toString) {
 }
 
 async function getFullAttendancesJSON (fromString, toString) {
-  let days = Math.abs(moment(fromString, 'YYYY-MM-DD').diff(moment(toString, 'YYYY-MM-DD'), 'days')) + 1
-  let fromDate = moment(fromString, 'YYYY-MM-DD')
-  let dataPromise = []
+  let days = Math.abs(moment(fromString, 'YYYY-MM-DD').diff(moment(toString, 'YYYY-MM-DD'), 'days')) + 1;
+  let fromDate = moment(fromString, 'YYYY-MM-DD');
+  let dataPromise = [];
   for (let i = 0; i < days; i++) {
-    let currentString = fromDate.year() + '-' + (fromDate.month() + 1) + '-' + fromDate.date()
-    dataPromise.push(loadResultFromDatabaseFull(currentString))
-    fromDate.add(1, 'days')
+    let currentString = fromDate.year() + '-' + (fromDate.month() + 1) + '-' + fromDate.date();
+    dataPromise.push(loadResultFromDatabaseFull(currentString));
+    fromDate.add(1, 'days');
   }
-  let results = await Promise.all(dataPromise)
-  return {data: concatArray(results), date: fromString}
+  let results = await Promise.all(dataPromise);
+  return {data: concatArray(results), date: fromString};
 }
 
 function concatArray (arr) {
