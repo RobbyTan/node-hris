@@ -115,12 +115,13 @@ let ClockListDialog = (function () {
             let clocks = clockList.map(e => moment(e.date));
             let clockPairingResult = ClockPairing.process(clocks, {
               dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
-              department: data[i].department
+              department: department
             });
             let clockPairsDisplay = clockPairingResult.flaggedClockPairs;
             let totalWorkingTime = clockPairingResult.totalWorkingTime;
             clocksCell.data(clockPairsDisplay);
             totalTimeCell.data(totalWorkingTime);
+            $('#newClockTxt').val('');
           })
         },
         error : function() {

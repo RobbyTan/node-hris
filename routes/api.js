@@ -21,7 +21,6 @@ router.get('/attendancesfull', async(req, res) => {
 router.get('/attendances', async(req, res) => {
   let from = req.query.from
   let to = req.query.to
-  console.log('false ')
 
   if (from && to) {
     res.json(await getAttendancesJSON(from, to))
@@ -43,7 +42,6 @@ router.get('/pph',(req,res)=>{
 
 router.delete('/pph',(req,res)=>{
   let id = req.headers.selected;
-  console.log(id)
   db.Fulldata.findByIdAndRemove(id,function(err){
     if(err){
       console.log(err);
@@ -181,12 +179,17 @@ function loadResultFromDatabaseFull (date) {
 }
 
 function loadResultFromDatabase (fromDateStr, toDateStr) {
+  // let fromDate = moment(new Date(fromDateStr))
+  //              .subtract(1, 'days')
+  //              .set({'hour': 17})
+  //              .toDate();
+
   return db.Absensi.aggregate([
     {
       $match: {
         date : {
-          $gte: new Date(fromDateStr), 
-          $lt: moment(toDateStr, 'YYYY-MM-DD').add(1, 'days').toDate()
+          $gte: new Date(fromDateStr),
+          $lt: moment(new Date(toDateStr)).add(1, 'days').toDate()
         }
       }
     },
