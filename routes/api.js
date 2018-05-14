@@ -51,6 +51,7 @@ router.delete('/pph',(req,res)=>{
     }
   })
 })
+
 router.get('/employeedata',(req,res)=>{
   db.Employee.find({}, function (err, allData) {
     if (err) {
@@ -70,7 +71,6 @@ router.post("/configuration/DosenMaxTime",(req,res)=>{
     res.send("success updating DosenMaxTime")
   });
 })
-
 
 router.get('/attendances/:nik', (req, res) => {
   let nik = req.params.nik;
@@ -179,17 +179,12 @@ function loadResultFromDatabaseFull (date) {
 }
 
 function loadResultFromDatabase (fromDateStr, toDateStr) {
-  // let fromDate = moment(new Date(fromDateStr))
-  //              .subtract(1, 'days')
-  //              .set({'hour': 17})
-  //              .toDate();
-
   return db.Absensi.aggregate([
     {
       $match: {
         date : {
-          $gte: new Date(fromDateStr),
-          $lt: moment(new Date(toDateStr)).add(1, 'days').toDate()
+          $gte: new Date(fromDateStr), 
+          $lt: moment(toDateStr, 'YYYY-MM-DD').add(1, 'days').toDate()
         }
       }
     },

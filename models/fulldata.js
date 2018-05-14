@@ -10,7 +10,7 @@ let fulldataSchema = new mongoose.Schema({
     required: true
   },
   nama_depan : String,
-  nama_tegah : String,
+  nama_tengah : String,
   nama_belakang : String,
   tanggal_mulai_kerja_medan: Date,
   tanggal_mulai_kerja_karawaci : Date,

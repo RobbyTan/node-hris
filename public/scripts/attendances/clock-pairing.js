@@ -1,3 +1,4 @@
+// module untuk pairing clock-clock per orang per hari
 let ClockPairing = (function() {
   let dosenTidakTetapMaxTime;
   let validateClockInRange;

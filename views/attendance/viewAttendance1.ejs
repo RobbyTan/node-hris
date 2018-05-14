@@ -147,19 +147,19 @@
     
     $('#generate_button').on('click', () => {
       if (!dateInputValidator.isValid()) return;
-      loadingSpinner.start();
       let fromString = $('#from_txt').val();
       let toString = $('#to_txt').val();
+      loadingSpinner.start();
       $.getJSON("/api/attendances", {
-          from: fromString,
-          to: toString
-        }).then( data => {
-          renderTable(data);
-          ClockListDialog.bind({ tableId: 'data_table' });
-          loadingSpinner.stop();
-        }).catch(err => {
-          loadingSpinner.init();
-        });
+        from: fromString,
+        to: toString
+      }).then( data => {
+        renderTable(data);
+        ClockListDialog.bind({ tableId: 'data_table' });
+        loadingSpinner.stop();
+      }).catch(err => {
+        loadingSpinner.init();
+      });
     });
   </script>
   </body>

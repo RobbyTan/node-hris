@@ -19,7 +19,12 @@ app.use(require("express-session")({
 
 router.get("/",authentication.payrollAccess,(req,res)=>{
 	if(req.session.name){
-		res.render("./payroll/payrollDosen")
+		db.Configuration.findOne({}, (err, configuration) => {
+			if (err) console.log(err);
+			else {
+				res.render("./payroll/payrollDosen", {configuration: configuration});
+			}
+		});
 	}else{
 		res.redirect("/payroll/access");
 	}
