@@ -79,7 +79,7 @@
 <script src="/scripts/attendances/date-input-validator.js"></script>
 <script src="/scripts/attendances/loading-spinner.js"></script>
 <script src="/scripts/attendances/clock-pairing.js"></script>
-<script src="/scripts/payroll/payroll-calculator.js"></script>
+<script src="/scripts/payroll/payroll-dosen-calculator.js"></script>
 
 <script type="text/javascript">
   $(".button-collapse").sideNav();
@@ -127,7 +127,8 @@
     for (let row of rows) {
       result.push([
         row.kategori_pegawai,
-        
+        row.nik,
+
         //nama lengkap sesuai KTP
         row.nama_depan,
         row.nama_tengah,
@@ -138,6 +139,12 @@
         row.spesialisasi,
         row.cost_center,
 
+        //data jadwal dosen
+        '-',
+        '-',
+        '-',
+        '-',
+
         //data payroll
         row.perhitungan_gaji,
         row.jenis_mata_uang,
@@ -145,7 +152,7 @@
         row.penerimaan_gaji,
 
         //data perhitungan gaji dan ayroll
-        row.total_durasi_kerja,
+        (row.total_durasi_kerja_ms/(60*60*1000.0)) + ' jam',
         row.gaji_pokok,
         '-',
         '-',
@@ -180,6 +187,12 @@
         {title: 'Spesialisasi'},
         {title: 'Cost Center'},
         
+        // data jadwal dosen
+        {title: 'Nama Mata Kuliah'},
+        {title: 'Jumlah Sesi Tutorial'},
+        {title: 'Jumlah Sesi Lecture'},
+        {title: 'Total Sesi'},
+
         // data payroll
         {title: 'Perhitungan gaji'},
         {title: 'Jenis mata uang'},
@@ -205,7 +218,7 @@
         from: fromString,
         to: toString
       }).then(attendances => {
-        let payrollResult = PayrollCalculator.process(attendances, {
+        let payrollResult = PayrollDosenCalculator.process(attendances, {
           dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
         });
         renderTable(payrollResult);
