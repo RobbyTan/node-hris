@@ -62,14 +62,21 @@ let PayrollDosenCalculator = (function() {
       let payrollObject = {
         ...fullDataDictionary[nik],
         total_durasi_kerja_ms: totalDurasiKerjaMs[nik],
-        gaji_pokok: gajiPokok,
-        total_gaji: totalGaji
+        gaji_pokok: 'IDR '+ convertToRupiah(gajiPokok),
+        total_gaji: 'IDR '+ convertToRupiah(totalGaji)
       };
       payrollResult.push(payrollObject);
     }
     console.log('payrollResult', payrollResult);
     return payrollResult;
   }
+
+  function convertToRupiah(angka){
+    var rupiah = '';
+    var angkarev = angka.toString().split('').reverse().join('');
+    for(var i = 0; i < angkarev.length; i++) if(i%3 == 0) rupiah += angkarev.substr(i,3)+'.';
+    return rupiah.split('',rupiah.length-1).reverse().join('');
+}
 
   /* initialization */
   _initFullDataDictionary();

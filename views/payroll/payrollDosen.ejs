@@ -59,6 +59,43 @@
   </table>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Pengeditan Gaji</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Material form group -->
+        <!-- Material input -->
+        <!--Blue select-->
+        <select class="mdb-select colorful-select dropdown-primary" id="option">
+          <option value="1">Penambahan</option>
+          <option value="2">Pengurangan</option>
+        </select>
+        <!--/Blue select-->
+        <div class="md-form form-group mt-5">
+          <input type="number" class="form-control" id="formGroupExampleInputMD" placeholder="1000000" required>
+          <label for="formGroupExampleInputMD">Jumlah</label>
+        </div>
+        <!-- Material input -->
+        <div class="md-form form-group mt-5">
+          <input type="text" class="form-control" id="formGroupExampleInput2MD" placeholder="Izin bekerja" required>
+          <label for="formGroupExampleInput2MD">Keterangan</label>
+        </div>
+        <!-- Material form group -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 </main>
 <br>
@@ -87,18 +124,18 @@
   $('#data_table').DataTable({
     dom: 'Bfrtip',
     lengthMenu: [
-      [10, 25, 50, -1],
-      [10, 25, 50, "All"]
+    [10, 25, 50, -1],
+    [10, 25, 50, "All"]
     ],
     buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
-      }
+    'pageLength',
+    'copyHtml5',
+    'excelHtml5',
+    {
+      extend: 'pdf',
+      text: 'Pdf',
+      orientation: 'landscape'
+    }
     ]
   });
 
@@ -157,26 +194,26 @@
         '-',
         '-',
         row.total_gaji
-      ]);
+        ]);
     }
     $('#data_table').DataTable({
       destroy: true,
       dom: 'Bfrtip',
       lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
       buttons: [
-        'pageLength',
-        'copyHtml5',
-        'excelHtml5',
-        {
-          extend: 'pdf',
-          text: 'Pdf',
-          orientation: 'landscape'
-        }
+      'pageLength',
+      'copyHtml5',
+      'excelHtml5',
+      {
+        extend: 'pdf',
+        text: 'Pdf',
+        orientation: 'landscape'
+      }
       ],
       data: result,
       columns: [
-        {title: 'Kategori Pegawai'},  
-        {title: 'NIK'},
+      {title: 'Kategori Pegawai'},  
+      {title: 'NIK'},
 
         // nama lengkap sesuai KTP
         {title: 'Nama depan'},
@@ -206,8 +243,8 @@
         {title: 'Penambahan/Pengurangan'},
         {title: 'Keterangan Penambahan/Pengurangan'},
         {title: 'Total gaji yang diterima'}
-      ]
-    });
+        ]
+      });
   }
 
   $('#generate_button').on('click', () => {
@@ -216,18 +253,25 @@
     let toString = $('#to_txt').val();
     loadingSpinner.start();
     $.getJSON("/api/attendances", {
-        from: fromString,
-        to: toString
-      }).then(attendances => {
-        let payrollResult = PayrollDosenCalculator.process(attendances, {
-          dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
-        });
-        renderTable(payrollResult);
-        loadingSpinner.stop();
-      }).catch(err => {
-        loadingSpinner.init();
+      from: fromString,
+      to: toString
+    }).then(attendances => {
+      let payrollResult = PayrollDosenCalculator.process(attendances, {
+        dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
       });
+      renderTable(payrollResult);
+      loadingSpinner.stop();
+    }).catch(err => {
+      loadingSpinner.init();
+    });
   });
+  $('#data_table').on('click', 'td:nth-child(19)',function(){
+    $(this).attr('data-toggle','modal');
+    $(this).attr('data-target','#exampleModal')
+    var gajiPokokText=$(this).prev().text();
+    var gajiPokok=parseInt(gajiPokokText.replace(/[^0-9]+/g, ""));
+
+  })
 </script>
 </body>
 

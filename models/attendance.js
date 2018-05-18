@@ -2,8 +2,7 @@ let mongoose = require('mongoose')
 
 let attendanceSchema = new mongoose.Schema({
   date: {
-    type: Date,
-    unique: true
+    type: Date
   },
   nik: {
     type: String,
