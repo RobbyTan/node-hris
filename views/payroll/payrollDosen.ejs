@@ -160,8 +160,9 @@
       ]);
     }
     $('#data_table').DataTable({
+      destroy: true,
       dom: 'Bfrtip',
-      "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+      lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
       buttons: [
         'pageLength',
         'copyHtml5',
@@ -186,7 +187,7 @@
         {title: 'Departemen'},
         {title: 'Spesialisasi'},
         {title: 'Cost Center'},
-        
+
         // data jadwal dosen
         {title: 'Nama Mata Kuliah'},
         {title: 'Jumlah Sesi Tutorial'},
@@ -198,7 +199,7 @@
         {title: 'Jenis mata uang'},
         {title: 'Jumlah gaji saat ini'},
         {title: 'Penerimaan gaji'},
-        
+
         // Perhitungan Jam Kerja dan Payroll
         {title: 'Total durasi kerja'},
         {title: 'Gaji pokok/Total gaji per jam'},

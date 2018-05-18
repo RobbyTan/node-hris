@@ -40,7 +40,7 @@ let PayrollDosenCalculator = (function() {
   }
 
   function process(attendances, options) {
-    attendances = attendances.filter(attendance => attendance.kategori_pegawai==='Dosen Tidak Tetap');
+    attendances = attendances.filter(attendance => attendance.department==='Dosen Tidak Tetap');
     let totalDurasiKerjaMs = {};
     for (let attendance of attendances) {
       let clocks = attendance.absensi.map(clock => moment(clock.date));
