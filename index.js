@@ -57,6 +57,10 @@ app.get("/logout",function(req,res){
   res.redirect("/login");
 });
 
+app.get('/register',(req,res)=>{
+	res.render('register');
+})
+
 app.post("/register",function(req,res){
 		var newUser = new User({username:req.body.username});
 		console.log(newUser)
