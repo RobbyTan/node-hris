@@ -158,6 +158,23 @@
     disableNodes: ['generate_button']
   });
 
+  function roundTo2FractionDigits(num) {
+    return Math.round((num + 0.00001) * 100) / 100;
+  }
+  function convertToRupiah(value){
+    let valueStr = value.toString();
+    let whole, fraction;
+    if (valueStr.includes('.')) [whole, fraction] = valueStr.split('.');
+    else { whole = valueStr; fraction = ''; }
+    let rupiah = [];
+    let wholeRev = whole.split('').reverse();
+    for (let i = 0; i < wholeRev.length; i++) {
+      if (i % 3 == 0) rupiah.push('.');
+      rupiah.push(wholeRev[i]);
+    }
+    return 'IDR ' + rupiah.reverse().slice(0,-1).join('') + (fraction.length ? ','+fraction : '');
+  }
+
   function renderTable(rows) {
     $.fn.dataTable.ext.errMode = 'none';
     let result = [];
@@ -189,11 +206,11 @@
         row.penerimaan_gaji,
 
         //data perhitungan gaji dan ayroll
-        (row.total_durasi_kerja_ms/(60*60*1000.0)) + ' jam',
-        row.gaji_pokok,
+        roundTo2FractionDigits(row.total_durasi_kerja_ms/(60*60*1000.0)) + ' jam',
+        convertToRupiah(roundTo2FractionDigits(row.gaji_pokok)),
         '-',
         '-',
-        row.total_gaji
+        convertToRupiah(roundTo2FractionDigits(row.total_gaji))
         ]);
     }
     $('#data_table').DataTable({
@@ -265,11 +282,12 @@
       loadingSpinner.init();
     });
   });
+  
   $('#data_table').on('click', 'td:nth-child(19)',function(){
     $(this).attr('data-toggle','modal');
     $(this).attr('data-target','#exampleModal')
-    var gajiPokokText=$(this).prev().text();
-    var gajiPokok=parseInt(gajiPokokText.replace(/[^0-9]+/g, ""));
+    let gajiPokokText = $(this).prev().text();
+    let gajiPokok = parseInt(gajiPokokText.replace(/[^0-9]+/g, ''));
 
   })
 </script>
