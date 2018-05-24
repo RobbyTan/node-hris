@@ -158,6 +158,14 @@
     disableNodes: ['generate_button']
   });
 
+  function applyPrecision(num, precision) {
+    return Math.round((num + 0.00001) * (10**precision)) / (10**precision);
+  }
+  function formatToRupiah(value){
+    let formatted = value.toLocaleString('en-US', {minimumFractionDigits: 2});
+    return 'IDR ' + formatted.replace(/,/g, '#').replace(/\./g, ',').replace(/#/g, '.');
+  }
+
   function renderTable(rows) {
     $.fn.dataTable.ext.errMode = 'none';
     let result = [];
@@ -189,11 +197,11 @@
         row.penerimaan_gaji,
 
         //data perhitungan gaji dan ayroll
-        (row.total_durasi_kerja_ms/(60*60*1000.0)) + ' jam',
-        row.gaji_pokok,
+        applyPrecision(row.total_durasi_kerja_ms/(60*60*1000.0), 2) + ' jam',
+        formatToRupiah(applyPrecision(row.gaji_pokok, 2)),
         '-',
         '-',
-        row.total_gaji
+        formatToRupiah(applyPrecision(row.total_gaji, 2))
         ]);
     }
     $('#data_table').DataTable({
@@ -265,11 +273,12 @@
       loadingSpinner.init();
     });
   });
+  
   $('#data_table').on('click', 'td:nth-child(19)',function(){
     $(this).attr('data-toggle','modal');
     $(this).attr('data-target','#exampleModal')
-    var gajiPokokText=$(this).prev().text();
-    var gajiPokok=parseInt(gajiPokokText.replace(/[^0-9]+/g, ""));
+    let gajiPokokText = $(this).prev().text();
+    let gajiPokok = parseInt(gajiPokokText.replace(/[^0-9]+/g, ''));
 
   })
 </script>
