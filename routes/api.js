@@ -72,27 +72,37 @@ router.post("/configuration/DosenMaxTime",(req,res)=>{
   });
 })
 
+router.post('/configuration/password',(req,res)=>{
+  db.Configuration.findOne({}, (err, configuration) => {
+    if (err) {
+      console.log(err)
+    } else {
+      res.json(configuration);
+    }
+  })
+})
+
 router.get('/attendances/:nik', (req, res) => {
   let nik = req.params.nik;
   let date = req.query.date;
 
   db.Absensi.aggregate([
-    {
-      $match: {
-        $and: [
-        {nik: nik},
-        {date: {$gte: new Date(date)} },
-        {date: {$lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()} }
-        ]
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        date: 1,
-        type: 1
-      }
+  {
+    $match: {
+      $and: [
+      {nik: nik},
+      {date: {$gte: new Date(date)} },
+      {date: {$lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()} }
+      ]
     }
+  },
+  {
+    $project: {
+      _id: 0,
+      date: 1,
+      type: 1
+    }
+  }
   ]).then(data => {
     res.json(data);
   }).catch(err => {
@@ -142,87 +152,87 @@ function concatArray (arr) {
 
 function loadResultFromDatabaseFull (date) {
   return db.Employee.aggregate([
+  {
+    $lookup:
     {
-      $lookup:
-      {
-        'from': 'attendances',
-        'localField': 'nik',
-        'foreignField': 'nik',
-        'as': 'data_absensi'
-      }
-    },
-    {
-      $project: {
-        startDate: 1,
-        nik: 1,
-        first_Name: 1,
-        last_Name: 1,
-        birthday: 1,
-        department: 1,
-        jam_masuk: 1,
-        atasan_langsung: 1,
-        absensi: {
-          $filter: {
-            input: '$data_absensi',
-            as: 'absensi',
-            cond: {$and: [{$gte: ['$$absensi.date', new Date(date)]}, {$lt: ['$$absensi.date', moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()]}]}
-          }
+      'from': 'attendances',
+      'localField': 'nik',
+      'foreignField': 'nik',
+      'as': 'data_absensi'
+    }
+  },
+  {
+    $project: {
+      startDate: 1,
+      nik: 1,
+      first_Name: 1,
+      last_Name: 1,
+      birthday: 1,
+      department: 1,
+      jam_masuk: 1,
+      atasan_langsung: 1,
+      absensi: {
+        $filter: {
+          input: '$data_absensi',
+          as: 'absensi',
+          cond: {$and: [{$gte: ['$$absensi.date', new Date(date)]}, {$lt: ['$$absensi.date', moment(date, 'YYYY-MM-DD').add(1, 'days').toDate()]}]}
         }
       }
-    },
-    {
-      $match: {
-        'department': {$nin: ['Resign', null]}
-      }
     }
+  },
+  {
+    $match: {
+      'department': {$nin: ['Resign', null]}
+    }
+  }
   ]);
 }
 
 function loadResultFromDatabase (fromDateStr, toDateStr) {
   return db.Absensi.aggregate([
-    {
-      $match: {
-        date : {
-          $gte: new Date(fromDateStr), 
-          $lt: moment(toDateStr, 'YYYY-MM-DD').add(1, 'days').toDate()
-        }
-      }
-    },
-    {
-      $lookup: {
-        'from': 'employees',
-        'localField': 'nik',
-        'foreignField': 'nik',
-        'as': 'employee'
-      }
-    },
-    {
-      $unwind: "$employee"
-    },
-    {
-      $group: {
-        _id: { 
-          month: { $month: "$date" }, 
-          day: { $dayOfMonth: "$date" }, 
-          year: { $year: "$date" },
-          nik: "$nik"
-        },
-        startDate: {$first: "$employee.startDate"},
-        nik: {$first: "$employee.nik"},
-        first_Name: {$first: "$employee.first_Name"},
-        last_Name: {$first: "$employee.last_Name"},
-        birthday: {$first: "$employee.birthday"},
-        department: {$first: "$employee.department"},
-        jam_masuk: {$first: "$employee.jam_masuk"},
-        atasan_langsung: {$first: "$employee.atasan_langsung"},
-        absensi: { 
-          $push: {
-            date: "$date",
-            nik: "$nik"
-          } 
-        }
+  {
+    $match: {
+      date : {
+        $gte: new Date(fromDateStr), 
+        $lt: moment(toDateStr, 'YYYY-MM-DD').add(1, 'days').toDate()
       }
     }
+  },
+  {
+    $lookup: {
+      'from': 'employees',
+      'localField': 'nik',
+      'foreignField': 'nik',
+      'as': 'employee'
+    }
+  },
+  {
+    $unwind: "$employee"
+  },
+  {
+    $group: {
+      _id: { 
+        month: { $month: "$date" }, 
+        day: { $dayOfMonth: "$date" }, 
+        year: { $year: "$date" },
+        nik: "$nik"
+      },
+      startDate: {$first: "$employee.startDate"},
+      nik: {$first: "$employee.nik"},
+      first_Name: {$first: "$employee.first_Name"},
+      last_Name: {$first: "$employee.last_Name"},
+      birthday: {$first: "$employee.birthday"},
+      department: {$first: "$employee.department"},
+      jam_masuk: {$first: "$employee.jam_masuk"},
+      atasan_langsung: {$first: "$employee.atasan_langsung"},
+      absensi: { 
+        $push: {
+          date: "$date",
+          nik: "$nik"
+        } 
+      }
+    }
+  }
   ])
 }
 

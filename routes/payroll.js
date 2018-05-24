@@ -6,6 +6,7 @@ const moment = require('moment')
 const bodyParser = require('body-parser')
 var sessions = require('express-session')
 var app=express();
+const bcrypt = require('bcrypt')
 
 var session;
 const authentication = require('../middleware/authentication.js')
@@ -35,16 +36,16 @@ router.get("/access",authentication.payrollAccess,(req,res)=>{
 	res.render('./payroll/access')
 })
 router.post("/access",authentication.payrollAccess,(req,res)=>{	
-	console.log(process.env)
-	if(req.body.password == process.env.PASS){
-		session=req.session;
-		session.name=req.user.username;
-		res.redirect("/payroll")
-		console.log(session.name)
-	}else{
-		res.redirect('/payroll/access')
-	}
-	
+	db.Configuration.findOne({}, (err, configuration) => {
+		hash=configuration.password;
+		if(bcrypt.compareSync(req.body.password, hash)) {
+			session=req.session;
+			session.name=req.user.username;
+			res.redirect("/payroll")
+			console.log(session.name)
+		} else {
+			res.redirect('/payroll/access')
+		}
+	})
 })
-
 module.exports = router

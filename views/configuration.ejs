@@ -1,5 +1,6 @@
 <% include partials/attendanceHeader%>
 <h1>Configuration</h1>
+<hr>
 <!-- Default input -->
 <form id="formMaxTime">
 	<div class="row" style="padding-top: 20px">
@@ -17,8 +18,9 @@
 		</div>
 	</div>
 	<button type="submit" class="btn btn-md btn-primary btn-rounded" id="btnSave" style="margin-top: 20px">Save Settings</button>
-	</form>
-
+	</form><hr>
+	<label>Set Password</label><br>
+	<a href="/configuration/reset/password" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset Password</a>
 	<script type="text/javascript" src="/scripts/bootstrap-clockpicker.min.js"></script>
 	<script type="text/javascript">
 		$('.clockpicker').clockpicker({

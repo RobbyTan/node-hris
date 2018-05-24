@@ -5,6 +5,7 @@ const { upload } = require('../middleware/upload')
 const db = require('../models')
 const moment = require('moment')
 const authentication = require('../middleware/authentication.js')
+const bcrypt = require('bcrypt')
 
 router.get("/access/view/pph",authentication.reportAccess,(req,res)=>{
     res.render('./report/accessView')
@@ -13,25 +14,47 @@ router.get("/access/upload/pph",authentication.reportAccess,(req,res)=>{
     res.render('./report/accessUpload')
 })
 router.post("/access/view/pph",authentication.reportAccess,(req,res)=>{ 
-    if(req.body.password == process.env.PASS){
-        session=req.session;
-        session.name=req.user.username;
-        res.redirect("/report/view/pph")
-        console.log(session.name)
-    }else{
-        res.redirect('/report/access')
-    }
+    db.Configuration.findOne({}, (err, configuration) => {
+        hash=configuration.password;
+        if(bcrypt.compareSync(req.body.password, hash)) {
+            session=req.session;
+            session.name=req.user.username;
+            res.redirect("/report/view/pph")
+            console.log(session.name)
+        } else {
+            res.redirect('/report/access/view/pph')
+        }
+    })
+    // if(req.body.password == process.env.PASS){
+    //     session=req.session;
+    //     session.name=req.user.username;
+    //     res.redirect("/report/view/pph")
+    //     console.log(session.name)
+    // }else{
+    //     res.redirect('/report/access')
+    // }
     
 })
 router.post("/access/upload/pph",authentication.reportAccess,(req,res)=>{ 
-    if(req.body.password == process.env.PASS){
-        session=req.session;
-        session.name=req.user.username;
-        res.redirect("/report/upload/pph")
-        console.log(session.name)
-    }else{
-        res.redirect('/report/access')
-    }
+    db.Configuration.findOne({}, (err, configuration) => {
+        hash=configuration.password;
+        if(bcrypt.compareSync(req.body.password, hash)) {
+            session=req.session;
+            session.name=req.user.username;
+            res.redirect("/report/upload/pph")
+            console.log(session.name)
+        } else {
+            res.redirect('/report/access/upload/pph')
+        }
+    })
+    // if(req.body.password == process.env.PASS){
+    //     session=req.session;
+    //     session.name=req.user.username;
+    //     res.redirect("/report/upload/pph")
+    //     console.log(session.name)
+    // }else{
+    //     res.redirect('/report/access')
+    // }
     
 })
 router.get('/upload/pph',authentication.reportAccess, (req, res) => {
