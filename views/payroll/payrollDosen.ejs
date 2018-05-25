@@ -70,28 +70,30 @@
         </button>
       </div>
       <div class="modal-body">
+        <div id="modal_keterangan_title" class="alert alert-primary" role="alert"></div>
         <!-- Material form group -->
-        <!-- Material input -->
         <!--Blue select-->
-        <select class="mdb-select colorful-select dropdown-primary" id="option">
-          <option value="1">Penambahan</option>
-          <option value="2">Pengurangan</option>
-        </select>
-        <!--/Blue select-->
-        <div class="md-form form-group mt-5">
-          <input type="number" class="form-control" id="formGroupExampleInputMD" placeholder="1000000" required>
-          <label for="formGroupExampleInputMD">Jumlah</label>
-        </div>
-        <!-- Material input -->
-        <div class="md-form form-group mt-5">
-          <input type="text" class="form-control" id="formGroupExampleInput2MD" placeholder="Izin bekerja" required>
-          <label for="formGroupExampleInput2MD">Keterangan</label>
-        </div>
+        <form id="form_keterangan">
+          <select class="mdb-select colorful-select dropdown-primary" id="option_keterangan">
+            <option value="1">Penambahan</option>
+            <option value="2">Pengurangan</option>
+          </select>
+          <!--/Blue select-->
+          <div class="md-form form-group mt-5">
+            <input type="number" class="form-control" id="nominal_txt" placeholder="" required>
+            <label for="formGroupExampleInputMD">Jumlah</label>
+          </div>
+          <!-- Material input -->
+          <div class="md-form form-group mt-5">
+            <input type="text" class="form-control" id="keterangan_txt" placeholder="Izin bekerja" required>
+            <label for="formGroupExampleInput2MD">Keterangan</label>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" id="add_keterangan_btn" class="btn btn-primary">ADD</button>
+          </div>
+        </form>
         <!-- Material form group -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
@@ -170,6 +172,7 @@
     $.fn.dataTable.ext.errMode = 'none';
     let result = [];
     for (let row of rows) {
+      let [nominals, keterangans] = formatNominalsKeterangans(row.keteranganList);
       result.push([
         row.kategori_pegawai,
         row.nik,
@@ -199,8 +202,8 @@
         //data perhitungan gaji dan ayroll
         applyPrecision(row.total_durasi_kerja_ms/(60*60*1000.0), 2) + ' jam',
         formatToRupiah(applyPrecision(row.gaji_pokok, 2)),
-        '-',
-        '-',
+        nominals || '-',
+        keterangans || '-',
         formatToRupiah(applyPrecision(row.total_gaji, 2))
         ]);
     }
@@ -267,20 +270,110 @@
       let payrollResult = PayrollDosenCalculator.process(attendances, {
         dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
       });
-      renderTable(payrollResult);
-      loadingSpinner.stop();
+      getKeteranganList({
+        startDate: new Date(fromString),
+        endDate: new Date(toString)
+      }, function(keteranganList) {
+        let nikToKeteranganList = {};
+        //kelompokkan keterangan berdasarkan nik
+        keteranganList.forEach(ket => {
+          if (!nikToKeteranganList[ket.nik]) nikToKeteranganList[ket.nik] = [];
+          nikToKeteranganList[ket.nik].push(ket);
+        });
+        //tempelkan keterangan ke payrollResult
+        payrollResult.forEach(e => {
+          e.keteranganList = nikToKeteranganList[e.nik] || [];
+        });
+        renderTable(payrollResult);
+        bindFormKeterangan();
+        loadingSpinner.stop();
+      });
     }).catch(err => {
       loadingSpinner.init();
     });
   });
-  
-  $('#data_table').on('click', 'td:nth-child(19)',function(){
-    $(this).attr('data-toggle','modal');
-    $(this).attr('data-target','#exampleModal')
-    let gajiPokokText = $(this).prev().text();
-    let gajiPokok = parseInt(gajiPokokText.replace(/[^0-9]+/g, ''));
 
-  })
+  function bindFormKeterangan() {
+    let dataTable = $('#data_table').DataTable();
+    $('#data_table tbody').on('click', 'td', function(){
+      let cell = dataTable.cell(this);
+      if (!cell.length || cell.index().column != 19) return;
+      let row = cell.index().row;
+
+      let nik = dataTable.cell(row, 1).data();
+      let nama = '';
+      [2, 3, 4].forEach(e => 
+        {let data = dataTable.cell(row, e).data(); if (data) nama += data+' ';});
+      $('#modal_keterangan_title')
+        .html(`${nama} <span style="float:right">${nik}</span>`)
+      $(this).attr('data-toggle','modal');
+      $(this).attr('data-target','#exampleModal');
+
+      $('#form_keterangan').unbind();
+      $('#form_keterangan').on('submit', function(err) {
+        err.preventDefault();
+        let multiplier = $('#option_keterangan :selected').text()==='Penambahan' ? 1 : -1;
+        let newKeterangan = {
+          nik: dataTable.cell(row, 1).data(),
+          startDate: new Date($('#from_txt').val()),
+          endDate: new Date($('#to_txt').val()),
+          nominal: multiplier * Number($('#nominal_txt').val()),
+          keterangan: $('#keterangan_txt').val()
+        };
+
+        //insert to database
+        $.ajax({
+          type: 'POST',
+          url : '/api/keteranganpayroll',
+          headers: newKeterangan,
+          success : function(data) {
+            //update table
+            getKeteranganList({
+              nik: newKeterangan.nik,
+              startDate: newKeterangan.startDate,
+              endDate: newKeterangan.endDate
+            }, function(keteranganList) {
+              let [nominals, keterangans] = formatNominalsKeterangans(keteranganList);
+              dataTable.cell(row, 18).data(nominals);
+              dataTable.cell(row, 19).data(keterangans);
+              toastr.info('New Keterangan Inserted');
+              $('#nominal_txt').val('');
+              $('#keterangan_txt').val('');
+            });
+          },
+          error : function() {
+            toastr.info('Error occured!');
+            console.log("Ajax Error occured!");
+          }
+        });
+      });
+    })
+  }
+
+  function getKeteranganList(options, callback) {
+    $.getJSON('/api/keteranganpayroll', {
+      nik: options.nik,
+      startDate: options.startDate,
+      endDate: options.endDate
+    }).then(keteranganList => {
+      callback(keteranganList);
+    }).catch(err => {
+      console.log(err);
+    });
+  }
+
+  function formatNominalsKeterangans(keteranganList) {
+    let nominals = null, keterangans = null;
+    if (keteranganList.length) {
+      nominals = '', keterangans = '';
+      keteranganList.forEach(ket => {
+        nominals += ((ket.nominal>0?'(+) ':'(-) ') + Math.abs(ket.nominal)) + '<br>';
+        keterangans += ket.keterangan + '<br> ';
+      });
+    }
+    return [nominals || '-', keterangans || '-'];
+  }
+
 </script>
 </body>
 

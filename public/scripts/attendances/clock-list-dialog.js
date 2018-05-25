@@ -10,7 +10,6 @@ let ClockListDialog = (function () {
   let firstRun = false;
 
   function getClocks(person, callback) {
-    console.log(person, person.nik, person.date);
     $.getJSON("/api/attendances/" + person.nik, {
       date: person.date
     }).then(clockList => {

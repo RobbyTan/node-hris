@@ -62,13 +62,49 @@ router.get('/employeedata',(req,res)=>{
   })
 })
 
+router.get('/keteranganpayroll', (req, res) => {
+  let nik = req.query.nik ? req.query.nik : /.*/;
+  let startDate = req.query.startDate;
+  let endDate = req.query.endDate;
+  db.KeteranganPayroll.aggregate([
+    {
+      $match: {
+        $and: [
+          {nik: nik},
+          {startDate: new Date(startDate)},
+          {endDate: new Date(endDate)}
+        ]
+      }
+    }
+  ]).then(data => {
+    console.log(data);
+    res.json(data);
+  }).catch(err => {
+    res.status(404).json({error: true});
+  });
+});
+
+router.post("/keteranganpayroll",(req,res)=>{
+  let newKeterangan = {
+    nik: req.headers.nik,
+    startDate: req.headers.startdate,
+    endDate: req.headers.enddate,
+    nominal: req.headers.nominal,
+    keterangan: req.headers.keterangan
+  };
+  db.KeteranganPayroll.create(newKeterangan, function (err, createdKeterangan) {
+    if (err) return res.status(404).json({error: true});
+    res.json({success: true});
+  });
+})
+
 router.post("/configuration/DosenMaxTime",(req,res)=>{
   let maxTime = req.headers.maxtime;
   db.Configuration.update({}, { $set: {
     dosenTidakTetapMaxTime: maxTime
   }}, function (err) {
-    if (err) console.log(err);
-    res.send("success updating DosenMaxTime")
+    if (err) return res.status(404).json({error: true});
+    res.json({success: true});
   });
 })
 
@@ -117,11 +153,11 @@ router.post("/attendances", (req, res) => {
     type: "manual"
   };
   db.Absensi.find({nik: newAttendance.nik, date: newAttendance.date}, function(attendance) {
-    if (attendance) res.status(404).json({duplicateError: true});
+    if (attendance) res.status(404).json({duplicate: true});
   });
   db.Absensi.create(newAttendance, (err, newlyCreated) => {
-    if (err) return res.status(404).send("error occured");
-    res.send("new attendance inserted");
+    if (err) return res.status(404).json({error: true});
+    res.json({success: true});
   });
 })
 
