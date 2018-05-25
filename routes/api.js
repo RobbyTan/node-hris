@@ -140,6 +140,7 @@ router.get('/attendances/:nik', (req, res) => {
     }
   }
   ]).then(data => {
+    console.log('api', data);
     res.json(data);
   }).catch(err => {
     res.status(404).json({error: true});
@@ -163,8 +164,16 @@ router.post("/attendances", (req, res) => {
 
 // String, String
 async function getAttendancesJSON (fromString, toString) {
-  let databaseResult = await loadResultFromDatabase(fromString, toString);
-  return databaseResult;
+  let days = Math.abs(moment(fromString, 'YYYY-MM-DD').diff(moment(toString, 'YYYY-MM-DD'), 'days')) + 1;
+  let fromDate = moment(fromString, 'YYYY-MM-DD');
+  let dataPromise = [];
+  for (let i = 0; i < days; i++) {
+    let currentString = fromDate.format('YYYY-MM-DD');
+    dataPromise.push(loadResultFromDatabase(currentString));
+    fromDate.add(1, 'days');
+  }
+  let databaseResult = await Promise.all(dataPromise);
+  return concatArray(databaseResult);
 }
 
 async function getFullAttendancesJSON (fromString, toString) {
@@ -224,51 +233,87 @@ function loadResultFromDatabaseFull (date) {
   ]);
 }
 
-function loadResultFromDatabase (fromDateStr, toDateStr) {
+function loadResultFromDatabase (date) {
+  db.Absensi.aggregate([
+    {
+      $match: {
+        $and: [
+        {nik: '0000003120180041'},
+        {date: { $gte: moment(date, 'YYYY-MM-DD').subtract(1, 'days').set({
+                'hour': 17,
+                'minute': 0,
+                'second' : 0
+              }).toDate() } },
+        {date: {$lt: moment(date, 'YYYY-MM-DD').set({
+                'hour': 17,
+                'minute': 0,
+                'second' : 1
+              }).toDate() } }
+        ]
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        date: 1,
+        type: 1
+      }
+    }
+    ]).then(data => {
+      console.log('table', data);
+    }).catch(err => {
+      console.log('table', err);
+    });
+
   return db.Absensi.aggregate([
-  {
-    $match: {
-      date : {
-        $gte: new Date(fromDateStr), 
-        $lt: moment(toDateStr, 'YYYY-MM-DD').add(1, 'days').toDate()
+    {
+      $match: {
+        $and: [
+          {date: { $gte: moment(date, 'YYYY-MM-DD').subtract(1, 'days').set({
+                  'hour': 17,
+                  'minute': 0,
+                  'second' : 0
+                }).toDate() } },
+          {date: {$lt: moment(date, 'YYYY-MM-DD').set({
+                  'hour': 17,
+                  'minute': 0,
+                  'second' : 1
+                }).toDate() } }
+        ]
       }
-    }
-  },
-  {
-    $lookup: {
-      'from': 'employees',
-      'localField': 'nik',
-      'foreignField': 'nik',
-      'as': 'employee'
-    }
-  },
-  {
-    $unwind: "$employee"
-  },
-  {
-    $group: {
-      _id: { 
-        month: { $month: "$date" }, 
-        day: { $dayOfMonth: "$date" }, 
-        year: { $year: "$date" },
-        nik: "$nik"
-      },
-      startDate: {$first: "$employee.startDate"},
-      nik: {$first: "$employee.nik"},
-      first_Name: {$first: "$employee.first_Name"},
-      last_Name: {$first: "$employee.last_Name"},
-      birthday: {$first: "$employee.birthday"},
-      department: {$first: "$employee.department"},
-      jam_masuk: {$first: "$employee.jam_masuk"},
-      atasan_langsung: {$first: "$employee.atasan_langsung"},
-      absensi: { 
-        $push: {
-          date: "$date",
+    },
+    {
+      $lookup: {
+        'from': 'employees',
+        'localField': 'nik',
+        'foreignField': 'nik',
+        'as': 'employee'
+      }
+    },
+    {
+      $unwind: "$employee"
+    },
+    {
+      $group: {
+        _id: {
           nik: "$nik"
-        } 
+        },
+        startDate: {$first: "$employee.startDate"},
+        nik: {$first: "$employee.nik"},
+        first_Name: {$first: "$employee.first_Name"},
+        last_Name: {$first: "$employee.last_Name"},
+        birthday: {$first: "$employee.birthday"},
+        department: {$first: "$employee.department"},
+        jam_masuk: {$first: "$employee.jam_masuk"},
+        atasan_langsung: {$first: "$employee.atasan_langsung"},
+        absensi: { 
+          $push: {
+            date: "$date",
+            nik: "$nik"
+          } 
+        }
       }
     }
-  }
   ])
 }
 
