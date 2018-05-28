@@ -13,10 +13,18 @@ router.get("/", authentication.isLoggedIn, (req, res) => {
 		res.render("configuration", {configuration: configuration})
 	})
 })
-router.get("/reset/password", authentication.reportAccess, (req, res) => {
-	res.render("./configuration/resetPassword")
+router.get("/reset/password/new", authentication.reportAccess, (req, res) => {
+	if(req.session.password){
+		res.render("./configuration/resetPassword")
+	}else{
+		res.redirect("/configuration/reset/password")
+	}
+	
 })
-router.post("/reset/password",authentication.reportAccess,(req,res)=>{
+router.get("/reset/password",authentication.reportAccess,(req,res)=>{
+	res.render("./configuration/oldPassword")
+})
+router.post("/reset/password/new",authentication.reportAccess,(req,res)=>{
 	var password=req.body.password;
 	bcrypt.hash(password, 10, function(err, hash) {
 		db.Configuration.update({}, { $set: {
@@ -28,7 +36,19 @@ router.post("/reset/password",authentication.reportAccess,(req,res)=>{
 		});
   // Store hash in database
 });
-
+})
+router.post("/reset/password",(req,res)=>{
+	db.Configuration.findOne({}, (err, configuration) => {
+		hash=configuration.password;
+		if(bcrypt.compareSync(req.body.password, hash)) {
+			session=req.session;
+			session.password=req.user._id;
+			res.redirect("/configuration/reset/password/new")
+			console.log(session)
+		} else {
+			res.redirect('/configuration/reset/password')
+		}
+	})
 })
 
 

@@ -7,8 +7,6 @@ const bodyParser = require('body-parser')
 var sessions = require('express-session')
 var app=express();
 const bcrypt = require('bcrypt')
-
-var session;
 const authentication = require('../middleware/authentication.js')
 
 app.use(bodyParser.urlencoded({extended: true}))
