@@ -26,9 +26,9 @@ router.get('/view2',authentication.isLoggedIn, (req, res) => {
   res.render('./attendance/viewAttendance2')
 })
 
-router.get('/view3',authentication.isLoggedIn, (req, res) => {
-  res.render('./attendance/viewAttendance3')
-})
+// router.get('/view3',authentication.isLoggedIn, (req, res) => {
+//   res.render('./attendance/viewAttendance3')
+// })
 
 router.get('/upload',authentication.isLoggedIn, (req, res) => {
   res.render('./attendance/uploadAttendance')
@@ -77,7 +77,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         if (err) {
           console.log(err)
         } else {
-            // redirect back to events page
+          // redirect back to events page
           console.log('Absensi created')
         }
       })

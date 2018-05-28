@@ -15,7 +15,7 @@ let ClockPairing = (function() {
 
   //clocks adalah array of moment object
   function _getClockPairs(clocks) {
-    if (clocks.length === 0) return null;
+    if (!clocks || clocks.length === 0) return null;
 
     //sort ascending
     clocks.sort((a, b) => a.valueOf() - b.valueOf());
@@ -67,6 +67,7 @@ let ClockPairing = (function() {
   };
 
   function _getFlaggedClockPairs(clockPairs, isDosenTidakTetap) {
+    if (!clockPairs) return '-';
     let clockPairsDisplay;
     if (isDosenTidakTetap) { // jika Dosen Tidak Tetap
       clockPairsDisplay = clockPairs.reduce((acc, cur) => {
@@ -88,6 +89,7 @@ let ClockPairing = (function() {
   }
 
   function _getTotalWorkingTime(clockPairs, isDosenTidakTetap) {
+    if (!clockPairs) return '00:00:00';
     let totalWorkingTime;
     if (isDosenTidakTetap) { // jika Dosen Tidak Tetap
       totalWorkingTime = moment.utc(clockPairs.reduce(

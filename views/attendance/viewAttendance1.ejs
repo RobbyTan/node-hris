@@ -31,7 +31,7 @@
             <td>Tanggal</td>
             <td>Jam Masuk</td>
             <td>Absensi</td>
-            <td>Full Working Hours</td>
+            <td>Total Durasi Jam Kerja</td>
           </tr>
         </thead>
         <tbody>
@@ -93,9 +93,10 @@
       hideableNodes: ['data_table_wrapper'],
       disableNodes: ['generate_button']
     });
-    
+
     // data berisi array of JSON of satu orang dengan absensi-nya utk hari itu
     function renderTable(data) {
+      $.fn.dataTable.ext.errMode = 'none';
       let result = [];
       for (let i = 0; i < data.length; i++) {
         let clocks = data[i].absensi.map(clock => moment(clock.date))
@@ -110,7 +111,7 @@
           data[i].first_Name + " " + (data[i].last_Name ? data[i].last_Name : ""),
           data[i].department,
           (data[i].atasan_langsung ? data[i].atasan_langsung : ""),
-          moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
+          moment(data[i].absensi.length ? data[i].absensi[0].date : data[i].current_date).format("D MMMM YYYY"),
           (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
           '<span class="clockList">' + clockPairsDisplay + '</span>',
           totalWorkingTime
@@ -140,26 +141,62 @@
           {title: "Tanggal"},
           {title: "Jam Masuk"},
           {title: "Absensi"},
-          {title: "Full Working Hours"}
+          {title: "Total Durasi Jam Kerja"}
         ]
       })
     }
     
-    $('#generate_button').on('click', () => {
+    function complementAbsentEmployees(employees, attendances, fromString, toString) {
+      let exist = {};
+      attendances.forEach(att => {
+        if (att.department === 'Resign') return;
+        att.absensi.forEach(clock => {
+          let key = att.nik + "#" + moment(clock.date).format('YYYY-MM-DD');
+          exist[key] = true;
+        });
+      });
+      let completeAttendances = attendances;
+      let days = moment(toString, 'YYYY-MM-DD').diff(moment(fromString, 'YYYY-MM-DD'), 'days') + 1;
+      let fromMoment = moment(fromString, 'YYYY-MM-DD');
+      for (let i = 0; i < days; i++) {
+        employees.forEach(emp => {
+          if (emp.department === 'Resign') return;
+          let key = emp.nik + "#" + fromMoment.format('YYYY-MM-DD');
+          if (!exist[key]) {
+            exist[key] = true;
+            completeAttendances.push({
+              nik: emp.nik,
+              first_Name: emp.first_Name,
+              last_Name: emp.last_Name,
+              department: emp.department,
+              atasan_langsung: emp.atasan_langsung,
+              current_date: moment(fromMoment).toDate(),
+              absensi: [],
+              jam_masuk: emp.jam_masuk
+            });
+          }
+        });
+        fromMoment.add(1, 'days');
+      }
+      return completeAttendances;
+    }
+
+    $('#generate_button').on('click', async function() {
       if (!dateInputValidator.isValid()) return;
       let fromString = $('#from_txt').val();
       let toString = $('#to_txt').val();
       loadingSpinner.start();
-      $.getJSON("/api/attendances", {
-        from: fromString,
-        to: toString
-      }).then(data => {
-        renderTable(data);
+      try {
+        let attendances = await $.getJSON("/api/attendances", {from:fromString, to:toString});
+        let employees = await $.getJSON("/api/employeedata");
+        let completeAttendances = complementAbsentEmployees(employees, attendances, fromString, toString);
+        renderTable(completeAttendances);
         ClockListDialog.bind({ tableId: 'data_table' });
         loadingSpinner.stop();
-      }).catch(err => {
+      } catch (err) {
+        console.log(err);
         loadingSpinner.init();
-      });
+      }
     });
   </script>
   </body>

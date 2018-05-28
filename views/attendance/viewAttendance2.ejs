@@ -44,7 +44,6 @@
             <td>Clock 6</td>
             <td>Clock 7</td>
             <td>Clock 8</td>
-            <td>Jam Kerja</td>
           </tr>
         </thead>
         <tbody>
@@ -111,7 +110,6 @@
         }
         let minTime = moment.min(getTime(data[i].absensi))
         let maxTime = moment.max(getTime(data[i].absensi))
-        let workingHours = moment.utc(maxTime.diff(minTime))
 
         result.push([
           data[i].nik,
@@ -119,8 +117,7 @@
           data[i].department,
           (data[i].atasan_langsung?data[i].atasan_langsung:""),
           moment(data[i].absensi[0]["date"]).format("D MMMM YYYY"),
-          ...clocks,
-          workingHours.format("HH:mm:ss")
+          ...clocks
         ])
     }
     $('#dataTable').DataTable( {
@@ -151,8 +148,7 @@
           { title: "Clock 5" },
           { title: "Clock 6" },
           { title: "Clock 7" },
-          { title: "Clock 8" },
-          { title: "Jam Kerja" }
+          { title: "Clock 8" }
         ]
     } );
   }
