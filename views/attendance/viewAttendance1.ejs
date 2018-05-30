@@ -99,13 +99,14 @@
       $.fn.dataTable.ext.errMode = 'none';
       let result = [];
       for (let i = 0; i < data.length; i++) {
-        let clocks = data[i].absensi.map(clock => moment(clock.date))
+        let clocks = data[i].absensi.map(clock => moment(clock.date));
         let clockPairingResult = ClockPairing.process(clocks, {
           dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
-          department: data[i].department
+          department: data[i].department,
+          jamMasuk: moment(data[i].jam_masuk).format('HH:mm:ss')
         });
         let clockPairsDisplay = clockPairingResult.flaggedClockPairs;
-        let totalWorkingTime = clockPairingResult.totalWorkingTime;
+        let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
         result.push([
           data[i].nik,
           data[i].first_Name + " " + (data[i].last_Name ? data[i].last_Name : ""),
@@ -113,8 +114,8 @@
           (data[i].atasan_langsung ? data[i].atasan_langsung : ""),
           moment(data[i].absensi.length ? data[i].absensi[0].date : data[i].current_date).format("D MMMM YYYY"),
           (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
-          '<span class="clockList">' + clockPairsDisplay + '</span>',
-          totalWorkingTime
+          clockPairsDisplay,
+          flaggedTotalWorkingTime
         ])
       }
 
@@ -149,7 +150,7 @@
     function complementAbsentEmployees(employees, attendances, fromString, toString) {
       let exist = {};
       attendances.forEach(att => {
-        if (att.department === 'Resign') return;
+        if (['Resign', '', null, undefined].includes(att.department)) return;
         att.absensi.forEach(clock => {
           let key = att.nik + "#" + moment(clock.date).format('YYYY-MM-DD');
           exist[key] = true;
@@ -160,7 +161,7 @@
       let fromMoment = moment(fromString, 'YYYY-MM-DD');
       for (let i = 0; i < days; i++) {
         employees.forEach(emp => {
-          if (emp.department === 'Resign') return;
+          if (['Resign', '', null, undefined].includes(emp.department)) return;
           let key = emp.nik + "#" + fromMoment.format('YYYY-MM-DD');
           if (!exist[key]) {
             exist[key] = true;

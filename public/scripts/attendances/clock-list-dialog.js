@@ -5,6 +5,7 @@ let ClockListDialog = (function () {
   let selectedDateStr;
   let clocksCell;
   let totalTimeCell;
+  let jamMasukCell;
   let department;
   let person;
   let firstRun = false;
@@ -114,12 +115,13 @@ let ClockListDialog = (function () {
             let clocks = clockList.map(e => moment(e.date));
             let clockPairingResult = ClockPairing.process(clocks, {
               dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
-              department: department
+              department: department,
+              jamMasuk: jamMasukCell.data()
             });
             let clockPairsDisplay = clockPairingResult.flaggedClockPairs;
-            let totalWorkingTime = clockPairingResult.totalWorkingTime;
+            let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
             clocksCell.data(clockPairsDisplay);
-            totalTimeCell.data(totalWorkingTime);
+            totalTimeCell.data(flaggedTotalWorkingTime);
             $('#newClockTxt').val('');
           })
         },
@@ -132,18 +134,21 @@ let ClockListDialog = (function () {
 
     function addClockToItsPosition(clockStr) {
       let clockList = $('#clockList').children();
-      let i = 0;
-      while (clockList[i]) {
-        if (moment(clockStr, 'HH:mm:ss').isAfter(moment(clockList[i].id, 'HH:mm:ss')))
-          i++;
-        else break;
+      let newClockHTML = `<li id="${clockStr}" class="list-group-item d-flex justify-content-between align-items-center" style="display:none !important;">${clockStr}<span class="badge badge-primary badge-pill">manual</span></li>`;
+      if (!clockList[0]) {
+        $('#clockList').append($(`${newClockHTML}`));
+        $($('#clockList').children()[0]).slideDown(1000);
+      } else {
+        let i = 0;
+        while (clockList[i]) {
+          if (moment(clockStr, 'HH:mm:ss').isAfter(moment(clockList[i].id, 'HH:mm:ss')))
+            i++;
+          else break;
+        }
+        if (i == 0) $(`${newClockHTML}`).insertBefore($(clockList[0]));
+        else $(`${newClockHTML}`).insertAfter($(clockList[i-1]));
+        $($('#clockList').children()[i]).slideDown(1000);
       }
-      let newClockHTML = 
-        `<li id="${clockStr}" class="list-group-item d-flex justify-content-between align-items-center" style="display:none !important;">${clockStr}<span class="badge badge-primary badge-pill">manual</span></li>`;
-      if (i == 0) $(`${newClockHTML}`).insertBefore($(clockList[0]));
-      else $(`${newClockHTML}`).insertAfter($(clockList[i-1]));
-
-      $($('#clockList').children()[i]).slideDown(1000);
     }
   }
 
@@ -157,6 +162,7 @@ let ClockListDialog = (function () {
 
       clocksCell = cell;
       totalTimeCell = table.cell(row, 7);
+      jamMasukCell = table.cell(row, 5);
       person = {
         nik: table.cell(row, 0).data(),
         name: table.cell(row, 1).data(),
