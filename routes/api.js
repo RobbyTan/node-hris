@@ -62,8 +62,42 @@ router.get('/employeedata',(req,res)=>{
   })
 })
 
+router.get('/payrollreport', (req, res) => {
+  let month = +(req.query.month);
+  let year =  +(req.query.year);
+  let startDate = moment([year, month-1]);;
+  let endDate = moment(startDate).endOf('month');
+  db.PayrollReport.aggregate([
+    {
+      $match: {
+        $and: [
+          {startDate: {$gte: moment(startDate).toDate()}},
+          {endDate: {$lt: moment(endDate).add(1, 'days').toDate()}}
+        ]
+      }
+    }
+  ]).then(data => {
+    console.log(data);
+    res.json(data);
+  }).catch(err => {
+    res.status(404).json({error: true});
+  });
+});
+
+router.post("/payrollreport", (req, res) => {
+  let newReport = {
+    startDate: req.headers.startdate,
+    endDate: req.headers.enddate,
+    keterangan: req.headers.keterangan
+  };
+  db.PayrollReport.create(newReport, function (err, createdReport) {
+    if (err) return res.status(404).json({error: true});
+    res.json({success: true});
+  });
+})
+
 router.get('/keteranganpayroll', (req, res) => {
-  let nik = req.query.nik ? req.query.nik : /.*/;
+  let nik = req.query.nik;
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   db.KeteranganPayroll.aggregate([
