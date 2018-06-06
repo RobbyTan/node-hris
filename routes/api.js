@@ -97,7 +97,7 @@ router.post("/payrollreport", (req, res) => {
 })
 
 router.get('/keteranganpayroll', (req, res) => {
-  let nik = req.query.nik;
+  let nik = req.query.nik ? req.query.nik : /.*/;
   let startDate = req.query.startDate;
   let endDate = req.query.endDate;
   db.KeteranganPayroll.aggregate([

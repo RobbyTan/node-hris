@@ -167,12 +167,18 @@
     let formatted = value.toLocaleString('en-US', {minimumFractionDigits: 2});
     return 'IDR ' + formatted.replace(/,/g, '#').replace(/\./g, ',').replace(/#/g, '.');
   }
+  function toNumber(token) {
+    let stringToken = token+'';
+    let cleanToken = stringToken.replace(/[^0-9,]+/g, '').replace(/,/g, '.');
+    let numberToken = Number(cleanToken);
+    return numberToken;
+  }
 
   function renderTable(rows) {
     $.fn.dataTable.ext.errMode = 'none';
     let result = [];
     for (let row of rows) {
-      let [nominals, keterangans] = formatNominalsKeterangans(row.keteranganList);
+      let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(row.keteranganList);
       result.push([
         row.kategori_pegawai,
         row.nik,
@@ -204,7 +210,7 @@
         formatToRupiah(applyPrecision(row.gaji_pokok, 2)),
         nominals || '-',
         keterangans || '-',
-        formatToRupiah(applyPrecision(row.total_gaji, 2))
+        formatToRupiah(applyPrecision(row.total_gaji + totalNominal, 2))
         ]);
     }
     $('#data_table').DataTable({
@@ -333,9 +339,11 @@
               startDate: newKeterangan.startDate,
               endDate: newKeterangan.endDate
             }, function(keteranganList) {
-              let [nominals, keterangans] = formatNominalsKeterangans(keteranganList);
+              let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(keteranganList);
               dataTable.cell(row, 18).data(nominals);
               dataTable.cell(row, 19).data(keterangans);
+              let totalGaji = toNumber(dataTable.cell(row, 20).data()) + newKeterangan.nominal;
+              dataTable.cell(row, 20).data(formatToRupiah(applyPrecision(totalGaji, 2)));
               toastr.info('New Keterangan Inserted');
               $('#nominal_txt').val('');
               $('#keterangan_txt').val('');
@@ -362,16 +370,17 @@
     });
   }
 
-  function formatNominalsKeterangans(keteranganList) {
-    let nominals = null, keterangans = null;
+  function processNominalAndKeterangan(keteranganList) {
+    let nominals = null, keterangans = null, totalNominal = null;
     if (keteranganList.length) {
-      nominals = '', keterangans = '';
+      nominals = '', keterangans = '', totalNominal = 0;
       keteranganList.forEach(ket => {
         nominals += ((ket.nominal>0?'(+) ':'(-) ') + Math.abs(ket.nominal)) + '<br>';
         keterangans += ket.keterangan + '<br> ';
+        totalNominal += ket.nominal;
       });
     }
-    return [nominals || '-', keterangans || '-'];
+    return [nominals || '-', keterangans || '-', totalNominal || 0];
   }
 
 </script>
