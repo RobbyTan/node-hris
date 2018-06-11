@@ -17,7 +17,7 @@ app.use(require("express-session")({
 }));
 
 router.get("/",authentication.payrollAccess,(req,res)=>{
-	if(req.session.name){
+	if(req.session.payroll){
 		db.Configuration.findOne({}, (err, configuration) => {
 			if (err) console.log(err);
 			else {
@@ -35,10 +35,10 @@ router.get("/access",authentication.payrollAccess,(req,res)=>{
 })
 router.post("/access",authentication.payrollAccess,(req,res)=>{	
 	db.Configuration.findOne({}, (err, configuration) => {
-		hash=configuration.password;
+		hash=configuration.payrollPassword;
 		if(bcrypt.compareSync(req.body.password, hash)) {
 			session=req.session;
-			session.name=req.user.username;
+			session.payroll=req.user.username;
 			res.redirect("/payroll")
 			console.log(session.name)
 		} else {

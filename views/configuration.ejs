@@ -18,53 +18,55 @@
 		</div>
 	</div>
 	<button type="submit" class="btn btn-md btn-primary btn-rounded" id="btnSave" style="margin-top: 20px">Save Settings</button>
-	</form><hr>
-	<label>Set Password</label><br>
-	<a href="/configuration/reset/password" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset Password</a>
-	<script type="text/javascript" src="/scripts/bootstrap-clockpicker.min.js"></script>
-	<script type="text/javascript">
-		$('.clockpicker').clockpicker({
-			autoclose: true,
-			placement: 'bottom',
-			donetext: 'Done'
-		});
-		$('#formMaxTime').on('submit', function(error) {
-			error.preventDefault();
-			let maxTime = {
-				maxTime: $('#txtMaxTime').val()
-			}
-			
-			$.ajax({
-				type:'POST',
-				url : '/api/configuration/DosenMaxTime',
-				headers : maxTime,
-				success : function(data){
-					console.log(data);
-					toastr.options = {
-						"closeButton": false,
-						"debug": false,
-						"newestOnTop": false,
-						"progressBar": false,
-						"positionClass": "toast-top-center",
-						"preventDuplicates": false,
-						"onclick": null,
-						"showDuration": 300,
-						"hideDuration": 500,
-						"timeOut": 3000,
-						"extendedTimeOut": 1000,
-						"showEasing": "swing",
-						"hideEasing": "linear",
-						"showMethod": "fadeIn",
-						"hideMethod": "fadeOut"
-					}
-					toastr.info('Settings Updated');
-				},
-				error : function(){
-					console.log("error updating DosenMaxTime")
+</form><hr>
+<label>Set Report Password</label><br>
+<a href="/configuration/reset/password" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset Password</a><hr>
+<label>Set Payroll Password</label><br>
+<a href="/configuration/reset/password/payroll" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset Password</a>
+<script type="text/javascript" src="/scripts/bootstrap-clockpicker.min.js"></script>
+<script type="text/javascript">
+	$('.clockpicker').clockpicker({
+		autoclose: true,
+		placement: 'bottom',
+		donetext: 'Done'
+	});
+	$('#formMaxTime').on('submit', function(error) {
+		error.preventDefault();
+		let maxTime = {
+			maxTime: $('#txtMaxTime').val()
+		}
+
+		$.ajax({
+			type:'POST',
+			url : '/api/configuration/DosenMaxTime',
+			headers : maxTime,
+			success : function(data){
+				console.log(data);
+				toastr.options = {
+					"closeButton": false,
+					"debug": false,
+					"newestOnTop": false,
+					"progressBar": false,
+					"positionClass": "toast-top-center",
+					"preventDuplicates": false,
+					"onclick": null,
+					"showDuration": 300,
+					"hideDuration": 500,
+					"timeOut": 3000,
+					"extendedTimeOut": 1000,
+					"showEasing": "swing",
+					"hideEasing": "linear",
+					"showMethod": "fadeIn",
+					"hideMethod": "fadeOut"
 				}
-			})
+				toastr.info('Settings Updated');
+			},
+			error : function(){
+				console.log("error updating DosenMaxTime")
+			}
 		})
+	})
 
-	</script>
+</script>
 
-	<% include partials/attendanceFooter%>
+<% include partials/attendanceFooter%>
