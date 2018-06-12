@@ -53,13 +53,21 @@ router.delete('/pph',(req,res)=>{
 })
 
 router.get('/employeedata',(req,res)=>{
-  db.Employee.find({}, function (err, allData) {
-    if (err) {
-      console.log(err)
-    } else {
-      res.json(allData);
+  db.Fulldata.aggregate([
+    {
+      $project: {
+        nik: 1,
+        nama_depan: 1,
+        nama_belakang: 1,
+        kategori_pegawai: 1,
+        atasan_langsung: 1,
+        jam_masuk: 1
+      }
     }
-  })
+  ], function (err, allData) {
+      if (err) return console.log(err);
+      res.json(allData);
+  });
 })
 
 router.get('/payrollreport', (req, res) => {
@@ -230,7 +238,7 @@ function concatArray (arr) {
 }
 
 function loadResultFromDatabaseFull (date) {
-  return db.Employee.aggregate([
+  return db.Fulldata.aggregate([
   {
     $lookup:
     {
@@ -242,11 +250,12 @@ function loadResultFromDatabaseFull (date) {
   },
   {
     $project: {
-      startDate: 1,
+      tanggal_mulai_kerja_medan: 1,
       nik: 1,
-      first_Name: 1,
-      last_Name: 1,
-      birthday: 1,
+      nama_depan: 1,
+      nama_belakang: 1,
+      tanggal_lahir: 1,
+      kategori_pegawai: 1,
       department: 1,
       jam_masuk: 1,
       atasan_langsung: 1,
@@ -279,7 +288,7 @@ function loadResultFromDatabase (date) {
     },
     {
       $lookup: {
-        'from': 'employees',
+        'from': 'fulldatas',
         'localField': 'nik',
         'foreignField': 'nik',
         'as': 'employee'
@@ -293,15 +302,15 @@ function loadResultFromDatabase (date) {
         _id: {
           nik: "$nik"
         },
-        startDate: {$first: "$employee.startDate"},
+        startDate: {$first: "$employee.tanggal_mulai_kerja_medan"},
         nik: {$first: "$employee.nik"},
-        first_Name: {$first: "$employee.first_Name"},
-        last_Name: {$first: "$employee.last_Name"},
-        birthday: {$first: "$employee.birthday"},
-        department: {$first: "$employee.department"},
+        first_Name: {$first: "$employee.nama_depan"},
+        last_Name: {$first: "$employee.nama_belakang"},
+        birthday: {$first: "$employee.tanggal_lahir"},
+        department: {$first: "$employee.kategori_pegawai"},
         jam_masuk: {$first: "$employee.jam_masuk"},
         atasan_langsung: {$first: "$employee.atasan_langsung"},
-        absensi: { 
+        absensi: {
           $push: {
             date: "$date",
             nik: "$nik"

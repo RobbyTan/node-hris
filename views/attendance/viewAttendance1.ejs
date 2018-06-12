@@ -168,15 +168,15 @@
       let fromMoment = moment(fromString, 'YYYY-MM-DD');
       for (let i = 0; i < days; i++) {
         employees.forEach(emp => {
-          if (['Resign', '', null, undefined].includes(emp.department)) return;
+          if (['Resign', '', null, undefined].includes(emp.kategori_pegawai)) return;
           let key = emp.nik + "#" + fromMoment.format('YYYY-MM-DD');
           if (!exist[key]) {
             exist[key] = true;
             completeAttendances.push({
               nik: emp.nik,
-              first_Name: emp.first_Name,
-              last_Name: emp.last_Name,
-              department: emp.department,
+              first_Name: emp.nama_depan,
+              last_Name: emp.nama_belakang,
+              department: emp.kategori_pegawai,
               atasan_langsung: emp.atasan_langsung,
               current_date: moment(fromMoment).toDate(),
               absensi: [],

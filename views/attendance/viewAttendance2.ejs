@@ -101,16 +101,13 @@
   } );
 
   function loadTable(data){
-    var result=[];
+    var result = [];
     for (var i = 0; i < data.length; i++) {
-        let clocks=[]
-        let absensiMoment=getTime(data[i].absensi)
-        for(let j=0;j<8;j++){
-          clocks.push(absensiMoment[j]?absensiMoment[j].format("HH:mm:ss"):"")
+        let clocks = []
+        let absensiMoment = getTime(data[i].absensi)
+        for(let j = 0; j < 8; j++) {
+          clocks.push(absensiMoment[j] ? absensiMoment[j].format("HH:mm:ss") : "")
         }
-        let minTime = moment.min(getTime(data[i].absensi))
-        let maxTime = moment.max(getTime(data[i].absensi))
-
         result.push([
           data[i].nik,
           data[i].first_Name+" "+(data[i].last_Name?data[i].last_Name:""),
