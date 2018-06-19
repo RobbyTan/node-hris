@@ -1,143 +1,201 @@
 <% include ../partials/attendanceHeader%>
-<style type="text/css">
-.card::after {
-	content: '';
-	display: block;
-	width: 0;
-	height: 2px;
-	background: #33B5E5;
-	transition: width .3s;
-}
 
-.card:hover::after {
-	width: 100%;
-	//transition: width .3s;
-}
+<style type="text/css">
+	.card::after {
+		content: '';
+		display: block;
+		width: 0;
+		height: 2px;
+		background: #33B5E5;
+		transition: width .3s;
+	}
+	.card:hover::after {
+		width: 100%;
+		/* transition: width .3s; */
+	}
+	.book {
+		margin-top: 2%;
+	}
+	.card {
+		cursor: pointer;
+	}
 </style>
+
 <div class="container">
 	<h3>Generated Payroll System</h3>
-	<a type="button" class="btn btn-primary" href="/#">New</a>
+	<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal_report">New</button>
 	<!-- Search form -->
 	<div class="md-form active-cyan-2 mb-3 pull-right" style="margin-top: auto;">
-		<input class="form-control" type="text" placeholder="Search" aria-label="Search">
+		<input id="txt_search" class="form-control" type="text" placeholder="Search" aria-label="Search">
 	</div>
-	<div style="margin: 5% auto" class="body-book">
-		<div class="row" style="margin-top: 2%">
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Januari <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
+	<div style="margin: 5% auto" class="book-container">
+		<div id="book_row" class="row" style="margin-top: 2%">
+			<!-- place Books below here.. -->
+			<% for (let payrollReport of payrollReports) { %>
+				<% let momentStartDate = new moment(payrollReport.startDate); %>
+				<% let momentEndDate = new moment(payrollReport.endDate); %>
+				<% let endMonthName = momentEndDate.format('MMMM'); %>
+				<% let endYear = momentEndDate.format('YYYY'); %>
+				<% let prettyStartDate = momentStartDate.format('D MMMM YYYY'); %>
+				<% let prettyEndDate = momentEndDate.format('D MMMM YYYY'); %>
+				<div class="col-md-3 col-sm-6 book" style="display:none;">
+					<a href="https://www.youtube.com">
+						<div class="card">
+							<div class="card-body">
+								<h4 class="card-title search-text"> Periode <%= endMonthName %> <br> <%= endYear %> </h4>
+								<p class="card-text search-text"> Start Date : <%= prettyStartDate %> <br>
+								End Date : <%= prettyEndDate %> </p>
+							</div>
+						</div>
+					</a>
 				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Febuari <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Maret <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode April <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
-			</div>
+			<% } %>
+			<!-- Books placing ends here -->
 		</div>
-		<div class="row" style="margin-top: 2%">
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Januari <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
+	</div>
+	<button id="btn_show_more" type="button" class="btn btn-outline-primary btn-rounded waves-effect btn-block">Show more</button>
+	<br>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modal_report" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">New Report</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
 			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Febuari <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
+			<div class="modal-body">
+				<!-- Material form group -->
+				<form id="form_report">
+					<div class="md-form form-group mt-5">
+						<label for="input_start_date">Start Date</label><br>
+						<input name="input_start_date" id="input_start_date" type="date" class="form-control" required>
 					</div>
-				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Maret <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
+					<div class="md-form form-group mt-5"><br>
+							<input name="input_end_date" id="input_end_date" type="date" class="form-control" required>
+							<label for="input_end_date">End Date</label>
 					</div>
-				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode April <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
+					<div class="modal-footer">
+						<button type="button" id="btn_close_modal" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<button type="submit" id="btn_create_report" class="btn btn-primary">Create</button>
 					</div>
-				</div>
-			</div>
-		</div>
-		<div class="row" style="margin-top: 2%">
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Januari <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Febuari <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode Maret <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
-			</div>
-			<div class="col-md-3 col-sm-6">
-				<div class="card">
-					<div class="card-body">
-						<h4 class="card-title">Periode April <br>2018</h4>
-						<p class="card-text">Start Date : 15-Desember-2017<br>
-						End Date : 16-Januari-2018</p>
-					</div>
-				</div>
+				</form>
+				<!-- Material form group -->
 			</div>
 		</div>
 	</div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+<script>
+	$('.book:hidden:lt(8)').slideDown("slow");
+	const itemCountMultiplier = 8;
+	let itemCountLimit = itemCountMultiplier;
+	let $inputStartDate = $('#input_start_date').val('');
+	let $inputEndDate = $('#input_end_date').val('');
+	let $formReport = $('#form_report');
+	let $txtSearch = $('#txt_search');
+	let $bookRow = $('#book_row');
+	let $btnShowMore = $('#btn_show_more');
+	
+	$txtSearch.on('input', function() {
+		const START_TAG = '<span style="background:yellow;">';
+		const END_TAG = '</span>';
+		let keyword = $(this).val().trim();
+		$bookRow.children().each(function(bookIndex) {
+			let $book = $(this);
+			let totalMatchCount = 0;
+			$book.find('.search-text').each(function() {
+				let $searchText = $(this);
+				let oldHTML = $searchText.html();
+				let cleanHTML = oldHTML.replace(new RegExp(START_TAG+'|'+END_TAG, 'g'), '');
+				if (keyword === '') {
+					$searchText.html(cleanHTML);
+					return;	
+				}
+				let newHTML = cleanHTML.replace(new RegExp('('+keyword+')', 'gi'), START_TAG+'$1'+END_TAG);
+				totalMatchCount += (cleanHTML.match(new RegExp(keyword, 'gi')) || []).length;
+				$searchText.html(newHTML);
+			});
+			if (keyword === '') {
+				if (bookIndex < itemCountLimit) $book.show(0);
+				else $book.hide(0);
+			} else {
+				if (totalMatchCount > 0) $book.show(0);
+				else $book.hide(0);
+			}
+		});
+	})
+
+	function validateFormReport() {
+		let momentStartDate = moment($inputStartDate.val(), 'YYYY-MM-DD');
+		let momentEndDate = moment($inputEndDate.val(), 'YYYY-MM-DD');
+		if ((+momentEndDate.format('M')) <= (+momentStartDate.format('M'))) {
+			toastr.error('Start Date must be before End Date');
+			return false;
+		} else if ((+momentEndDate.format('M')) - (+momentStartDate.format('M')) != 1) {
+			toastr.error('Payroll interval is not 1 month');
+			return false;
+		}
+		return true;
+	}
+
+	function createBookJQueryDOM(startDate, endDate) {
+		let momentStartDate = new moment(startDate);
+		let momentEndDate = new moment(endDate);
+		let endMonthName = momentEndDate.format('MMMM');
+		let endYear = momentEndDate.format('YYYY');
+		let prettyStartDate = momentStartDate.format('D MMMM YYYY');
+		let prettyEndDate = momentEndDate.format('D MMMM YYYY');
+		return $(`
+			<div class="col-md-3 col-sm-6 book" style="display:none;">
+				<a href="https://www.youtube.com">
+					<div class="card">
+						<div class="card-body">
+							<h4 class="card-title search-text"> Periode ${endMonthName} <br> ${endYear} </h4>
+							<p class="card-text search-text"> Start Date : ${prettyStartDate} <br> 
+							End Date : ${prettyEndDate} </p>
+						</div>
+					</div>
+				</a>
+			</div>
+		`);
+	}
+
+	$formReport.on('submit', function(err) {
+		err.preventDefault();
+		if (!validateFormReport()) return;
+		
+		$.ajax({
+			type: 'POST',
+			url : '/api/payrollreport',
+			headers: {
+				startdate: new Date($inputStartDate.val()),
+    		enddate: new Date($inputEndDate.val())
+			},
+			success : function(createdReport) {
+				$inputStartDate.val('');
+				$inputEndDate.val('');
+				$('#btn_close_modal').click();
+				let $newBook = createBookJQueryDOM(createdReport.startDate, createdReport.endDate);
+				$newBook.prependTo($bookRow).slideDown(1000);
+				toastr.info('New report created.');
+			},
+			error : function(err) {
+				toastr.error(err.errorMsg);
+				console.log(err.errorMsg);
+			}
+		});
+	});
+
+	$btnShowMore.click(function() {
+		$(`.book:hidden:lt(${itemCountMultiplier})`).slideDown('slow');
+		itemCountLimit += itemCountMultiplier;
+		$('html, body').animate({ scrollTop: 99999 }, 'slow');
+	});
+</script>
 
 <% include ../partials/attendanceFooter%>

@@ -70,37 +70,21 @@ router.get('/employeedata',(req,res)=>{
   });
 })
 
-router.get('/payrollreport', (req, res) => {
-  let month = +(req.query.month);
-  let year =  +(req.query.year);
-  let startDate = moment([year, month-1]);;
-  let endDate = moment(startDate).endOf('month');
-  db.PayrollReport.aggregate([
-    {
-      $match: {
-        $and: [
-          {startDate: {$gte: moment(startDate).toDate()}},
-          {endDate: {$lt: moment(endDate).add(1, 'days').toDate()}}
-        ]
-      }
-    }
-  ]).then(data => {
-    console.log(data);
-    res.json(data);
-  }).catch(err => {
-    res.status(404).json({error: true});
-  });
-});
-
 router.post("/payrollreport", (req, res) => {
   let newReport = {
     startDate: req.headers.startdate,
-    endDate: req.headers.enddate,
-    keterangan: req.headers.keterangan
+    endDate: req.headers.enddate
   };
+  // db.PayrollReport.aggregate([
+  //   { $project: { month: { $month: "$endDate" } } },
+  //   { $match: { month: (+moment(newReport.endDate).format('M')) } }
+  // ], function(err, returnedData) {
+  //   if (err || (returnedData && returnedData.length > 0)) 
+  //     res.status(404).json({errorMsg: 'duplicate report on DB'});
+  // });
   db.PayrollReport.create(newReport, function (err, createdReport) {
-    if (err) return res.status(404).json({error: true});
-    res.json({success: true});
+    if (err) return res.status(404).json({errorMsg: 'failed to create new report'});
+    res.json(createdReport);
   });
 })
 
@@ -196,11 +180,14 @@ router.post("/attendances", (req, res) => {
     type: "manual"
   };
   db.Absensi.find({nik: newAttendance.nik, date: newAttendance.date}, function(attendance) {
-    if (attendance) res.status(404).json({duplicate: true});
-  });
-  db.Absensi.create(newAttendance, (err, newlyCreated) => {
-    if (err) return res.status(404).json({error: true});
-    res.json({success: true});
+    if (attendance) {
+      res.status(404).json({duplicate: true});
+    } else {
+      db.Absensi.create(newAttendance, (err, newlyCreated) => {
+        if (err) return res.status(404).json({error: true});
+        res.json({success: true});
+      });
+    }
   });
 })
 

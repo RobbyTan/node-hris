@@ -39,9 +39,12 @@ router.get("/view/manual",authentication.payrollAccess,(req,res)=>{
 })
 
 router.get("/view/generatedpayroll",authentication.payrollAccess,(req,res)=>{
-	if(req.session.payroll){
-		res.render("./payroll/generatedPayroll");
-	}else{
+	if (req.session.payroll) {
+		db.PayrollReport.find({}).sort({endDate: -1}).exec(function(err, payrollReports) {
+			console.log(payrollReports)
+			res.render("./payroll/generatedPayroll", {payrollReports:payrollReports});
+		});
+	} else {
 		res.redirect("/payroll/access");
 	}
 })

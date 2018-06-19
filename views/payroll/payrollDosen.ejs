@@ -303,7 +303,7 @@
     let dataTable = $('#data_table').DataTable();
     $('#data_table tbody').on('dblclick', 'td', function(){
       let cell = dataTable.cell(this);
-      if (!cell.length || cell.index().column != 18 || cell.index().column != 19) return;
+      if (!cell.length || ![18, 19].includes(cell.index().column)) return;
       let row = cell.index().row;
 
       let nik = dataTable.cell(row, 1).data();
