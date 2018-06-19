@@ -16,7 +16,16 @@ app.use(require("express-session")({
 	saveUninitialized: false
 }));
 
+
 router.get("/",authentication.payrollAccess,(req,res)=>{
+	if(req.session.payroll){
+		res.render("./payroll/viewPayroll")
+	}else{
+		res.redirect("/payroll/access");
+	}
+})
+
+router.get("/view/manual",authentication.payrollAccess,(req,res)=>{
 	if(req.session.payroll){
 		db.Configuration.findOne({}, (err, configuration) => {
 			if (err) console.log(err);
@@ -27,7 +36,14 @@ router.get("/",authentication.payrollAccess,(req,res)=>{
 	}else{
 		res.redirect("/payroll/access");
 	}
+})
 
+router.get("/view/generatedpayroll",authentication.payrollAccess,(req,res)=>{
+	if(req.session.payroll){
+		res.render("./payroll/generatedPayroll");
+	}else{
+		res.redirect("/payroll/access");
+	}
 })
 
 router.get("/access",authentication.payrollAccess,(req,res)=>{

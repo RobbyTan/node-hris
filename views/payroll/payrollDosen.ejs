@@ -301,9 +301,9 @@
 
   function bindFormKeterangan() {
     let dataTable = $('#data_table').DataTable();
-    $('#data_table tbody').on('click', 'td', function(){
+    $('#data_table tbody').on('dblclick', 'td', function(){
       let cell = dataTable.cell(this);
-      if (!cell.length || cell.index().column != 19) return;
+      if (!cell.length || cell.index().column != 18 || cell.index().column != 19) return;
       let row = cell.index().row;
 
       let nik = dataTable.cell(row, 1).data();
