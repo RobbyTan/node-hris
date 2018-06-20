@@ -19,7 +19,6 @@ router.get("/reset/password/new", authentication.reportAccess, (req, res) => {
 	}else{
 		res.redirect("/configuration/reset/password")
 	}
-	
 })
 router.get("/reset/password",authentication.reportAccess,(req,res)=>{
 	res.render("./configuration/oldPassword")

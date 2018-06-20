@@ -39,7 +39,7 @@
 				<% let prettyStartDate = momentStartDate.format('D MMMM YYYY'); %>
 				<% let prettyEndDate = momentEndDate.format('D MMMM YYYY'); %>
 				<div class="col-md-3 col-sm-6 book" style="display:none;">
-					<a href="https://www.youtube.com">
+					<a href="/payroll/view/generatedpayroll/detail">
 						<div class="card">
 							<div class="card-body">
 								<h4 class="card-title search-text"> Periode <%= endMonthName %> <br> <%= endYear %> </h4>
@@ -133,7 +133,7 @@
 	function validateFormReport() {
 		let momentStartDate = moment($inputStartDate.val(), 'YYYY-MM-DD');
 		let momentEndDate = moment($inputEndDate.val(), 'YYYY-MM-DD');
-		if ((+momentEndDate.format('M')) <= (+momentStartDate.format('M'))) {
+		if ((+momentEndDate.format('M')) < (+momentStartDate.format('M'))) {
 			toastr.error('Start Date must be before End Date');
 			return false;
 		} else if ((+momentEndDate.format('M')) - (+momentStartDate.format('M')) != 1) {
@@ -152,7 +152,7 @@
 		let prettyEndDate = momentEndDate.format('D MMMM YYYY');
 		return $(`
 			<div class="col-md-3 col-sm-6 book" style="display:none;">
-				<a href="https://www.youtube.com">
+				<a href="/payroll/view/generatedpayroll/detail">
 					<div class="card">
 						<div class="card-body">
 							<h4 class="card-title search-text"> Periode ${endMonthName} <br> ${endYear} </h4>

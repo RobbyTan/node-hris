@@ -48,7 +48,18 @@ router.get("/view/generatedpayroll",authentication.payrollAccess,(req,res)=>{
 		res.redirect("/payroll/access");
 	}
 })
-
+router.get("/view/generatedpayroll/detail",authentication.payrollAccess,(req,res)=>{
+	if(req.session.payroll){
+		db.Configuration.findOne({}, (err, configuration) => {
+			if (err) console.log(err);
+			else {
+				res.render("./payroll/generatedPayrollDetail", {configuration: configuration});
+			}
+		});
+	}else{
+		res.redirect("/payroll/access");
+	}
+})
 router.get("/access",authentication.payrollAccess,(req,res)=>{
 	res.render('./payroll/access')
 })
