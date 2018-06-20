@@ -75,16 +75,30 @@ router.post("/payrollreport", (req, res) => {
     startDate: req.headers.startdate,
     endDate: req.headers.enddate
   };
-  // db.PayrollReport.aggregate([
-  //   { $project: { month: { $month: "$endDate" } } },
-  //   { $match: { month: (+moment(newReport.endDate).format('M')) } }
-  // ], function(err, returnedData) {
-  //   if (err || (returnedData && returnedData.length > 0)) 
-  //     res.status(404).json({errorMsg: 'duplicate report on DB'});
-  // });
   db.PayrollReport.create(newReport, function (err, createdReport) {
     if (err) return res.status(404).json({errorMsg: 'failed to create new report'});
     res.json(createdReport);
+  });
+})
+
+router.post("/payrollreport/check", (req, res) => {
+  let newReport = {
+    startDate: req.headers.startdate,
+    endDate: req.headers.enddate
+  };
+  db.PayrollReport.aggregate([
+    { $project: { 
+      month: { $month: "$endDate" },
+      year: { $year: "$endDate" }
+    }},
+    { $match: { $and: [
+      {month: +(moment(new Date(newReport.endDate)).format('M'))},
+      {year: +(moment(new Date(newReport.endDate)).format('YYYY'))}
+    ]}}
+  ], function(err, returnedData) {
+    if (err || (returnedData && returnedData.length > 0)) 
+      res.status(404).json({errorMsg: 'error / duplicate report on DB'});
+    else res.json({success: true});
   });
 })
 

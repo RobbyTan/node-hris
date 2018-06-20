@@ -39,7 +39,7 @@
 				<% let prettyStartDate = momentStartDate.format('D MMMM YYYY'); %>
 				<% let prettyEndDate = momentEndDate.format('D MMMM YYYY'); %>
 				<div class="col-md-3 col-sm-6 book" style="display:none;">
-					<a href="/payroll/view/generatedpayroll/detail">
+					<a href="/payroll/view/generatedpayroll/<%= payrollReport._id %>">
 						<div class="card">
 							<div class="card-body">
 								<h4 class="card-title search-text"> Periode <%= endMonthName %> <br> <%= endYear %> </h4>
@@ -97,7 +97,7 @@
 	let $inputStartDate = $('#input_start_date').val('');
 	let $inputEndDate = $('#input_end_date').val('');
 	let $formReport = $('#form_report');
-	let $txtSearch = $('#txt_search');
+	let $txtSearch = $('#txt_search').val('');
 	let $bookRow = $('#book_row');
 	let $btnShowMore = $('#btn_show_more');
 	
@@ -133,9 +133,11 @@
 	function validateFormReport() {
 		let momentStartDate = moment($inputStartDate.val(), 'YYYY-MM-DD');
 		let momentEndDate = moment($inputEndDate.val(), 'YYYY-MM-DD');
-		if ((+momentEndDate.format('M')) < (+momentStartDate.format('M'))) {
+		if (momentEndDate.diff(momentStartDate) < 0) {
 			toastr.error('Start Date must be before End Date');
 			return false;
+		} else if (momentStartDate.format('M') == '12' && momentEndDate.format('M') == '1') {
+			return true;
 		} else if ((+momentEndDate.format('M')) - (+momentStartDate.format('M')) != 1) {
 			toastr.error('Payroll interval is not 1 month');
 			return false;
@@ -143,16 +145,17 @@
 		return true;
 	}
 
-	function createBookJQueryDOM(startDate, endDate) {
-		let momentStartDate = new moment(startDate);
-		let momentEndDate = new moment(endDate);
+	function createBookJQueryDOM(payrollReport) {
+		let id = payrollReport._id;
+		let momentStartDate = new moment(payrollReport.startDate);
+		let momentEndDate = new moment(payrollReport.endDate);
 		let endMonthName = momentEndDate.format('MMMM');
 		let endYear = momentEndDate.format('YYYY');
 		let prettyStartDate = momentStartDate.format('D MMMM YYYY');
 		let prettyEndDate = momentEndDate.format('D MMMM YYYY');
 		return $(`
 			<div class="col-md-3 col-sm-6 book" style="display:none;">
-				<a href="/payroll/view/generatedpayroll/detail">
+				<a href="/payroll/view/generatedpayroll/${id}">
 					<div class="card">
 						<div class="card-body">
 							<h4 class="card-title search-text"> Periode ${endMonthName} <br> ${endYear} </h4>
@@ -168,30 +171,36 @@
 	$formReport.on('submit', function(err) {
 		err.preventDefault();
 		if (!validateFormReport()) return;
-		
+		let headers = {
+			startdate: new Date($inputStartDate.val()),
+			enddate: new Date($inputEndDate.val())
+		};
 		$.ajax({
 			type: 'POST',
-			url : '/api/payrollreport',
-			headers: {
-				startdate: new Date($inputStartDate.val()),
-    		enddate: new Date($inputEndDate.val())
-			},
-			success : function(createdReport) {
+			url : '/api/payrollreport/check',
+			headers: headers
+		}).done(function(state) {
+			$.ajax({
+				type: 'POST',
+				url : '/api/payrollreport',
+				headers: headers
+			}).done(function(createdReport) {
 				$inputStartDate.val('');
 				$inputEndDate.val('');
 				$('#btn_close_modal').click();
-				let $newBook = createBookJQueryDOM(createdReport.startDate, createdReport.endDate);
+				let $newBook = createBookJQueryDOM(createdReport);
 				$newBook.prependTo($bookRow).slideDown(1000);
 				toastr.info('New report created.');
-			},
-			error : function(err) {
-				toastr.error(err.errorMsg);
-				console.log(err.errorMsg);
-			}
+			}).fail(function(err) {
+				toastr.error(err.responseJSON.errorMsg);
+			});
+		}).fail(function(err) {
+				toastr.error(err.responseJSON.errorMsg);
 		});
 	});
 
 	$btnShowMore.click(function() {
+		if ($txtSearch.val().length != 0) return;
 		$(`.book:hidden:lt(${itemCountMultiplier})`).slideDown('slow');
 		itemCountLimit += itemCountMultiplier;
 		$('html, body').animate({ scrollTop: 99999 }, 'slow');

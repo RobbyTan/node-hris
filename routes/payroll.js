@@ -5,7 +5,7 @@ const db = require('../models')
 const moment = require('moment')
 const bodyParser = require('body-parser')
 var sessions = require('express-session')
-var app=express();
+var app = express();
 const bcrypt = require('bcrypt')
 const authentication = require('../middleware/authentication.js')
 
@@ -16,24 +16,23 @@ app.use(require("express-session")({
 	saveUninitialized: false
 }));
 
-
 router.get("/",authentication.payrollAccess,(req,res)=>{
-	if(req.session.payroll){
+	if (req.session.payroll) {
 		res.render("./payroll/viewPayroll")
-	}else{
+	} else {
 		res.redirect("/payroll/access");
 	}
 })
 
 router.get("/view/manual",authentication.payrollAccess,(req,res)=>{
-	if(req.session.payroll){
+	if (req.session.payroll) {
 		db.Configuration.findOne({}, (err, configuration) => {
 			if (err) console.log(err);
 			else {
 				res.render("./payroll/payrollDosen", {configuration: configuration});
 			}
 		});
-	}else{
+	} else {
 		res.redirect("/payroll/access");
 	}
 })
@@ -48,18 +47,19 @@ router.get("/view/generatedpayroll",authentication.payrollAccess,(req,res)=>{
 		res.redirect("/payroll/access");
 	}
 })
-router.get("/view/generatedpayroll/detail",authentication.payrollAccess,(req,res)=>{
-	if(req.session.payroll){
-		db.Configuration.findOne({}, (err, configuration) => {
-			if (err) console.log(err);
-			else {
-				res.render("./payroll/generatedPayrollDetail", {configuration: configuration});
-			}
+router.get("/view/generatedpayroll/:id",authentication.payrollAccess, async (req,res) => {
+	if (req.session.payroll) {
+		let configuration = await db.Configuration.findOne({});
+		let payrollReport = await db.PayrollReport.findById(req.params.id);
+		res.render("./payroll/generatedPayrollDetail", {
+			configuration: configuration,
+			payrollReport: payrollReport
 		});
-	}else{
+	} else{
 		res.redirect("/payroll/access");
 	}
 })
+
 router.get("/access",authentication.payrollAccess,(req,res)=>{
 	res.render('./payroll/access')
 })
@@ -76,4 +76,5 @@ router.post("/access",authentication.payrollAccess,(req,res)=>{
 		}
 	})
 })
+
 module.exports = router

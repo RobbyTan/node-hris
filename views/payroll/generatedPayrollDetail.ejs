@@ -1,8 +1,19 @@
 <% include ../partials/attendanceHeader%>
 <div class="container">
-  <h3>Periode </h3>
+  <h3>Periode</h3>
   <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
   <table class="table">
+    <label class="pl-3">From:</label>
+    <div class="md-form col-xl-3">
+      <input name="from" type="date" id="input_from" required>
+    </div>
+    <label class="pl-3">To:</label>
+    <div class="md-form col-xl-3">
+      <input name="to" type="date" id="input_to" required>
+    </div>
+    <button id="btn_save" type="button" class="btn btn-primary">Save</button>
+    <button id="btn_discard" type="button" class="btn btn-blue-grey">Discard</button>
+    <br>
     <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
       <div class="spinner-layer spinner-blue-only">
         <div class="circle-clipper left">
@@ -116,33 +127,58 @@
   $('#data_table').DataTable({
     dom: 'Bfrtip',
     lengthMenu: [
-    [10, 25, 50, -1],
-    [10, 25, 50, "All"]
+      [10, 25, 50, -1],
+      [10, 25, 50, "All"]
     ],
     buttons: [
-    'pageLength',
-    'copyHtml5',
-    'excelHtml5',
-    {
-      extend: 'pdf',
-      text: 'Pdf',
-      orientation: 'landscape'
-    }
+      'pageLength',
+      'copyHtml5',
+      'excelHtml5',
+      {
+        extend: 'pdf',
+        text: 'Pdf',
+        orientation: 'landscape'
+      }
     ]
   });
 
+  let strStartDate = '<%= moment(payrollReport.startDate).format('YYYY-MM-DD') %>';
+  let strEndDate = '<%= moment(payrollReport.endDate).format('YYYY-MM-DD') %>';
+  let $inputFrom = $('#input_from');
+  let $inputTo = $('#input_to');
+  let $btnSave = $('#btn_save').hide();
+  let $btnDiscard = $('#btn_discard').hide();
+
   //initialize form
-  let monthTo = (moment().month()+1)<10 ? "0"+(moment().month()+1) : (moment().month()+1);
-  let monthFrom = moment().month()<10?"0"+moment().month():moment().month();
-  let dateTo = moment().year()+"-"+monthTo+"-15";
-  let dateFrom = moment().year()+"-"+monthFrom+"-16";
-  $('#from_txt').val(dateFrom);
-  $('#to_txt').val(dateTo);
+  (function initializeForm() {
+    $inputFrom.val(strStartDate);
+    $inputTo.val(strEndDate);
+  })();
+  let inputDateChangeListener = function() {
+    let newStartDate = $inputFrom.val();
+    let newEndDate = $inputTo.val();
+    if (newStartDate != strStartDate || newEndDate != strEndDate) {
+      $btnSave.show(); $btnDiscard.show();
+    } else {
+      console.log(strStartDate, newStartDate)
+      $btnSave.hide(); $btnDiscard.hide();
+    }
+  };
+  $inputFrom.change(inputDateChangeListener);
+  $inputTo.change(inputDateChangeListener);
+  $btnSave.click(function() {
+    //todo
+  });
+  $btnDiscard.click(function() {
+    $inputFrom.val(strStartDate);
+    $inputTo.val(strEndDate);
+    $btnSave.hide(); $btnDiscard.hide();
+  });
 
   let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
   let dateInputValidator = DateInputValidator.bind({
-    fromTxt: 'from_txt',
-    toTxt: 'to_txt'
+    fromTxt: 'input_from',
+    toTxt: 'input_to'
   });
   let loadingSpinner = LoadingSpinner.bind({
     spinner: 'spinner',
@@ -256,8 +292,8 @@
 
   $('#generate_button').on('click', () => {
     if (!dateInputValidator.isValid()) return;
-    let fromString = $('#from_txt').val();
-    let toString = $('#to_txt').val();
+    let fromString = $('#input_from').val();
+    let toString = $('#input_to').val();
     loadingSpinner.start();
     $.getJSON("/api/attendances", {
       from: fromString,
@@ -311,8 +347,8 @@
         let multiplier = $('#option_keterangan :selected').text()==='Penambahan' ? 1 : -1;
         let newKeterangan = {
           nik: dataTable.cell(row, 1).data(),
-          startDate: new Date($('#from_txt').val()),
-          endDate: new Date($('#to_txt').val()),
+          startDate: new Date($('#input_from').val()),
+          endDate: new Date($('#input_to').val()),
           nominal: multiplier * Number($('#nominal_txt').val()),
           keterangan: $('#keterangan_txt').val()
         };
