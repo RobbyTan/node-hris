@@ -70,21 +70,11 @@ router.get('/employeedata',(req,res)=>{
   });
 })
 
-router.post("/payrollreport", (req, res) => {
+let reportDuplicateChecker = function (req, res, next) {
+  let excludedId = req.params.id;
   let newReport = {
-    startDate: req.headers.startdate,
-    endDate: req.headers.enddate
-  };
-  db.PayrollReport.create(newReport, function (err, createdReport) {
-    if (err) return res.status(404).json({errorMsg: 'failed to create new report'});
-    res.json(createdReport);
-  });
-})
-
-router.post("/payrollreport/check", (req, res) => {
-  let newReport = {
-    startDate: req.headers.startdate,
-    endDate: req.headers.enddate
+    startDate: new Date(req.headers.startdate),
+    endDate: new Date(req.headers.enddate)
   };
   db.PayrollReport.aggregate([
     { $project: { 
@@ -92,14 +82,69 @@ router.post("/payrollreport/check", (req, res) => {
       year: { $year: "$endDate" }
     }},
     { $match: { $and: [
-      {month: +(moment(new Date(newReport.endDate)).format('M'))},
-      {year: +(moment(new Date(newReport.endDate)).format('YYYY'))}
+      {month: +(moment(newReport.endDate).format('M'))},
+      {year: +(moment(newReport.endDate).format('YYYY'))}
     ]}}
   ], function(err, returnedData) {
-    if (err || (returnedData && returnedData.length > 0)) 
-      res.status(404).json({errorMsg: 'error / duplicate report on DB'});
-    else res.json({success: true});
+    if (err)
+      res.status(404).json({errorMsg: 'error'});
+    else if (returnedData && returnedData.length > 0 && returnedData[0]._id != excludedId)
+      res.status(404).json({errorMsg: 'duplicate report on DB'});
+    else next();
   });
+};
+
+router.post("/payrollreport", reportDuplicateChecker, (req, res) => {
+  let newReport = {
+    startDate: new Date(req.headers.startdate),
+    endDate: new Date(req.headers.enddate)
+  };
+  db.PayrollReport.create(newReport, function (err, createdReport) {
+    if (err) return res.status(404).json({errorMsg: 'failed to create new report'});
+    res.json(createdReport);
+  });
+})
+router.put("/payrollreport/:id", reportDuplicateChecker, (req, res) => {
+  db.PayrollReport.findByIdAndUpdate(req.params.id, { $set: { 
+    startDate: new Date(req.headers.startdate),
+    endDate: new Date(req.headers.enddate)
+  }}, function (err, updatedReport) {
+    if (err) return res.status(404).json({errorMsg: 'failed to update report'});
+    res.json(updatedReport);
+  });
+});
+router.get('/payrollreport/:id/keteranganpayroll', (req, res) => {
+  let id = req.params.id;
+  db.PayrollReport.findById(id).populate('keteranganPayrolls').exec(function(err, payrollReport) {
+    if (err) res.status(404).json({errorMsg: 'failed to fetch keteranganPayroll'});
+    else res.json(payrollReport.keteranganPayrolls);
+  });
+});
+router.post('/payrollreport/:id/keteranganpayroll',(req,res)=>{
+  let newKeterangan = {
+    nik: req.headers.nik,
+    startDate: req.headers.startdate,
+    endDate: req.headers.enddate,
+    nominal: req.headers.nominal,
+    keterangan: req.headers.keterangan
+  };
+  let id = req.params.id;
+  db.PayrollReport.findByIdAndUpdate(id, {$push: {keteranganPayrolls: newKeterangan}}, function (err, data) {
+    if (err) {
+      console.log(err);
+      res.status(404).json({errorMsg: 'failed to add keteranganPayroll'});
+    } else {
+      console.log(data);
+      res.json(data);
+    }
+  });
+  // db.PayrollReport.findById(id, function(err, payrollReport) {
+  //   if (err) res.status(404).json({errorMsg: 'failed to add keteranganPayroll'});
+  //   else {
+  //     payrollReport.keteranganPayrolls.push(newKeterangan);
+  //     payrollReport.save();
+  //     res.json(newKeterangan);
+  // });
 })
 
 router.get('/keteranganpayroll', (req, res) => {
@@ -117,13 +162,11 @@ router.get('/keteranganpayroll', (req, res) => {
       }
     }
   ]).then(data => {
-    console.log(data);
     res.json(data);
   }).catch(err => {
     res.status(404).json({error: true});
   });
 });
-
 router.post("/keteranganpayroll",(req,res)=>{
   let newKeterangan = {
     nik: req.headers.nik,

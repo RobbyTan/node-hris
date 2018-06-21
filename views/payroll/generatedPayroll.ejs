@@ -171,31 +171,22 @@
 	$formReport.on('submit', function(err) {
 		err.preventDefault();
 		if (!validateFormReport()) return;
-		let headers = {
-			startdate: new Date($inputStartDate.val()),
-			enddate: new Date($inputEndDate.val())
-		};
 		$.ajax({
 			type: 'POST',
-			url : '/api/payrollreport/check',
-			headers: headers
-		}).done(function(state) {
-			$.ajax({
-				type: 'POST',
-				url : '/api/payrollreport',
-				headers: headers
-			}).done(function(createdReport) {
-				$inputStartDate.val('');
-				$inputEndDate.val('');
-				$('#btn_close_modal').click();
-				let $newBook = createBookJQueryDOM(createdReport);
-				$newBook.prependTo($bookRow).slideDown(1000);
-				toastr.info('New report created.');
-			}).fail(function(err) {
-				toastr.error(err.responseJSON.errorMsg);
-			});
+			url : '/api/payrollreport',
+			headers: {
+				startdate: new Date($inputStartDate.val()),
+				enddate: new Date($inputEndDate.val())
+			}
+		}).done(function(createdReport) {
+			$inputStartDate.val('');
+			$inputEndDate.val('');
+			$('#btn_close_modal').click();
+			let $newBook = createBookJQueryDOM(createdReport);
+			$newBook.prependTo($bookRow).slideDown(1000);
+			toastr.info('New report created.');
 		}).fail(function(err) {
-				toastr.error(err.responseJSON.errorMsg);
+			toastr.error(err.responseJSON.errorMsg);
 		});
 	});
 

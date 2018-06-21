@@ -142,8 +142,8 @@
     ]
   });
 
-  let strStartDate = '<%= moment(payrollReport.startDate).format('YYYY-MM-DD') %>';
-  let strEndDate = '<%= moment(payrollReport.endDate).format('YYYY-MM-DD') %>';
+  let strOldStartDate = '<%= moment(payrollReport.startDate).format('YYYY-MM-DD') %>';
+  let strOldEndDate = '<%= moment(payrollReport.endDate).format('YYYY-MM-DD') %>';
   let $inputFrom = $('#input_from');
   let $inputTo = $('#input_to');
   let $btnSave = $('#btn_save').hide();
@@ -151,39 +151,64 @@
 
   //initialize form
   (function initializeForm() {
-    $inputFrom.val(strStartDate);
-    $inputTo.val(strEndDate);
+    $inputFrom.val(strOldStartDate);
+    $inputTo.val(strOldEndDate);
   })();
   let inputDateChangeListener = function() {
     let newStartDate = $inputFrom.val();
     let newEndDate = $inputTo.val();
-    if (newStartDate != strStartDate || newEndDate != strEndDate) {
+    if (newStartDate != strOldStartDate || newEndDate != strOldEndDate) {
       $btnSave.show(); $btnDiscard.show();
     } else {
-      console.log(strStartDate, newStartDate)
       $btnSave.hide(); $btnDiscard.hide();
     }
   };
   $inputFrom.change(inputDateChangeListener);
   $inputTo.change(inputDateChangeListener);
+
+  function validateFormReport() {
+		let momentStartDate = moment($inputFrom.val(), 'YYYY-MM-DD');
+		let momentEndDate = moment($inputTo.val(), 'YYYY-MM-DD');
+		if (momentEndDate.diff(momentStartDate) < 0) {
+			toastr.error('Start Date must be before End Date');
+			return false;
+		} else if (momentStartDate.format('M') == '12' && momentEndDate.format('M') == '1') {
+			return true;
+		} else if ((+momentEndDate.format('M')) - (+momentStartDate.format('M')) != 1) {
+			toastr.error('Payroll interval is not 1 month');
+			return false;
+		}
+		return true;
+	}
   $btnSave.click(function() {
-    //todo
+    if (!validateFormReport()) return;
+    $.ajax({
+			type: 'POST',
+			url : `/api/payrollreport/<%= payrollReport._id %>?_method=PUT`,
+			headers: {
+				startdate: new Date($inputFrom.val()),
+				enddate: new Date($inputTo.val())
+			}
+		}).done(function(createdReport) {
+      strOldStartDate = $inputFrom.val();
+      strOldEndDate = $inputTo.val();
+      $btnSave.hide(); $btnDiscard.hide();
+			toastr.info('Report period updated');
+		}).fail(function(err) {
+      toastr.error(err.responseJSON.errorMsg);
+		});
   });
   $btnDiscard.click(function() {
-    $inputFrom.val(strStartDate);
-    $inputTo.val(strEndDate);
+    $inputFrom.val(strOldStartDate);
+    $inputTo.val(strOldEndDate);
     $btnSave.hide(); $btnDiscard.hide();
   });
 
   let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
-  let dateInputValidator = DateInputValidator.bind({
-    fromTxt: 'input_from',
-    toTxt: 'input_to'
-  });
   let loadingSpinner = LoadingSpinner.bind({
     spinner: 'spinner',
     hideableNodes: ['data_table_wrapper'],
-    disableNodes: ['generate_button']
+    disableNodes: []
   });
 
   function applyPrecision(num, precision) {
@@ -244,54 +269,53 @@
       dom: 'Bfrtip',
       lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
       buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
-      }
+        'pageLength',
+        'copyHtml5',
+        'excelHtml5',
+        {
+          extend: 'pdf',
+          text: 'Pdf',
+          orientation: 'landscape'
+        }
       ],
       data: result,
       columns: [
-      {title: 'Kategori Pegawai'},  
-      {title: 'NIK'},
-
+        {title: 'Kategori Pegawai'},  
+        {title: 'NIK'},
+  
         // nama lengkap sesuai KTP
         {title: 'Nama depan'},
         {title: 'Nama tengah'},
         {title: 'Nama belakang'},
-
+  
         // posisi kerja
         {title: 'Departemen'},
         {title: 'Spesialisasi'},
         {title: 'Cost Center'},
-
+  
         // data jadwal dosen
         {title: 'Nama Mata Kuliah'},
         {title: 'Jumlah Sesi Tutorial'},
         {title: 'Jumlah Sesi Lecture'},
         {title: 'Total Sesi'},
-
+  
         // data payroll
         {title: 'Perhitungan gaji'},
         {title: 'Jenis mata uang'},
         {title: 'Jumlah gaji saat ini'},
         {title: 'Penerimaan gaji'},
-
+  
         // Perhitungan Jam Kerja dan Payroll
         {title: 'Total durasi kerja'},
         {title: 'Gaji pokok/Total gaji per jam'},
         {title: 'Penambahan/Pengurangan'},
         {title: 'Keterangan Penambahan/Pengurangan'},
         {title: 'Total gaji yang diterima'}
-        ]
-      });
+      ]
+    });    
   }
 
-  $('#generate_button').on('click', () => {
-    if (!dateInputValidator.isValid()) return;
+  function generateTable() {
     let fromString = $('#input_from').val();
     let toString = $('#input_to').val();
     loadingSpinner.start();
@@ -302,10 +326,7 @@
       let payrollResult = PayrollDosenCalculator.process(attendances, {
         dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
       });
-      getKeteranganList({
-        startDate: new Date(fromString),
-        endDate: new Date(toString)
-      }, function(keteranganList) {
+      getKeteranganList(function(keteranganList) {
         let nikToKeteranganList = {};
         //kelompokkan keterangan berdasarkan nik
         keteranganList.forEach(ket => {
@@ -323,7 +344,8 @@
     }).catch(err => {
       loadingSpinner.init();
     });
-  });
+  }
+  generateTable();
 
   function bindFormKeterangan() {
     let dataTable = $('#data_table').DataTable();
@@ -356,15 +378,11 @@
         //insert to database
         $.ajax({
           type: 'POST',
-          url : '/api/keteranganpayroll',
+          url : '/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll',
           headers: newKeterangan,
           success : function(data) {
             //update table
-            getKeteranganList({
-              nik: newKeterangan.nik,
-              startDate: newKeterangan.startDate,
-              endDate: newKeterangan.endDate
-            }, function(keteranganList) {
+            getKeteranganList(function(keteranganList) {
               let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(keteranganList);
               dataTable.cell(row, 18).data(nominals);
               dataTable.cell(row, 19).data(keterangans);
@@ -375,24 +393,22 @@
               $('#keterangan_txt').val('');
             });
           },
-          error : function() {
-            toastr.info('Error occured!');
-            console.log("Ajax Error occured!");
+          error : function(err) {
+            toastr.info(err.errorMsg);
+            console.log(err.errorMsg);
           }
         });
       });
     })
   }
 
-  function getKeteranganList(options, callback) {
-    $.getJSON('/api/keteranganpayroll', {
-      nik: options.nik,
-      startDate: options.startDate,
-      endDate: options.endDate
-    }).then(keteranganList => {
+  function getKeteranganList(callback) {
+    $.getJSON('/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll', 
+      {}
+    ).then(keteranganList => {
       callback(keteranganList);
     }).catch(err => {
-      console.log(err);
+      toastr.error('failed to fetch keteranganList');
     });
   }
 
