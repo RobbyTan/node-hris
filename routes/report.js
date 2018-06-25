@@ -80,7 +80,7 @@ router.get('/upload/pph',authentication.reportAccess, (req, res) => {
 router.get('/upload/pphexcel',authentication.reportAccess, (req, res) => {
     if(req.session.name){
      res.render('./report/uploadPphExcel')
- }else{
+    }else{
     res.redirect('/report/access/upload/pph')
 }
 })

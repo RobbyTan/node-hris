@@ -10,7 +10,7 @@ router.get('/',authentication.isLoggedIn, (req, res) => {
   res.render('./employee/mainEmployee')
 })
 router.get('/view',authentication.isLoggedIn, (req, res) => {
-  db.Employee.find({}, function (err, allEmployee) {
+  db.Fulldata.find({}, function (err, allEmployee) {
     if (err) {
       console.log(err)
     } else {

@@ -120,32 +120,30 @@ router.get('/payrollreport/:id/keteranganpayroll', (req, res) => {
     else res.json(payrollReport.keteranganPayrolls);
   });
 });
-router.post('/payrollreport/:id/keteranganpayroll',(req,res)=>{
+router.post('/payrollreport/:id/keteranganpayroll', (req, res) => {
   let newKeterangan = {
     nik: req.headers.nik,
-    startDate: req.headers.startdate,
-    endDate: req.headers.enddate,
-    nominal: req.headers.nominal,
+    startDate: new Date(req.headers.startdate),
+    endDate: new Date(req.headers.enddate),
+    nominal: +req.headers.nominal,
     keterangan: req.headers.keterangan
   };
   let id = req.params.id;
-  db.PayrollReport.findByIdAndUpdate(id, {$push: {keteranganPayrolls: newKeterangan}}, function (err, data) {
-    if (err) {
-      console.log(err);
-      res.status(404).json({errorMsg: 'failed to add keteranganPayroll'});
-    } else {
-      console.log(data);
+  db.KeteranganPayroll.create(
+    newKeterangan
+  ).then(function(createdKeterangan) {
+    db.PayrollReport.findByIdAndUpdate(
+      id, 
+      {$push: {keteranganPayrolls: createdKeterangan._id}}
+    ).then(function (data) {
       res.json(data);
-    }
+    }).catch(function (err) {
+      res.status(404).json({errorMsg: 'failed to add keteranganPayroll'});
+    });
+  }).catch(function(err) {
+    res.status(404).json({errorMsg: 'failed to create keteranganPayroll'});
   });
-  // db.PayrollReport.findById(id, function(err, payrollReport) {
-  //   if (err) res.status(404).json({errorMsg: 'failed to add keteranganPayroll'});
-  //   else {
-  //     payrollReport.keteranganPayrolls.push(newKeterangan);
-  //     payrollReport.save();
-  //     res.json(newKeterangan);
-  // });
-})
+});
 
 router.get('/keteranganpayroll', (req, res) => {
   let nik = req.query.nik ? req.query.nik : /.*/;

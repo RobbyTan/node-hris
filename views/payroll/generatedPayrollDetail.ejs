@@ -1,4 +1,15 @@
 <% include ../partials/attendanceHeader%>
+<style>
+  #data_table tbody td:nth-child(19), #data_table tbody td:nth-child(20) {
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+</style>
 <div class="container">
   <h3>Periode</h3>
   <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
@@ -61,11 +72,11 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="modal_keterangan" tabindex="-1" role="dialog" aria-labelledby="modal_keteranganLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Pengeditan Gaji</h5>
+        <h5 class="modal-title" id="modal_keteranganLabel">Pengeditan Gaji</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
@@ -116,7 +127,6 @@
 </script>
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
 </script>
-<script src="/scripts/attendances/date-input-validator.js"></script>
 <script src="/scripts/attendances/loading-spinner.js"></script>
 <script src="/scripts/attendances/clock-pairing.js"></script>
 <script src="/scripts/payroll/payroll-dosen-calculator.js"></script>
@@ -349,7 +359,7 @@
 
   function bindFormKeterangan() {
     let dataTable = $('#data_table').DataTable();
-    $('#data_table tbody').on('dblclick', 'td', function(){
+    $('#data_table tbody').on('dblclick', 'td', function() {
       let cell = dataTable.cell(this);
       if (!cell.length || ![18, 19].includes(cell.index().column)) return;
       let row = cell.index().row;
@@ -358,10 +368,8 @@
       let nama = '';
       [2, 3, 4].forEach(e => 
         {let data = dataTable.cell(row, e).data(); if (data) nama += data+' ';});
-      $('#modal_keterangan_title')
-        .html(`${nama} <span style="float:right">${nik}</span>`)
-      $(this).attr('data-toggle','modal');
-      $(this).attr('data-target','#exampleModal');
+      $('#modal_keterangan_title').html(`${nama} <span style="float:right">${nik}</span>`)
+      $('#modal_keterangan').modal('show');
 
       $('#form_keterangan').unbind();
       $('#form_keterangan').on('submit', function(err) {
@@ -378,11 +386,12 @@
         //insert to database
         $.ajax({
           type: 'POST',
-          url : '/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll',
+          url: '/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll',
           headers: newKeterangan,
-          success : function(data) {
+          success: function(data) {
             //update table
             getKeteranganList(function(keteranganList) {
+              keteranganList = keteranganList.filter(ket => ket.nik == nik);
               let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(keteranganList);
               dataTable.cell(row, 18).data(nominals);
               dataTable.cell(row, 19).data(keterangans);
@@ -393,9 +402,8 @@
               $('#keterangan_txt').val('');
             });
           },
-          error : function(err) {
+          error: function(err) {
             toastr.info(err.errorMsg);
-            console.log(err.errorMsg);
           }
         });
       });

@@ -46,7 +46,7 @@
         result.push([
           (parseInt(i)+1),
           data[i].nik,
-          data[i].first_Name +" "+(data[i].last_Name?data[i].last_Name:""),
+          data[i].nama_depan +" "+(data[i].nama_belakang ? data[i].nama_belakang : ''),
           moment(data[i].birthday).format("Do MMMM YYYY"),
           data[i].department,
           data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):"",
