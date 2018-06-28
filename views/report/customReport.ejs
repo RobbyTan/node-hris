@@ -1,6 +1,31 @@
 <% include ../partials/attendanceHeader%>
 <div class="container">
-  <h3>Custom Report </h3>
-  <a type="button" class="btn btn-primary" href="/report/upload/pphexcel">Upload Excel</a>
+	<h3>Custom Payroll</h3>
+	<select class="mdb-select" multiple>
+		<option value="" disabled selected>Choose your option</option>
+		<option value="1">Kategori Kepegawaian</option>
+		<option value="2">Nomor Induk Karyawan</option>
+		<option value="" disabled selected>Nama Lengkap Sesuai KTP</option>
+		<option value="3">Nama Depan</option>
+		<option value="4">Nama Tengah</option>
+		<option value="5">Nama Belakang</option>
+		<option value="6">Tanggal mulai bekerja di Medan</option>
+		<option value="7">Tanggal mulai bekerja di Karawaci</option>
+	</select>
+	<label>Example label</label>
+	<button class="btn-save btn btn-primary btn-sm">Save</button>
 </div>
-<% include ../partials/pphFooter%>
+</main>
+<br>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+<script src="/scripts/mdb.js"></script>
+<script type="text/javascript">
+	// Material Select Initialization
+	$(document).ready(function() {
+		$('.mdb-select').material_select();
+	});
+</script>
+</body>
+
+</html>
