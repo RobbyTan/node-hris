@@ -20,7 +20,8 @@
 	</select>
 	
 	<button id="btn_generate" class="btn-save btn btn-primary btn-sm">Generate</button>
-
+	<br>
+	<br>
 	<div class="preloader-wrapper big active" id="spinner" style="top: 50%; left: 50%;">
 		<div class="spinner-layer spinner-blue-only">
 			<div class="circle-clipper left"><div class="circle"></div></div>
@@ -29,12 +30,9 @@
 		</div>
 	</div>
 
-	<table id="data_table" class="" cellspacing="0" width="100%">
-		<thead>
-			<tr><td>header1</td></tr>
-		</thead>
-    <tbody></tbody>
-  </table>
+	<div id="data_table_container">
+		
+	</div>
 </div>
 </main>
 <br>
@@ -49,6 +47,8 @@
 <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
 <script src="/scripts/attendances/loading-spinner.js"></script>
 <script type="text/javascript">
+	$.fn.dataTable.ext.errMode = 'none';
+	
 	function toProperCase(s) {
 		let tokens = s.split('_');
 		return tokens.reduce((acc, cur, idx) => {
@@ -58,104 +58,25 @@
 		}, '');
 	}
 
-	let selectedColumnCount = 0;
-
-	$(".button-collapse").sideNav();
-	$('.mdb-select').material_select();
-	$.fn.dataTable.ext.errMode = 'none';
-	$('#data_table').DataTable({
-		dom: 'Bfrtip',
-		"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
-		buttons: [
-			'pageLength',
-			'copyHtml5',
-			'excelHtml5',
-			{
-				extend: 'pdf',
-				text: 'Pdf',
-				orientation: 'landscape'
-			}
-		]
-	});
-
-	let loadingSpinner = LoadingSpinner.bind({
-		spinner: 'spinner',
-		hideableNodes: ['data_table_wrapper'],
-		disableNodes: ['btn_generate']
-	});
-
-	//set ID of each select options
-	//set proper text for each select options
-	$('.mdb-select ul li').each(function() {
-		let text = $(this).find('span').text();
-		$(this).attr('id', 'option_'+text);
-		$(this).find('span').text(toProperCase(text));
-	});
-
-	let $placeholderOption = $('.mdb-select ul li:eq(0)');
-	let $dropdownText = $('.select-dropdown');
-	$dropdownText.val($placeholderOption.find('span').text());
-	//options selected event handler
-	$('.mdb-select ul li').click(function() {
-		if ($(this).text() === $placeholderOption.text()) return;
-		$(this).removeClass().hide();
-		$placeholderOption.addClass('active selected');
-		$dropdownText.val($placeholderOption.find('span').text());
-		$('#btn_'+$(this).attr('id').substring(7)).show();
-		if (selectedColumnCount === 0) $('.no-col').hide();
-		selectedColumnCount += 1;
-	});
-
-	//set proper text for each buttons
-	$('#selected_option_container button').each(function() {
-		let $this = $(this);
-		$this.text(toProperCase($this.text()));
-	})
-	//buttons clicked event handler
-	$('#selected_option_container button').click(function() {
-		$(this).hide();
-		$('#option_'+$(this).attr('id').substring(4)).show();
-		selectedColumnCount -= 1;
-		if (selectedColumnCount === 0) $('.no-col').show();
-	});
-
-	//generate button clicked event handler
-	$('#btn_generate').click(function() {
-		let selectedFieldMap = {};
-		$('#selected_option_container button:visible').each(function() {
-			let fieldName = $(this).attr('id').substring(4);
-			selectedFieldMap[fieldName] = 1;
-		});
-
-		loadingSpinner.start();
-		$.getJSON('/api/fulldata', {
-			selectedFieldMap
-		}).done(rows => {
-			loadingSpinner.stop();
-			loadTable(rows, selectedFieldMap);
-		}).fail(err => {
-			loadingSpinner.init();
-			toastr.error(err.responseJSON.errorMsg);
-		});
-	});
-
-	function setHeaderLength(n) {
-		$('#data_table thead tr').empty();
-		while (n-- > 0) $('#data_table thead tr').append('<td></td>');
+	function destroyTable() {
+		$('#data_table_container').empty();
 	}
 
-	function loadTable(rows, selectedFieldMap) {
-		let columns = [];
-		for (let field in selectedFieldMap) columns.push({title: toProperCase(field)})
-		let data = [];
-		for (let row of rows) {
-			let tmpData = [];
-			for (let field in selectedFieldMap) tmpData.push(row[field] || '[empty]');
-			data.push(tmpData);
+	function createTable(data, columns) {
+		data = data || [];
+		columns = columns || [{title: 'header1'}];
+		let tableHTML = 
+			`<table id="data_table" class="" cellspacing="0" width="100%">
+				<thead>
+					<tr></tr>
+				</thead>
+				<tbody></tbody>
+			</table>`;
+		let $table = $(tableHTML);
+		for (let titleObj of columns) {
+			$table.find('thead tr').append($(`<td>${titleObj.title}</td>`));
 		}
-
-		setHeaderLength(columns.length);
-		$('#data_table').DataTable({
+		$table.appendTo($('#data_table_container')).DataTable({
 			dom: 'Bfrtip',
 			destroy: true,
 			"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
@@ -173,6 +94,93 @@
 			columns: columns
 		});
 	}
+
+	function loadTable(rows, selectedFieldMap) {
+		let columns = [];
+		for (let field in selectedFieldMap) columns.push({title: toProperCase(field)})
+		let data = [];
+		for (let row of rows) {
+			let tmpData = [];
+			for (let field in selectedFieldMap) tmpData.push(row[field] || '[empty]');
+			data.push(tmpData);
+		}
+		destroyTable();
+		createTable(data, columns);
+	}
+
+	let selectedColumnCount = 0;
+
+	(function initializeEventHandlers() {
+		$(".button-collapse").sideNav();
+		$('.mdb-select').material_select();
+
+		//set ID of each select options
+		//set proper text for each select options
+		$('.mdb-select ul li').each(function() {
+			let text = $(this).find('span').text();
+			$(this).attr('id', 'option_'+text);
+			$(this).find('span').text(toProperCase(text));
+		});
+
+		let $placeholderOption = $('.mdb-select ul li:eq(0)');
+		let $dropdownText = $('.select-dropdown');
+		$dropdownText.val($placeholderOption.find('span').text());
+		//options selected event handler
+		$('.mdb-select ul li').click(function() {
+			if ($(this).text() === $placeholderOption.text()) return;
+			$(this).removeClass().hide();
+			$placeholderOption.addClass('active selected');
+			$dropdownText.val($placeholderOption.find('span').text());
+			$('#btn_'+$(this).attr('id').substring(7)).show();
+			if (selectedColumnCount === 0) $('.no-col').hide();
+			selectedColumnCount += 1;
+		});
+
+		//set proper text for each column buttons
+		$('#selected_option_container button').each(function() {
+			let $this = $(this);
+			$this.text(toProperCase($this.text()));
+		})
+		//column buttons clicked event handler
+		$('#selected_option_container button').click(function() {
+			$(this).hide();
+			$('#option_'+$(this).attr('id').substring(4)).show();
+			selectedColumnCount -= 1;
+			if (selectedColumnCount === 0) $('.no-col').show();
+		});
+	})();
+
+	createTable();
+	
+	let loadingSpinner = LoadingSpinner.bind({
+		spinner: 'spinner',
+		hideableNodes: ['data_table_wrapper'],
+		disableNodes: ['btn_generate']
+	});
+
+	//Generate button clicked event handler
+	$('#btn_generate').click(function() {
+		if (selectedColumnCount === 0) {
+			toastr.warning('No column(s) selected');
+			return;
+		}
+		let selectedFieldMap = {};
+		$('#selected_option_container button:visible').each(function() {
+			let fieldName = $(this).attr('id').substring(4);
+			selectedFieldMap[fieldName] = 1;
+		});
+
+		loadingSpinner.start();
+		$.getJSON('/api/fulldata', {
+			selectedFieldMap
+		}).done(rows => {
+			loadingSpinner.stop();
+			loadTable(rows, selectedFieldMap);
+		}).fail(err => {
+			loadingSpinner.init();
+			toastr.error(err.responseJSON.errorMsg);
+		});
+	});
 </script>
 </body>
 

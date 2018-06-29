@@ -1,12 +1,16 @@
 let LoadingSpinner = (function() {
   let $spinner;
-  let $hideableNodes = [];
+  // let $hideableNodes = [];
+  let hideableNodes = [];
   let $disableNodes = [];
 
   // reset kondisi ke semula, hide spinner dan elemen-elemen tertentu
   function init() {
-    $hideableNodes.forEach($node => {
-      $node.fadeOut(0);
+    // $hideableNodes.forEach($node => {
+    //   $node.fadeOut(0);
+    // });
+    hideableNodes.forEach(nodeId => {
+      $('#'+nodeId).fadeOut(0);
     });
     $disableNodes.forEach($node => {
       $node.prop("disabled", false);
@@ -16,8 +20,11 @@ let LoadingSpinner = (function() {
 
   // mulai animasi loading, show spinner, hide dan disable elemen tertentu
   function start() {
-    $hideableNodes.forEach($node => {
-      $('#' + $node.attr('id')).fadeOut();
+    // $hideableNodes.forEach($node => {
+    //   $('#' + $node.attr('id')).fadeOut();
+    // });
+    hideableNodes.forEach(nodeId => {
+      $('#'+nodeId).fadeOut();
     });
     $disableNodes.forEach($node => {
       $node.prop("disabled", true);
@@ -27,8 +34,11 @@ let LoadingSpinner = (function() {
 
   // stop animasi loading, show spinner, show dan enable elemen tertentu
   function stop() {
-    $hideableNodes.forEach($node => {
-      $node.fadeIn();
+    // $hideableNodes.forEach($node => {
+    //   $node.fadeIn();
+    // });
+    hideableNodes.forEach(nodeId => {
+      $('#'+nodeId).fadeIn();
     });
     $disableNodes.forEach($node => {
       $node.prop("disabled", false);
@@ -38,7 +48,8 @@ let LoadingSpinner = (function() {
 
   function bind(options) {
     $spinner = $('#' + (options.spinner || 'spinner'));
-    for (let nodeId of options.hideableNodes) $hideableNodes.push($('#' + nodeId));
+    // for (let nodeId of options.hideableNodes) $hideableNodes.push($('#' + nodeId));
+    for (let nodeId of options.hideableNodes) hideableNodes.push(nodeId);
     for (let nodeId of options.disableNodes) $disableNodes.push($('#' + nodeId));
 
     init();
