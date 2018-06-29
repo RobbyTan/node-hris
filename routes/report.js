@@ -101,11 +101,13 @@ router.get("/access/customReport",authentication.reportAccess,(req,res)=>{
     res.render("report/accessCustomReport")
 })
 router.get("/customReport",authentication.reportAccess,(req,res)=>{
-    if(req.session.name){
-     res.render('./report/customReport')
-    }else{
-    res.redirect('/report/access/customReport')
-}
+    if (req.session.name) {
+        let columnNames = Object.keys(db.Fulldata.schema.tree)
+                                .filter(name => !['id', '_id', '__v'].includes(name));
+        res.render('./report/customReport', {columnNames : columnNames});
+    } else {
+        res.redirect('/report/access/customReport');
+    }
 })
 router.delete("/:id",authentication.reportAccess,function(req,res){
   db.Fulldata.findByIdAndRemove(req.params.id,function(err){

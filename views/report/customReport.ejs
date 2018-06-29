@@ -1,30 +1,178 @@
 <% include ../partials/attendanceHeader%>
 <div class="container">
 	<h3>Custom Payroll</h3>
-	<select class="mdb-select" multiple>
-		<option value="" disabled selected>Choose your option</option>
-		<option value="1">Kategori Kepegawaian</option>
-		<option value="2">Nomor Induk Karyawan</option>
-		<option value="" disabled selected>Nama Lengkap Sesuai KTP</option>
-		<option value="3">Nama Depan</option>
-		<option value="4">Nama Tengah</option>
-		<option value="5">Nama Belakang</option>
-		<option value="6">Tanggal mulai bekerja di Medan</option>
-		<option value="7">Tanggal mulai bekerja di Karawaci</option>
+	<div id="selected_option_container">
+		<h5>Selected Columns</h5>
+		<br>
+		<p class="no-col text-center">No columns selected yet.</p>
+		<% for (let columnName of columnNames) { %>
+			<button id="btn_<%= columnName %>" style="display:none;" type="button" class="btn btn-outline-primary waves-effect"><%= columnName %></button>
+		<% } %>
+		<br>
+		<br>
+	</div>
+
+	<select class="mdb-select">
+		<option value="placeholder">add_column</option>
+		<% for (let columnName of columnNames) { %>
+			<option><%= columnName %></option>
+		<% } %>
 	</select>
-	<label>Example label</label>
-	<button class="btn-save btn btn-primary btn-sm">Save</button>
+	
+	<button id="btn_generate" class="btn-save btn btn-primary btn-sm">Generate</button>
+
+	<div class="preloader-wrapper big active" id="spinner" style="top: 50%; left: 50%;">
+		<div class="spinner-layer spinner-blue-only">
+			<div class="circle-clipper left"><div class="circle"></div></div>
+			<div class="gap-patch"><div class="circle"></div></div>
+			<div class="circle-clipper right"><div class="circle"></div></div>
+		</div>
+	</div>
+
+	<table id="data_table" class="" cellspacing="0" width="100%">
+		<thead>
+			<tr><td>header1</td></tr>
+		</thead>
+    <tbody></tbody>
+  </table>
 </div>
 </main>
 <br>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
 <script src="/scripts/mdb.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
+<script src="/scripts/attendances/loading-spinner.js"></script>
 <script type="text/javascript">
-	// Material Select Initialization
-	$(document).ready(function() {
-		$('.mdb-select').material_select();
+	function toProperCase(s) {
+		let tokens = s.split('_');
+		return tokens.reduce((acc, cur, idx) => {
+			let curS = cur.substring(0, 1).toUpperCase() + cur.substring(1).toLowerCase();
+			if (idx > 0) curS = ' ' + curS;
+			return acc + curS;
+		}, '');
+	}
+
+	let selectedColumnCount = 0;
+
+	$(".button-collapse").sideNav();
+	$('.mdb-select').material_select();
+	$.fn.dataTable.ext.errMode = 'none';
+	$('#data_table').DataTable({
+		dom: 'Bfrtip',
+		"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+		buttons: [
+			'pageLength',
+			'copyHtml5',
+			'excelHtml5',
+			{
+				extend: 'pdf',
+				text: 'Pdf',
+				orientation: 'landscape'
+			}
+		]
 	});
+
+	let loadingSpinner = LoadingSpinner.bind({
+		spinner: 'spinner',
+		hideableNodes: ['data_table_wrapper'],
+		disableNodes: ['btn_generate']
+	});
+
+	//set ID of each select options
+	//set proper text for each select options
+	$('.mdb-select ul li').each(function() {
+		let text = $(this).find('span').text();
+		$(this).attr('id', 'option_'+text);
+		$(this).find('span').text(toProperCase(text));
+	});
+
+	let $placeholderOption = $('.mdb-select ul li:eq(0)');
+	let $dropdownText = $('.select-dropdown');
+	$dropdownText.val($placeholderOption.find('span').text());
+	//options selected event handler
+	$('.mdb-select ul li').click(function() {
+		if ($(this).text() === $placeholderOption.text()) return;
+		$(this).removeClass().hide();
+		$placeholderOption.addClass('active selected');
+		$dropdownText.val($placeholderOption.find('span').text());
+		$('#btn_'+$(this).attr('id').substring(7)).show();
+		if (selectedColumnCount === 0) $('.no-col').hide();
+		selectedColumnCount += 1;
+	});
+
+	//set proper text for each buttons
+	$('#selected_option_container button').each(function() {
+		let $this = $(this);
+		$this.text(toProperCase($this.text()));
+	})
+	//buttons clicked event handler
+	$('#selected_option_container button').click(function() {
+		$(this).hide();
+		$('#option_'+$(this).attr('id').substring(4)).show();
+		selectedColumnCount -= 1;
+		if (selectedColumnCount === 0) $('.no-col').show();
+	});
+
+	//generate button clicked event handler
+	$('#btn_generate').click(function() {
+		let selectedFieldMap = {};
+		$('#selected_option_container button:visible').each(function() {
+			let fieldName = $(this).attr('id').substring(4);
+			selectedFieldMap[fieldName] = 1;
+		});
+
+		loadingSpinner.start();
+		$.getJSON('/api/fulldata', {
+			selectedFieldMap
+		}).done(rows => {
+			loadingSpinner.stop();
+			loadTable(rows, selectedFieldMap);
+		}).fail(err => {
+			loadingSpinner.init();
+			toastr.error(err.responseJSON.errorMsg);
+		});
+	});
+
+	function setHeaderLength(n) {
+		$('#data_table thead tr').empty();
+		while (n-- > 0) $('#data_table thead tr').append('<td></td>');
+	}
+
+	function loadTable(rows, selectedFieldMap) {
+		let columns = [];
+		for (let field in selectedFieldMap) columns.push({title: toProperCase(field)})
+		let data = [];
+		for (let row of rows) {
+			let tmpData = [];
+			for (let field in selectedFieldMap) tmpData.push(row[field] || '[empty]');
+			data.push(tmpData);
+		}
+
+		setHeaderLength(columns.length);
+		$('#data_table').DataTable({
+			dom: 'Bfrtip',
+			destroy: true,
+			"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+			buttons: [
+				'pageLength',
+				'copyHtml5',
+				'excelHtml5',
+				{
+					extend: 'pdf',
+					text: 'Pdf',
+					orientation: 'landscape'
+				}
+			],
+			data: data,
+			columns: columns
+		});
+	}
 </script>
 </body>
 

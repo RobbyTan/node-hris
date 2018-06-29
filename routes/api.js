@@ -28,8 +28,8 @@ router.get('/attendances', async(req, res) => {
     res.json({})
   }
 })
-// PPH routes
 
+// Report routes
 router.get('/pph',(req,res)=>{
   db.Fulldata.find({}, function (err, allData) {
     if (err) {
@@ -39,7 +39,6 @@ router.get('/pph',(req,res)=>{
     }
   })
 })
-
 router.delete('/pph',(req,res)=>{
   let id = req.headers.selected;
   db.Fulldata.findByIdAndRemove(id,function(err){
@@ -52,7 +51,22 @@ router.delete('/pph',(req,res)=>{
   })
 })
 
-router.get('/employeedata',(req,res)=>{
+router.get('/fulldata', (req, res) => {
+  let selectedFieldMap = req.query.selectedFieldMap || {};
+  for (let key in selectedFieldMap) selectedFieldMap[key] = 1;
+  selectedFieldMap['_id'] = 0;
+
+  db.Fulldata.aggregate([
+    {
+      $project: selectedFieldMap
+    }
+  ], function (err, data) {
+      if (err) return res.status(404).json({errorMsg: err});
+      res.json(data);
+  });
+})
+
+router.get('/employeedata', (req, res) => {
   db.Fulldata.aggregate([
     {
       $project: {
