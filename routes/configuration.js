@@ -28,9 +28,7 @@ router.get("/reset/password",authentication.reportAccess,(req,res)=>{
 router.post("/reset/password/new",authentication.reportAccess,(req,res)=>{
 	var password = req.body.password;
 	bcrypt.hash(password, 10, function(err, hash) {
-		db.Configuration.update({}, { $set: {
-			password: hash
-		}}, function (err) {
+		db.Configuration.update({}, { $set: {password: hash} }, {upsert: true}, function (err) {
 			if (err) console.log(err);
 			res.redirect("/dashboard");
 		});
@@ -65,9 +63,7 @@ router.get("/reset/password/new/payroll", authentication.reportAccess, (req, res
 router.post("/reset/password/new/payroll",authentication.reportAccess,(req,res)=>{
 	var password = req.body.password;
 	bcrypt.hash(password, 10, function(err, hash) {
-		db.Configuration.update({}, { $set: {
-			payrollPassword: hash
-		}}, function (err) {
+		db.Configuration.update({}, { $set: {payrollPassword: hash} }, {upsert: true}, function (err) {
 			if (err) console.log(err);
 			res.redirect("/dashboard")
 
@@ -75,7 +71,7 @@ router.post("/reset/password/new/payroll",authentication.reportAccess,(req,res)=
   // Store hash in database
 	});
 })
-router.post("/reset/password/payroll",(req,res)=>{
+router.post("/reset/password/payroll",(req,res)=> {
 	db.Configuration.findOne({}, (err, configuration) => {
 		hash = configuration.payrollPassword || ' ';
 		if(bcrypt.compareSync(req.body.password, hash)) {
