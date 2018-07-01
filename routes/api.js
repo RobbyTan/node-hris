@@ -137,8 +137,6 @@ router.get('/payrollreport/:id/keteranganpayroll', (req, res) => {
 router.post('/payrollreport/:id/keteranganpayroll', (req, res) => {
   let newKeterangan = {
     nik: req.headers.nik,
-    startDate: new Date(req.headers.startdate),
-    endDate: new Date(req.headers.enddate),
     nominal: +req.headers.nominal,
     keterangan: req.headers.keterangan
   };
@@ -235,7 +233,6 @@ router.get('/attendances/:nik', (req, res) => {
     }
   }
   ]).then(data => {
-    console.log('api', data);
     res.json(data);
   }).catch(err => {
     res.status(404).json({error: true});
@@ -246,7 +243,7 @@ router.post("/attendances", (req, res) => {
   let newAttendance = {
     nik: req.headers.nik,
     date: req.headers.timestamp,
-    type: "manual"
+    type: 'manual'
   };
   db.Absensi.find({nik: newAttendance.nik, date: newAttendance.date}, function(attendance) {
     if (attendance) {

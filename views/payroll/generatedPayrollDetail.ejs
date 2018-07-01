@@ -9,6 +9,9 @@
     -ms-user-select: none;
     user-select: none;
   }
+  #data_table tbody td:nth-child(19):hover, #data_table tbody td:nth-child(20):hover {
+    background: lightgray;
+  }
 </style>
 <div class="container">
   <% let momentStartDate = new moment(payrollReport.startDate); %>
@@ -384,12 +387,9 @@
         let multiplier = $('#option_keterangan :selected').text()==='Penambahan' ? 1 : -1;
         let newKeterangan = {
           nik: dataTable.cell(row, 1).data(),
-          startDate: new Date($('#input_from').val()),
-          endDate: new Date($('#input_to').val()),
           nominal: multiplier * Number($('#nominal_txt').val()),
           keterangan: $('#keterangan_txt').val()
         };
-
         //insert to database
         $.ajax({
           type: 'POST',
@@ -410,7 +410,7 @@
             });
           },
           error: function(err) {
-            toastr.info(err.errorMsg);
+            toastr.error(err.errorMsg || 'error occured');
           }
         });
       });

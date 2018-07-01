@@ -1,6 +1,20 @@
 <% include ../partials/attendanceHeader%>
+<style>
+  #data_table tbody td:nth-child(19), #data_table tbody td:nth-child(20) {
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  #data_table tbody td:nth-child(19):hover, #data_table tbody td:nth-child(20):hover {
+    background: lightgray;
+  }
+</style>
 <div class="container">
-  <h3>View Dosen Tidak Tetap Payroll</h3>
+  <h3>Manual Date Payroll</h3>
   <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
   <table class="table">
     <label class="pl-3">From:</label>
@@ -60,7 +74,7 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="modal_keterangan" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -126,18 +140,18 @@
   $('#data_table').DataTable({
     dom: 'Bfrtip',
     lengthMenu: [
-    [10, 25, 50, -1],
-    [10, 25, 50, "All"]
+      [10, 25, 50, -1],
+      [10, 25, 50, "All"]
     ],
     buttons: [
-    'pageLength',
-    'copyHtml5',
-    'excelHtml5',
-    {
-      extend: 'pdf',
-      text: 'Pdf',
-      orientation: 'landscape'
-    }
+      'pageLength',
+      'copyHtml5',
+      'excelHtml5',
+      {
+        extend: 'pdf',
+        text: 'Pdf',
+        orientation: 'landscape'
+      }
     ]
   });
 
@@ -229,8 +243,8 @@
       ],
       data: result,
       columns: [
-      {title: 'Kategori Pegawai'},  
-      {title: 'NIK'},
+        {title: 'Kategori Pegawai'},  
+        {title: 'NIK'},
 
         // nama lengkap sesuai KTP
         {title: 'Nama depan'},
@@ -260,8 +274,8 @@
         {title: 'Penambahan/Pengurangan'},
         {title: 'Keterangan Penambahan/Pengurangan'},
         {title: 'Total gaji yang diterima'}
-        ]
-      });
+      ]
+    });
   }
 
   $('#generate_button').on('click', () => {
@@ -312,8 +326,7 @@
         {let data = dataTable.cell(row, e).data(); if (data) nama += data+' ';});
       $('#modal_keterangan_title')
         .html(`${nama} <span style="float:right">${nik}</span>`)
-      $(this).attr('data-toggle','modal');
-      $(this).attr('data-target','#exampleModal');
+      $('#modal_keterangan').modal('show');
 
       $('#form_keterangan').unbind();
       $('#form_keterangan').on('submit', function(err) {

@@ -1,6 +1,15 @@
 <% include ../partials/attendanceHeader%>
+<style>
+	.mdb-select ul li:nth-child(1) span, 
+	.mdb-select ul li:nth-child(2) span, 
+	.mdb-select ul li:nth-child(3) span {
+		/*color: lightgreen !important;*/
+		background: rgb(245, 245, 245) !important;
+		font-weight: bold;
+	}
+</style>
 <div class="container">
-	<h3>Custom Payroll</h3>
+	<h3>Custom Report</h3>
 	<div id="selected_option_container">
 		<h5>Selected Columns</h5>
 		<br>
@@ -14,6 +23,8 @@
 
 	<select class="mdb-select">
 		<option value="placeholder">add_column</option>
+		<option value="placeholder1">show_all_column</option>
+		<option value="placeholder2">hide_all_column</option>
 		<% for (let columnName of columnNames) { %>
 			<option><%= columnName %></option>
 		<% } %>
@@ -95,20 +106,26 @@
 		});
 	}
 
+	function formatValue(value) {
+		if (value == null || value == undefined) return value;
+		if (value.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\..*Z$/)) {
+			return moment(value).format('D MMM YYYY');
+		}
+		return value;
+	}
+
 	function loadTable(rows, selectedFieldMap) {
 		let columns = [];
 		for (let field in selectedFieldMap) columns.push({title: toProperCase(field)})
 		let data = [];
 		for (let row of rows) {
 			let tmpData = [];
-			for (let field in selectedFieldMap) tmpData.push(row[field] || '[empty]');
+			for (let field in selectedFieldMap) tmpData.push(formatValue(row[field]) || '[empty]');
 			data.push(tmpData);
 		}
 		destroyTable();
 		createTable(data, columns);
 	}
-
-	let selectedColumnCount = 0;
 
 	(function initializeEventHandlers() {
 		$(".button-collapse").sideNav();
@@ -123,17 +140,30 @@
 		});
 
 		let $placeholderOption = $('.mdb-select ul li:eq(0)');
+		let $showAllOption = $('.mdb-select ul li:eq(1)');
+		let $hideAllOption = $('.mdb-select ul li:eq(2)');
 		let $dropdownText = $('.select-dropdown');
 		$dropdownText.val($placeholderOption.find('span').text());
 		//options selected event handler
 		$('.mdb-select ul li').click(function() {
 			if ($(this).text() === $placeholderOption.text()) return;
-			$(this).removeClass().hide();
+
 			$placeholderOption.addClass('active selected');
 			$dropdownText.val($placeholderOption.find('span').text());
-			$('#btn_'+$(this).attr('id').substring(7)).show();
-			if (selectedColumnCount === 0) $('.no-col').hide();
-			selectedColumnCount += 1;
+
+			if ($(this).text() === $showAllOption.text()) {
+				$('#selected_option_container button').show();	
+				$('.mdb-select ul li:gt(2)').hide();
+				$('.no-col').hide();
+			} else if ($(this).text() === $hideAllOption.text()) {
+				$('#selected_option_container button').hide();
+				$('.mdb-select ul li').show();
+				$('.no-col').show();
+			} else {
+				$(this).removeClass().hide();
+				$('#btn_'+$(this).attr('id').substring(7)).show();
+				$('.no-col').hide();
+			}
 		});
 
 		//set proper text for each column buttons
@@ -145,8 +175,7 @@
 		$('#selected_option_container button').click(function() {
 			$(this).hide();
 			$('#option_'+$(this).attr('id').substring(4)).show();
-			selectedColumnCount -= 1;
-			if (selectedColumnCount === 0) $('.no-col').show();
+			if ($('#selected_option_container button').length === 0) $('.no-col').show();
 		});
 	})();
 
@@ -163,7 +192,7 @@
 
 	//Generate button clicked event handler
 	$('#btn_generate').click(function() {
-		if (selectedColumnCount === 0) {
+		if ($('#selected_option_container button').length === 0) {
 			toastr.warning('No column(s) selected');
 			return;
 		}

@@ -43,8 +43,7 @@ let PayrollDosenCalculator = (function() {
     attendances = attendances.filter(attendance => attendance.department==='Dosen Tidak Tetap');
     let totalDurasiKerjaMs = {};
     for (let attendance of attendances) {
-      let clocks = attendance.absensi.map(clock => moment(clock.date));
-      let clockPairingResult = ClockPairing.process(clocks, {
+      let clockPairingResult = ClockPairing.process(attendance.absensi, {
         dosenTidakTetapMaxTime: options.dosenTidakTetapMaxTime,
         department: attendance.department
       });
