@@ -13,6 +13,8 @@ router.get("/", authentication.isLoggedIn, (req, res) => {
 		res.render("configuration", {configuration: configuration})
 	})
 })
+
+//Employee (Fulldata)
 router.get("/reset/password/new", authentication.reportAccess, (req, res) => {
 	if(req.session.password){
 		res.render("./configuration/resetPassword")
@@ -24,21 +26,20 @@ router.get("/reset/password",authentication.reportAccess,(req,res)=>{
 	res.render("./configuration/oldPassword")
 })
 router.post("/reset/password/new",authentication.reportAccess,(req,res)=>{
-	var password=req.body.password;
+	var password = req.body.password;
 	bcrypt.hash(password, 10, function(err, hash) {
 		db.Configuration.update({}, { $set: {
 			password: hash
 		}}, function (err) {
 			if (err) console.log(err);
-			res.redirect("/dashboard")
-
+			res.redirect("/dashboard");
 		});
   // Store hash in database
-});
+	});
 })
 router.post("/reset/password",(req,res)=>{
 	db.Configuration.findOne({}, (err, configuration) => {
-		hash=configuration.password;
+		hash = configuration.password || ' ';
 		if(bcrypt.compareSync(req.body.password, hash)) {
 			session=req.session;
 			session.password=req.user._id;
@@ -62,7 +63,7 @@ router.get("/reset/password/new/payroll", authentication.reportAccess, (req, res
 	}
 })
 router.post("/reset/password/new/payroll",authentication.reportAccess,(req,res)=>{
-	var password=req.body.password;
+	var password = req.body.password;
 	bcrypt.hash(password, 10, function(err, hash) {
 		db.Configuration.update({}, { $set: {
 			payrollPassword: hash
@@ -72,14 +73,14 @@ router.post("/reset/password/new/payroll",authentication.reportAccess,(req,res)=
 
 		});
   // Store hash in database
-});
+	});
 })
 router.post("/reset/password/payroll",(req,res)=>{
 	db.Configuration.findOne({}, (err, configuration) => {
-		hash=configuration.payrollPassword;
+		hash = configuration.payrollPassword || ' ';
 		if(bcrypt.compareSync(req.body.password, hash)) {
-			session=req.session;
-			session.payrollPassword=req.user._id;
+			session = req.session;
+			session.payrollPassword = req.user._id;
 			res.redirect("/configuration/reset/password/new/payroll")
 			console.log(session)
 		} else {
@@ -87,4 +88,5 @@ router.post("/reset/password/payroll",(req,res)=>{
 		}
 	})
 })
+
 module.exports = router
