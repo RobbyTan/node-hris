@@ -79,19 +79,16 @@
   $('.mdb-select').material_select();
   $('#data_table').DataTable({
     dom: 'Bfrtip',
-    lengthMenu: [
-    [10, 25, 50, -1],
-    [10, 25, 50, "All"]
-    ],
+    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
     buttons: [
-    'pageLength',
-    'copyHtml5',
-    'excelHtml5',
-    {
-      extend: 'pdf',
-      text: 'Pdf',
-      orientation: 'landscape'
-    }
+      'pageLength',
+      'copyHtml5',
+      'excelHtml5',
+      {
+        extend: 'pdf',
+        text: 'Pdf',
+        orientation: 'landscape'
+      }
     ]
   });
 
@@ -105,42 +102,58 @@
     hideableNodes: ['data_table_wrapper'],
     disableNodes: ['generate_button']
   });
+  
+  function toMiliSeconds(time) {
+    let timeParts = time.split(":");
+    let h = timeParts[0] ? +timeParts[0] * 60 * 60 * 1000 : 0;
+    let m = timeParts[1] ? +timeParts[1] * 60 * 1000 : 0;
+    let s = timeParts[2] ? +timeParts[2] * 1000 : 0;
+    return h + m + s;
+  }
 
-    // data berisi array of JSON of satu orang dengan absensi-nya utk hari itu
-    function renderTable(data) {
-      $.fn.dataTable.ext.errMode = 'none';
-      let result = [];
-      for (let i = 0; i < data.length; i++) {
-        let clocks = data[i].absensi.map(clock => moment(clock.date));
-        let clockPairingResult = ClockPairing.process(clocks, {
-          dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
-          department: data[i].department,
-          jamMasuk: moment(data[i].jam_masuk).format('HH:mm:ss')
-        });
-        let clockPairsDisplay = clockPairingResult.flaggedClockPairs;
-        let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
-        let jamMasukToleransi = moment.utc(moment(data[i].jam_masuk).add(5,'minutes').format("HH:mm:ss"), 'HH:mm:ss');
-        let firstClock = clockPairingResult.clockPairs ? moment.utc(clockPairingResult.clockPairs[0].clockIn.format("HH:mm:ss"),"HH:mm:ss") : null;
-        let telatCalculation = '';
-        if (data[i].jam_masuk && firstClock && jamMasukToleransi.isBefore(firstClock)) telatCalculation = 'TELAT';
-        result.push([
-          data[i].nik,
-          data[i].first_Name + " " + (data[i].last_Name ? data[i].last_Name : ""),
-          data[i].department,
-          (data[i].atasan_langsung ? data[i].atasan_langsung : ""),
-          moment(data[i].absensi.length ? data[i].absensi[0].date : data[i].current_date).format("D MMMM YYYY"),
-          (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
-          clockPairsDisplay,
-          flaggedTotalWorkingTime,
-          telatCalculation
-          ])
-      }
+  // data berisi array of JSON of satu orang dengan absensi-nya utk hari itu
+  function renderTable(data) {
+    $.fn.dataTable.ext.errMode = 'none';
+    let result = [];
+    for (let i = 0; i < data.length; i++) {
+      let clockPairingResult = ClockPairing.process(data[i].absensi, {
+        dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
+        department: data[i].department,
+        // jamMasuk: moment(data[i].jam_masuk).format('HH:mm:ss')
+        jamMasuk: data[i].jam_masuk
+      });
+      let clockPairsDisplay = clockPairingResult.flaggedClockPairs;
+      let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
 
-      $('#data_table').DataTable({
-        destroy: true,
-        dom: 'Bfrtip',
-        lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-        buttons: [
+      // let jamMasukToleransi = moment.utc(moment(data[i].jam_masuk).add(5,'minutes').format("HH:mm:ss"), 'HH:mm:ss');
+      let jamMasukToleransiMs = toMiliSeconds(data[i].jam_masuk || '00:00') + toMiliSeconds('00:15:00');
+      // let firstClock = clockPairingResult.clockPairs ? moment.utc(clockPairingResult.clockPairs[0].clockIn.format("HH:mm:ss"),"HH:mm:ss") : null;
+      let firstClockMs = clockPairingResult.clockPairs ? toMiliSeconds(clockPairingResult.clockPairs[0].clockIn.format("HH:mm:ss")) : null;
+      let telatCalculation = '';
+      // if (data[i].jam_masuk && firstClock && jamMasukToleransi.isBefore(firstClock)) telatCalculation = 'TELAT';
+      if (data[i].jam_masuk && firstClockMs && jamMasukToleransiMs < firstClockMs &&
+        !['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(data[i].department.trim())) 
+          telatCalculation = 'TELAT';
+      
+      result.push([
+        data[i].nik,
+        data[i].first_Name + ' ' + (data[i].last_Name ? data[i].last_Name : ''),
+        data[i].department,
+        (data[i].atasan_langsung ? data[i].atasan_langsung : ''),
+        moment(data[i].absensi.length ? data[i].absensi[0].date : data[i].current_date).format("D MMMM YYYY"),
+        // (data[i].jam_masuk ? moment(data[i].jam_masuk).format("HH:mm:ss") : ""),
+        (data[i].jam_masuk + ':00') || '',
+        clockPairsDisplay,
+        flaggedTotalWorkingTime,
+        telatCalculation
+      ])
+    }
+
+    $('#data_table').DataTable({
+      destroy: true,
+      dom: 'Bfrtip',
+      lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+      buttons: [
         'pageLength',
         'copyHtml5',
         'excelHtml5',
@@ -149,9 +162,9 @@
           text: 'Pdf',
           orientation: 'landscape'
         }
-        ],
-        data: result,
-        columns: [
+      ],
+      data: result,
+      columns: [
         {title: "NIK"},
         {title: "Nama"},
         {title: "Department"},
@@ -161,63 +174,63 @@
         {title: "Absensi"},
         {title: "Total Durasi Jam Kerja"},
         {title: "Telat"}
-        ]
-      })
-    }
-    
-    function complementAbsentEmployees(employees, attendances, fromString, toString) {
-      let exist = {};
-      attendances.forEach(att => {
-        if (['Resign', '', null, undefined].includes(att.department)) return;
-        att.absensi.forEach(clock => {
-          let key = att.nik + "#" + moment(clock.date).format('YYYY-MM-DD');
-          exist[key] = true;
-        });
+      ]
+    })
+  }
+  
+  function complementAbsentEmployees(employees, attendances, fromString, toString) {
+    let exist = {};
+    attendances.forEach(att => {
+      if (['Resign', '', null, undefined].includes(att.department)) return;
+      att.absensi.forEach(clock => {
+        let key = att.nik + "#" + moment(clock.date).format('YYYY-MM-DD');
+        exist[key] = true;
       });
-      let completeAttendances = attendances;
-      let days = moment(toString, 'YYYY-MM-DD').diff(moment(fromString, 'YYYY-MM-DD'), 'days') + 1;
-      let fromMoment = moment(fromString, 'YYYY-MM-DD');
-      for (let i = 0; i < days; i++) {
-        employees.forEach(emp => {
-          if (['Resign', '', null, undefined].includes(emp.kategori_pegawai)) return;
-          let key = emp.nik + "#" + fromMoment.format('YYYY-MM-DD');
-          if (!exist[key]) {
-            exist[key] = true;
-            completeAttendances.push({
-              nik: emp.nik,
-              first_Name: emp.nama_depan,
-              last_Name: emp.nama_belakang,
-              department: emp.kategori_pegawai,
-              atasan_langsung: emp.atasan_langsung,
-              current_date: moment(fromMoment).toDate(),
-              absensi: [],
-              jam_masuk: emp.jam_masuk
-            });
-          }
-        });
-        fromMoment.add(1, 'days');
-      }
-      return completeAttendances;
-    }
-
-    $('#generate_button').on('click', async function() {
-      if (!dateInputValidator.isValid()) return;
-      let fromString = $('#from_txt').val();
-      let toString = $('#to_txt').val();
-      loadingSpinner.start();
-      try {
-        let attendances = await $.getJSON("/api/attendances", {from:fromString, to:toString});
-        let employees = await $.getJSON("/api/employeedata");
-        let completeAttendances = complementAbsentEmployees(employees, attendances, fromString, toString);
-        renderTable(completeAttendances);
-        ClockListDialog.bind({ tableId: 'data_table' });
-        loadingSpinner.stop();
-      } catch (err) {
-        console.log(err);
-        loadingSpinner.init();
-      }
     });
-  </script>
+    let completeAttendances = attendances;
+    let days = moment(toString, 'YYYY-MM-DD').diff(moment(fromString, 'YYYY-MM-DD'), 'days') + 1;
+    let fromMoment = moment(fromString, 'YYYY-MM-DD');
+    for (let i = 0; i < days; i++) {
+      employees.forEach(emp => {
+        if (['Resign', '', null, undefined].includes(emp.kategori_pegawai)) return;
+        let key = emp.nik + "#" + fromMoment.format('YYYY-MM-DD');
+        if (!exist[key]) {
+          exist[key] = true;
+          completeAttendances.push({
+            nik: emp.nik,
+            first_Name: emp.nama_depan,
+            last_Name: emp.nama_belakang,
+            department: emp.kategori_pegawai,
+            atasan_langsung: emp.atasan_langsung,
+            current_date: moment(fromMoment).toDate(),
+            absensi: [],
+            jam_masuk: emp.jam_masuk
+          });
+        }
+      });
+      fromMoment.add(1, 'days');
+    }
+    return completeAttendances;
+  }
+
+  $('#generate_button').on('click', async function() {
+    if (!dateInputValidator.isValid()) return;
+    let fromString = $('#from_txt').val();
+    let toString = $('#to_txt').val();
+    loadingSpinner.start();
+    try {
+      let attendances = await $.getJSON("/api/attendances", {from:fromString, to:toString});
+      let employees = await $.getJSON("/api/employeedata");
+      let completeAttendances = complementAbsentEmployees(employees, attendances, fromString, toString);
+      renderTable(completeAttendances);
+      ClockListDialog.bind({ tableId: 'data_table' });
+      loadingSpinner.stop();
+    } catch (err) {
+      toastr.error(err);
+      loadingSpinner.init();
+    }
+  });
+</script>
 </body>
 
 </html>

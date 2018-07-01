@@ -101,7 +101,7 @@ let reportDuplicateChecker = function (req, res, next) {
     ]}}
   ], function(err, returnedData) {
     if (err)
-      res.status(404).json({errorMsg: 'error'});
+      res.status(404).json({errorMsg: 'aggregate error'});
     else if (returnedData && returnedData.length > 0 && returnedData[0]._id != excludedId)
       res.status(404).json({errorMsg: 'duplicate report on DB'});
     else next();

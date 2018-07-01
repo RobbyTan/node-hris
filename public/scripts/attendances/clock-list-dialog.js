@@ -4,6 +4,7 @@ let ClockListDialog = (function () {
   let selectedNIK;
   let selectedDateStr;
   let clocksCell;
+  let telatCell;
   let totalTimeCell;
   let jamMasukCell;
   let department;
@@ -112,8 +113,7 @@ let ClockListDialog = (function () {
           toastr.info('New Clock Inserted');
           addClockToItsPosition(newClockStr);
           getClocks(person, function(clockList) {
-            let clocks = clockList.map(e => moment(e.date));
-            let clockPairingResult = ClockPairing.process(clocks, {
+            let clockPairingResult = ClockPairing.process(clockList, {
               dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
               department: department,
               jamMasuk: jamMasukCell.data()
@@ -121,6 +121,8 @@ let ClockListDialog = (function () {
             let clockPairsDisplay = clockPairingResult.flaggedClockPairs;
             let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
             clocksCell.data(clockPairsDisplay);
+            if (clockPairingResult.telat) telatCell.data('TELAT');
+            else telatCell.data('');
             totalTimeCell.data(flaggedTotalWorkingTime);
             $('#newClockTxt').val('');
           })
@@ -161,6 +163,7 @@ let ClockListDialog = (function () {
       let row = cell.index().row;
 
       clocksCell = cell;
+      telatCell = table.cell(row, 8);
       totalTimeCell = table.cell(row, 7);
       jamMasukCell = table.cell(row, 5);
       person = {

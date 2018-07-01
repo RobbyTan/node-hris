@@ -1,12 +1,23 @@
 // module untuk pairing clock-clock per orang per hari
 let ClockPairing = (function() {
 
+  let telat;
+
   function _toMiliSeconds(time) {
     let timeParts = time.split(":");
     let h = timeParts[0] ? +timeParts[0] * 60 * 60 * 1000 : 0;
     let m = timeParts[1] ? +timeParts[1] * 60 * 1000 : 0;
     let s = timeParts[2] ? +timeParts[2] * 1000 : 0;
     return h + m + s;
+  }
+
+  function _toHHMMSS(milliseconds) {
+    let h = Math.floor(milliseconds/(60*60*1000));
+    milliseconds %= (60*60*1000);
+    let m = Math.floor(milliseconds/(60*1000));
+    milliseconds %= (60*1000);
+    let s = Math.floor(milliseconds/(1000));
+    return `${h}:${m}:${s}`;
   }
 
   //clocks adalah array of moment object
@@ -48,6 +59,42 @@ let ClockPairing = (function() {
     return clockPairs;
   }
 
+  function _getAttendancePairs(attendances) {
+    if (!attendances || attendances.length === 0) return null;
+    for (let i = 0; i < attendances.length; i++) attendances[i].date = moment(attendances[i].date);
+    //sort ascending
+    attendances.sort((a, b) => a.date.valueOf() - b.date.valueOf());
+
+    let currentAttendance = attendances[0]; //clock valid pertama
+    let validAttendances = [currentAttendance];
+    //cari semua clock valid
+    for (let i = 1; i < attendances.length; i++) {
+      //apabila selisih lebih dari 15 menit (dalam milliseconds), berarti valid
+      if (attendances[i].date.diff(currentAttendance.date) > 15 * 60 * 1000) {
+        currentClock = attendances[i];
+        validAttendances.push(attendances[i]);
+      }
+    }
+    //pairing semua clock valid
+    let attendancePairs = [];
+    for (let i = 0; i < validAttendances.length; i += 2) {
+      if (!validAttendances[i + 1]) { //kalau tidak punya pasangan sign out
+        attendancePairs.push({
+          attendanceIn: validAttendances[i],
+          attendanceOut: null,
+          duration: 0
+        });
+      } else { //kalo pasangan absensi lengkap/rapi
+        attendancePairs.push({
+          attendanceIn: validAttendances[i],
+          attendanceOut: validAttendances[i + 1],
+          duration: moment.utc(validAttendances[i + 1].date.diff(validAttendances[i].date))
+        });
+      }
+    }
+    return attendancePairs;
+  }
+
   function _clockValidatorFactory(pRanges, color) {
     let newClockValidator = function (clock) {
       let ranges = pRanges;
@@ -63,45 +110,59 @@ let ClockPairing = (function() {
     return newClockValidator;
   };
 
-  function _getFlaggedClockPairs(paramClockPairs, options) {
-    if (!paramClockPairs || !paramClockPairs.length) return '-';
-    let clockPairs = paramClockPairs.slice();
-    let clockPairsDisplay = '';
+  function _highlight(text, bColor, fColor) {
+    return `<span style="color: ${fColor || 'white'}; background: ${bColor};">${text}</span>`;
+  }
+  function _highlightManualType(attendance) {
+    if (attendance.type && attendance.type === 'manual') {
+      return _highlight(attendance.date.format('HH:mm:ss'), 'orange');
+    }
+    return null;
+  }
+
+  function _getFlaggedClockPairs(paramAttendancePairs, options) {
+    if (!paramAttendancePairs || !paramAttendancePairs.length) return '-';
+    let attendancePairs = paramAttendancePairs.slice();
+    let attendancePairsDisplay = '';
     if (['Dosen Tidak Tetap'].includes(options.department.trim())) { // jika Dosen Tidak Tetap
       let validateClockInRange = _clockValidatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
       let validateClockOutRange = _clockValidatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)");
       let validateDurationRange = _clockValidatorFactory([[options.dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)");
-      clockPairsDisplay = clockPairs.reduce((acc, cur) => {
-        let clockInTime = validateClockInRange(cur.clockIn.format("HH:mm:ss"));
-        let clockOutTime = cur.clockOut ? validateClockOutRange(cur.clockOut.format("HH:mm:ss")) : `<span style="color: white; background: orange;">[empty]</span>`;
+      attendancePairsDisplay = attendancePairs.reduce((acc, cur) => {
+        let clockInTime = _highlightManualType(cur.attendanceIn) || validateClockInRange(cur.attendanceIn.date.format("HH:mm:ss"));
+        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || validateClockOutRange(cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${ validateDurationRange(cur.duration.format("HH:mm:ss")) })` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
-    } else if (options.jamMasuk) {
-      let jamMasukToleransi = moment.utc(options.jamMasuk, 'HH:mm:ss').add(15,'minutes');
-      let validateJamMasuk = _clockValidatorFactory([["00:00", jamMasukToleransi.format('HH:mm:ss')]], "rgb(244,72,66)");
-      clockPairsDisplay = (cur => {
-        let clockInTime = validateJamMasuk(cur.clockIn.format("HH:mm:ss"));
-        let clockOutTime = cur.clockOut ? cur.clockOut.format("HH:mm:ss") : `<span style="color: white; background: orange;">[empty]</span>`;
+    } else if (options.jamMasuk) { // terdapat jam masuk
+      // let jamMasukToleransi = moment.utc(options.jamMasuk, 'HH:mm:ss').add(15,'minutes');
+      let jamMasukToleransiMs = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:15:00');
+      // let validateJamMasuk = _clockValidatorFactory([["00:00", jamMasukToleransi.format('HH:mm:ss')]], "rgb(244,72,66)");
+      let validateJamMasuk = _clockValidatorFactory([["00:00", _toHHMMSS(jamMasukToleransiMs)]], "rgb(244,72,66)");
+      attendancePairsDisplay = (cur => {
+        if (validateJamMasuk(cur.attendanceIn.date.format("HH:mm:ss")).length > 8 
+            && !['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(options.department.trim())) telat = true;
+        let clockInTime = _highlightManualType(cur.attendanceIn) || validateJamMasuk(cur.attendanceIn.date.format("HH:mm:ss"));
+        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
-      })(clockPairs[0]);
-      clockPairs.shift();
-      clockPairsDisplay += clockPairs.reduce((acc, cur) => {
-        let clockInTime = cur.clockIn.format("HH:mm:ss");
-        let clockOutTime = cur.clockOut ? cur.clockOut.format("HH:mm:ss") : `<span style="color: white; background: orange;">[empty]</span>`;
+      })(attendancePairs[0]);
+      attendancePairs.shift();
+      attendancePairsDisplay += attendancePairs.reduce((acc, cur) => {
+        let clockInTime = _highlightManualType(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
+        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
-    } else {
-      clockPairsDisplay = clockPairs.reduce((acc, cur) => {
-        let clockInTime = cur.clockIn.format("HH:mm:ss");
-        let clockOutTime = cur.clockOut ? cur.clockOut.format("HH:mm:ss") : `<span style="color: white; background: orange;">[empty]</span>`;
+    } else { // tidak ketentuan khusus
+      attendancePairsDisplay = attendancePairs.reduce((acc, cur) => {
+        let clockInTime = _highlightManualType(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
+        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
     }
-    return clockPairsDisplay;
+    return attendancePairsDisplay;
   }
 
   function _getTotalWorkingTime(clockPairs, options) {
@@ -123,17 +184,16 @@ let ClockPairing = (function() {
     if (!clockPairs || !clockPairs.length) return '00:00:00';
     let totalWorkingTime = _getTotalWorkingTime(clockPairs, options);
     let flaggedTotalWorkingTime = totalWorkingTime;
-    if (['Sunday', 'Saturday'].includes(clockPairs[0].clockIn.format('dddd')) &&
-        _toMiliSeconds(totalWorkingTime) < _toMiliSeconds('02:00')) {
-          let validateDuration = _clockValidatorFactory([['02:00', '23:59']], 'rgb(173,244,66)');
-          flaggedTotalWorkingTime = validateDuration(totalWorkingTime);
+    if (['Sunday', 'Saturday'].includes(clockPairs[0].clockIn.format('dddd'))) {
+      let validateDuration = _clockValidatorFactory([['02:00', '23:59']], 'rgb(173,244,66)');
+      flaggedTotalWorkingTime = validateDuration(totalWorkingTime);
     } else if (['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(options.department.trim())) { // jika Pegawai Tidak Tetap
       flaggedTotalWorkingTime = totalWorkingTime;
     } else {    // jika Pegawai Tetap
-      if (clockPairs.length == 1 && _toMiliSeconds(totalWorkingTime) < _toMiliSeconds('09:00')) {
+      if (clockPairs.length == 1) {
         let validateDuration = _clockValidatorFactory([['09:00', '23:59']], 'rgb(173,244,66)');
         flaggedTotalWorkingTime = validateDuration(totalWorkingTime);
-      } else if (clockPairs.length >= 2 && _toMiliSeconds(totalWorkingTime) < _toMiliSeconds('08:00')) {
+      } else if (clockPairs.length >= 2) {
         let validateDuration = _clockValidatorFactory([['08:00', '23:59']], 'rgb(173,244,66)');
         flaggedTotalWorkingTime = validateDuration(totalWorkingTime);
       }
@@ -141,16 +201,20 @@ let ClockPairing = (function() {
     return flaggedTotalWorkingTime;
   }
 
-  function process(clocks, options) {
+  function process(attendances, options) {
+    let clocks = attendances.map(att => moment(att.date));
     let clockPairs = _getClockPairs(clocks);
-    let flaggedClockPairs = _getFlaggedClockPairs(clockPairs, options);
+    let attendancePairs = _getAttendancePairs(attendances);
+    telat = false;
+    let flaggedClockPairs = _getFlaggedClockPairs(attendancePairs, options);
     let totalWorkingTime = _getTotalWorkingTime(clockPairs, options);
     let flaggedTotalWorkingTime = _getFlaggedTotalWorkingTime(clockPairs, options);
     return {
       clockPairs: clockPairs,
       flaggedClockPairs: flaggedClockPairs,
       totalWorkingTime: totalWorkingTime,
-      flaggedTotalWorkingTime: flaggedTotalWorkingTime
+      flaggedTotalWorkingTime: flaggedTotalWorkingTime,
+      telat: telat
     };
   }
 

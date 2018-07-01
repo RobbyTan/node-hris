@@ -19,7 +19,7 @@
 		<% } %>
 	</select>
 	
-	<button id="btn_generate" class="btn-save btn btn-primary btn-sm">Generate</button>
+	<button id="btn_generate" class="btn-save btn btn-primary">Generate</button>
 	<br>
 	<br>
 	<div class="preloader-wrapper big active" id="spinner" style="top: 50%; left: 50%;">
@@ -151,7 +151,10 @@
 	})();
 
 	createTable();
-	
+	$('#option_nik').click();
+	$('#option_nama_depan').click();
+	$('#option_nama_belakang').click();
+
 	let loadingSpinner = LoadingSpinner.bind({
 		spinner: 'spinner',
 		hideableNodes: ['data_table_wrapper'],
@@ -174,11 +177,11 @@
 		$.getJSON('/api/fulldata', {
 			selectedFieldMap
 		}).done(rows => {
-			loadingSpinner.stop();
 			loadTable(rows, selectedFieldMap);
+			loadingSpinner.stop();
 		}).fail(err => {
-			loadingSpinner.init();
 			toastr.error(err.responseJSON.errorMsg);
+			loadingSpinner.init();
 		});
 	});
 </script>

@@ -11,7 +11,11 @@
   }
 </style>
 <div class="container">
-  <h3>Periode</h3>
+  <% let momentStartDate = new moment(payrollReport.startDate); %>
+	<% let momentEndDate = new moment(payrollReport.endDate); %>
+  <% let endMonthName = momentEndDate.format('MMMM'); %>
+	<% let endYear = momentEndDate.format('YYYY'); %>
+  <h3>Periode <%= endMonthName %> <%= endYear %></h3>
   <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
   <table class="table">
     <label class="pl-3">From:</label>
@@ -176,7 +180,7 @@
   $inputFrom.change(inputDateChangeListener);
   $inputTo.change(inputDateChangeListener);
 
-  function validateFormReport() {
+  function validateReportForm() {
 		let momentStartDate = moment($inputFrom.val(), 'YYYY-MM-DD');
 		let momentEndDate = moment($inputTo.val(), 'YYYY-MM-DD');
 		if (momentEndDate.diff(momentStartDate) < 0) {
@@ -191,7 +195,7 @@
 		return true;
 	}
   $btnSave.click(function() {
-    if (!validateFormReport()) return;
+    if (!validateReportForm()) return;
     $.ajax({
 			type: 'POST',
 			url : `/api/payrollreport/<%= payrollReport._id %>?_method=PUT`,
@@ -203,6 +207,9 @@
       strOldStartDate = $inputFrom.val();
       strOldEndDate = $inputTo.val();
       $btnSave.hide(); $btnDiscard.hide();
+      reloadTable();
+      let momentEndDate = moment(strOldEndDate, 'YYYY-MM-DD');
+      $('h3').text(`Periode ${momentEndDate.format('MMMM')} ${momentEndDate.format('YYYY')}`);
 			toastr.info('Report period updated');
 		}).fail(function(err) {
       toastr.error(err.responseJSON.errorMsg);
@@ -266,13 +273,13 @@
         row.jumlah_gaji_saat_ini,
         row.penerimaan_gaji,
 
-        //data perhitungan gaji dan ayroll
+        //data perhitungan gaji dan payroll
         applyPrecision(row.total_durasi_kerja_ms/(60*60*1000.0), 2) + ' jam',
         formatToRupiah(applyPrecision(row.gaji_pokok, 2)),
         nominals || '-',
         keterangans || '-',
         formatToRupiah(applyPrecision(row.total_gaji + totalNominal, 2))
-        ]);
+      ]);
     }
     $('#data_table').DataTable({
       destroy: true,
@@ -325,7 +332,7 @@
     });    
   }
 
-  function generateTable() {
+  function reloadTable() {
     let fromString = $('#input_from').val();
     let toString = $('#input_to').val();
     loadingSpinner.start();
@@ -355,7 +362,7 @@
       loadingSpinner.init();
     });
   }
-  generateTable();
+  reloadTable();
 
   function bindFormKeterangan() {
     let dataTable = $('#data_table').DataTable();
