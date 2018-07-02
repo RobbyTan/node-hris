@@ -120,7 +120,7 @@
 		let data = [];
 		for (let row of rows) {
 			let tmpData = [];
-			for (let field in selectedFieldMap) tmpData.push(formatValue(row[field]) || '[empty]');
+			for (let field in selectedFieldMap) tmpData.push(formatValue(row[field]) || '');
 			data.push(tmpData);
 		}
 		destroyTable();
