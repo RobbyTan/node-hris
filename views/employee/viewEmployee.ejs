@@ -38,7 +38,7 @@
     $(".button-collapse").sideNav();
     loadData();
   });
-  
+
   function loadData(){
     var result=[];
     $.getJSON("/api/employeedata").then(function(data){
@@ -50,9 +50,10 @@
           data[i].nama_depan +" "+(data[i].nama_belakang ? data[i].nama_belakang : ''),
           moment(data[i].birthday).format("Do MMMM YYYY"),
           data[i].kategori_pegawai,
-          data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):"",
+          // data[i].jam_masuk ? moment(data[i].jam_masuk).format('HH:mm:ss') : '',
+          data[i].jam_masuk ? data[i].jam_masuk+':00' : '',
           data[i].atasan_langsung?data[i].atasan_langsung:"",
-          ])
+        ])
       }
       $.fn.dataTable.ext.errMode = 'none';
       $('#dataTable').DataTable({
