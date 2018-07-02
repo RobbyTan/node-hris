@@ -35,9 +35,10 @@
 <script type="text/javascript">
   $(document).ready(function() {
     $('.mdb-select').material_select();
+    $(".button-collapse").sideNav();
     loadData();
-
   });
+  
   function loadData(){
     var result=[];
     $.getJSON("/api/employeedata").then(function(data){
@@ -48,7 +49,7 @@
           data[i].nik,
           data[i].nama_depan +" "+(data[i].nama_belakang ? data[i].nama_belakang : ''),
           moment(data[i].birthday).format("Do MMMM YYYY"),
-          data[i].department,
+          data[i].kategori_pegawai,
           data[i].jam_masuk?moment(data[i].jam_masuk).format("HH:mm:ss"):"",
           data[i].atasan_langsung?data[i].atasan_langsung:"",
           ])
@@ -58,31 +59,29 @@
         dom: 'Bfrtip',
         "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         buttons: [
-        'pageLength',
-        'copyHtml5',
-        'excelHtml5',
-        {
-          extend: 'pdf',
-          text: 'Pdf',
-          orientation: 'landscape'
-        }
+          'pageLength',
+          'copyHtml5',
+          'excelHtml5',
+          {
+            extend: 'pdf',
+            text: 'Pdf',
+            orientation: 'landscape'
+          }
         ],
         data: result,
         columns: [
-        {title : 'No.'},
-        {title : 'NIK'},
-        {title : 'Nama'},
-        {title : 'Birthday'},
-        {title : 'Department'},
-        {title : 'jam_masuk'},
-        {title : 'atasan_langsung'},
+          {title : 'No.'},
+          {title : 'NIK'},
+          {title : 'Nama'},
+          {title : 'Birthday'},
+          {title : 'Department'},
+          {title : 'Jam Masuk'},
+          {title : 'Atasan Langsung'},
         ]
-      } );
-      console.log(result);
+      });
     })
 
   }
-  $(".button-collapse").sideNav();
 
 </script>
 </body>
