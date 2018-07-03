@@ -121,8 +121,7 @@ let ClockListDialog = (function () {
             let clockPairsDisplay = clockPairingResult.flaggedClockPairs;
             let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
             clocksCell.data(clockPairsDisplay);
-            if (clockPairingResult.telat) telatCell.data('TELAT');
-            else telatCell.data('');
+            if (clockPairingResult.telat) telatCell.data('TELAT'); else telatCell.data('');
             totalTimeCell.data(flaggedTotalWorkingTime);
             $('#newClockTxt').val('');
           })

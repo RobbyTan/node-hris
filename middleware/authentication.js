@@ -8,17 +8,18 @@ authentication.isLoggedIn = function isLoggedIn(req,res,next){
 	}
 	res.redirect("/login");
 }
-authentication.payrollAccess = function payrollAccess(req,res,next){
-	if(req.isAuthenticated() && (req.user._id.equals(process.env.SUPERUSER1) || req.user._id.equals(process.env.SUPERUSER2) || req.user._id.equals(process.env.SUPERUSER3))){
+authentication.payrollAccess = function payrollAccess(req, res, next) {
+	if (req.isAuthenticated() 
+			&& [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3].includes(req.user._id)) {
 		next();
-	}else{
+	} else {
 		res.redirect("back");
 	}
 }
-authentication.reportAccess = function reportAccess(req,res,next){
-	if(req.isAuthenticated() && (req.user._id.equals(process.env.SUPERUSER1) || req.user._id.equals(process.env.SUPERUSER2) || req.user._id.equals(process.env.SUPERUSER3))){
+authentication.reportAccess = function reportAccess(req, res, next) {
+	if (req.isAuthenticated()) {
 		next();
-	}else{
+	} else {
 		res.redirect("back");
 	}
 }

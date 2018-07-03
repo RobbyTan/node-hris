@@ -129,13 +129,13 @@
       let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
 
       // let jamMasukToleransi = moment.utc(moment(data[i].jam_masuk).add(5,'minutes').format("HH:mm:ss"), 'HH:mm:ss');
-      let jamMasukToleransiMs = toMiliSeconds(data[i].jam_masuk || '00:00') + toMiliSeconds('00:15:00');
+      let jamMasukToleransiMs = toMiliSeconds(data[i].jam_masuk || '00:00') + toMiliSeconds('00:05:00');
       // let firstClock = clockPairingResult.clockPairs ? moment.utc(clockPairingResult.clockPairs[0].clockIn.format("HH:mm:ss"),"HH:mm:ss") : null;
       let firstClockMs = clockPairingResult.clockPairs ? toMiliSeconds(clockPairingResult.clockPairs[0].clockIn.format("HH:mm:ss")) : null;
       let telatCalculation = '';
       // if (data[i].jam_masuk && firstClock && jamMasukToleransi.isBefore(firstClock)) telatCalculation = 'TELAT';
       if (data[i].jam_masuk && firstClockMs && jamMasukToleransiMs < firstClockMs &&
-        !['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(data[i].department.trim())) 
+        !['Mahasiswa Magang'].includes(data[i].department.trim())) 
           telatCalculation = 'TELAT';
       
       result.push([

@@ -136,14 +136,18 @@ let ClockPairing = (function() {
       }, '');
     } else if (options.jamMasuk) { // terdapat jam masuk
       // let jamMasukToleransi = moment.utc(options.jamMasuk, 'HH:mm:ss').add(15,'minutes');
-      let jamMasukToleransiMs = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:15:00');
-      // let validateJamMasuk = _clockValidatorFactory([["00:00", jamMasukToleransi.format('HH:mm:ss')]], "rgb(244,72,66)");
-      let validateJamMasuk = _clockValidatorFactory([["00:00", _toHHMMSS(jamMasukToleransiMs)]], "rgb(244,72,66)");
+      let jamMasukToleransi5Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:05:00');
+      let jamMasukToleransi15Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:15:00');
+      // let validateJamMasuk15 = _clockValidatorFactory([["00:00", jamMasukToleransi.format('HH:mm:ss')]], "rgb(244,72,66)");
+      let validateJamMasuk5 = _clockValidatorFactory([["00:00", _toHHMMSS(jamMasukToleransi5Ms)]], "rgb(244,72,66)");
+      let validateJamMasuk15 = _clockValidatorFactory([["00:00", _toHHMMSS(jamMasukToleransi15Ms)]], "rgb(244,72,66)");
       attendancePairsDisplay = (cur => {
-        if (validateJamMasuk(cur.attendanceIn.date.format("HH:mm:ss")).length > 8 
-            && !['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(options.department.trim())) telat = true;
-        let clockInTime = _highlightManualType(cur.attendanceIn) || validateJamMasuk(cur.attendanceIn.date.format("HH:mm:ss"));
-        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
+        if (validateJamMasuk5(cur.attendanceIn.date.format("HH:mm:ss")).length > 8 
+            && !['Mahasiswa Magang'].includes(options.department.trim())) telat = true;
+        let clockInTime = 
+          _highlightManualType(cur.attendanceIn) || validateJamMasuk15(cur.attendanceIn.date.format("HH:mm:ss"));
+        let clockOutTime = 
+          cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       })(attendancePairs[0]);

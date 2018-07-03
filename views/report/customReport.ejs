@@ -14,6 +14,7 @@
 		<h5>Selected Columns</h5>
 		<br>
 		<p class="no-col text-center">No columns selected yet.</p>
+		<% columnNames.sort(); %>
 		<% for (let columnName of columnNames) { %>
 			<button id="btn_<%= columnName %>" style="display:none;" type="button" class="btn btn-outline-primary waves-effect"><%= columnName %></button>
 		<% } %>
@@ -127,7 +128,7 @@
 		createTable(data, columns);
 	}
 
-	(function initializeEventHandlers() {
+	(function initializeDOM() {
 		$(".button-collapse").sideNav();
 		$('.mdb-select').material_select();
 
@@ -139,12 +140,12 @@
 			$(this).find('span').text(toProperCase(text));
 		});
 
+		//options selected event handler
 		let $placeholderOption = $('.mdb-select ul li:eq(0)');
 		let $showAllOption = $('.mdb-select ul li:eq(1)');
 		let $hideAllOption = $('.mdb-select ul li:eq(2)');
 		let $dropdownText = $('.select-dropdown');
 		$dropdownText.val($placeholderOption.find('span').text());
-		//options selected event handler
 		$('.mdb-select ul li').click(function() {
 			if ($(this).text() === $placeholderOption.text()) return;
 
@@ -177,6 +178,9 @@
 			$('#option_'+$(this).attr('id').substring(4)).show();
 			if ($('#selected_option_container button').length === 0) $('.no-col').show();
 		});
+
+		// interactive sort feature
+		// $('.mdb-select ul li:eq(0)');
 	})();
 
 	createTable();

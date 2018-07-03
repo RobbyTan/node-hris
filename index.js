@@ -35,10 +35,10 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.use(function(req,res,next){
-	res.locals.currentUser=req.user;
+app.use(function(req, res, next) {
+	res.locals.currentUser = req.user;
 	next();
-	// untuk memberikan akses current User ke semua
+	// untuk memberikan akses currentUser ke semua
 })
 
 app.get('/', (req, res) => {
@@ -60,7 +60,6 @@ app.get("/logout",function(req,res){
 // app.get('/register',(req,res)=>{
 // 	res.render('register');
 // })
-
 // app.post("/register",function(req,res){
 // 		var newUser = new User({username:req.body.username});
 // 		console.log(newUser)
