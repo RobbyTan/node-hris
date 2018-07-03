@@ -14,7 +14,6 @@
 		<h5>Selected Columns</h5>
 		<br>
 		<p class="no-col text-center">No columns selected yet.</p>
-		<% columnNames.sort(); %>
 		<% for (let columnName of columnNames) { %>
 			<button id="btn_<%= columnName %>" style="display:none;" type="button" class="btn btn-outline-primary waves-effect"><%= columnName %></button>
 		<% } %>
@@ -26,6 +25,7 @@
 		<option value="placeholder">add_column</option>
 		<option value="placeholder1">show_all_column</option>
 		<option value="placeholder2">hide_all_column</option>
+		<% columnNames.sort(); %>
 		<% for (let columnName of columnNames) { %>
 			<option><%= columnName %></option>
 		<% } %>
