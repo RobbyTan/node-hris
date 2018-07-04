@@ -109,6 +109,9 @@ router.get("/customReport",authentication.reportAccess,(req,res)=>{
         res.redirect('/report/access/customReport');
     }
 })
+router.get("/punctualityReport",authentication.reportAccess,(req,res)=>{
+    res.render("report/punctualityReport")
+})
 router.delete("/:id",authentication.reportAccess,function(req,res){
   db.Fulldata.findByIdAndRemove(req.params.id,function(err){
     if(err){
