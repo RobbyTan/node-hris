@@ -129,14 +129,8 @@
       let flaggedTotalWorkingTime = clockPairingResult.flaggedTotalWorkingTime;
 
       // let jamMasukToleransi = moment.utc(moment(data[i].jam_masuk).add(5,'minutes').format("HH:mm:ss"), 'HH:mm:ss');
-      let jamMasukToleransiMs = toMiliSeconds(data[i].jam_masuk || '00:00') + toMiliSeconds('00:05:00');
       // let firstClock = clockPairingResult.clockPairs ? moment.utc(clockPairingResult.clockPairs[0].clockIn.format("HH:mm:ss"),"HH:mm:ss") : null;
-      let firstClockMs = clockPairingResult.clockPairs ? toMiliSeconds(clockPairingResult.clockPairs[0].clockIn.format("HH:mm:ss")) : null;
-      let telatCalculation = '';
       // if (data[i].jam_masuk && firstClock && jamMasukToleransi.isBefore(firstClock)) telatCalculation = 'TELAT';
-      if (data[i].jam_masuk && firstClockMs && jamMasukToleransiMs < firstClockMs &&
-        !['Mahasiswa Magang'].includes(data[i].department.trim())) 
-          telatCalculation = 'TELAT';
       
       result.push([
         data[i].nik,
@@ -148,7 +142,7 @@
         // (data[i].jam_masuk + ':00') || '',
         clockPairsDisplay,
         flaggedTotalWorkingTime,
-        telatCalculation
+        clockPairingResult.telat5 ? 'TELAT' : ''
       ])
     }
 
@@ -183,6 +177,7 @@
   
   function complementAbsentEmployees(employees, attendances, fromString, toString) {
     let exist = {};
+    attendances = attendances.slice();
     attendances.forEach(att => {
       if (['Resign', '', null, undefined].includes(att.department)) return;
       att.absensi.forEach(clock => {

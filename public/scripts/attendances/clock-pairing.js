@@ -1,7 +1,9 @@
 // module untuk pairing clock-clock per orang per hari
 let ClockPairing = (function() {
 
-  let telat;
+  let telat5;
+  let telat15;
+  let tidakClockOut;
 
   function _toMiliSeconds(time) {
     let timeParts = time.split(":");
@@ -136,25 +138,29 @@ let ClockPairing = (function() {
       }, '');
     } else if (options.jamMasuk) { // terdapat jam masuk
       // let jamMasukToleransi = moment.utc(options.jamMasuk, 'HH:mm:ss').add(15,'minutes');
-      let jamMasukToleransi5Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:05:00');
-      let jamMasukToleransi15Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:15:00');
       // let validateJamMasuk15 = _clockValidatorFactory([["00:00", jamMasukToleransi.format('HH:mm:ss')]], "rgb(244,72,66)");
-      let validateJamMasuk5 = _clockValidatorFactory([["00:00", _toHHMMSS(jamMasukToleransi5Ms)]], "rgb(244,72,66)");
-      let validateJamMasuk15 = _clockValidatorFactory([["00:00", _toHHMMSS(jamMasukToleransi15Ms)]], "rgb(244,72,66)");
+      let batasJamMasukToleransi5Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:05:00');
+      let batasJamMasukToleransi15Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:15:00');
+      let validateJamMasuk5 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi5Ms)]], "rgb(244,72,66)");
+      let validateJamMasuk15 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi15Ms)]], "rgb(244,72,66)");
       attendancePairsDisplay = (cur => {
-        if (validateJamMasuk5(cur.attendanceIn.date.format("HH:mm:ss")).length > 8 
-            && !['Mahasiswa Magang'].includes(options.department.trim())) telat = true;
+        // assign status telat
+        if (!['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(options.department.trim())) {
+          if (validateJamMasuk5(cur.attendanceIn.date.format("HH:mm:ss")).length > 8) telat5 = true;
+          if (validateJamMasuk15(cur.attendanceIn.date.format("HH:mm:ss")).length > 8) telat15 = true;
+        }
+
         let clockInTime = 
           _highlightManualType(cur.attendanceIn) || validateJamMasuk15(cur.attendanceIn.date.format("HH:mm:ss"));
-        let clockOutTime = 
-          cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
+        let clockOutTime = cur.attendanceOut ? 
+          (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       })(attendancePairs[0]);
       attendancePairs.shift();
       attendancePairsDisplay += attendancePairs.reduce((acc, cur) => {
         let clockInTime = _highlightManualType(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
-        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
+        let clockOutTime = cur.attendanceOut ? (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
@@ -206,19 +212,24 @@ let ClockPairing = (function() {
   }
 
   function process(attendances, options) {
+    telat5 = false;
+    telat15 = false;
+    tidakClockOut = false;
     let clocks = attendances.map(att => moment(att.date));
     let clockPairs = _getClockPairs(clocks);
     let attendancePairs = _getAttendancePairs(attendances);
-    telat = false;
     let flaggedClockPairs = _getFlaggedClockPairs(attendancePairs, options);
     let totalWorkingTime = _getTotalWorkingTime(clockPairs, options);
     let flaggedTotalWorkingTime = _getFlaggedTotalWorkingTime(clockPairs, options);
+    if (clockPairs && !clockPairs[clockPairs.length-1].clockOut) tidakClockOut = true;
     return {
       clockPairs: clockPairs,
       flaggedClockPairs: flaggedClockPairs,
       totalWorkingTime: totalWorkingTime,
       flaggedTotalWorkingTime: flaggedTotalWorkingTime,
-      telat: telat
+      telat5: telat5,
+      telat15: telat15,
+      tidakClockOut: tidakClockOut
     };
   }
 
