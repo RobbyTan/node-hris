@@ -1,0 +1,103 @@
+<% include ../partials/employeeHeader%>
+<div class="container">
+  <h3>View employee</h3>
+  <table id="dataTable" class="" cellspacing="0" width="100%">
+    <thead>
+      <tr>
+        <td>No.</td>
+        <td>NIK</td>
+        <td>Nama</td>
+        <td>Tgl Mulai Kerja</td>
+        <td>Tgl Berhenti Kerja</td>
+        <td>Durasi</td>
+      </tr>
+    </thead>
+    <tbody>
+
+    </tbody>
+  </table>
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+      <script src="/scripts/mdb.js"></script>
+      <script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+      <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js">
+      </script>
+      <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
+      </script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $('.mdb-select').material_select();
+    $(".button-collapse").sideNav();
+    loadData();
+  });
+
+  function loadData(){
+    let result = [];
+    $.getJSON('/api/employeedata',
+      {
+        nik: 1,
+        nama_depan: 1,
+        nama_belakang: 1,
+        tanggal_mulai_kerja_medan: 1,
+        tanggal_berhenti_kerja: 1
+      }
+    ).then(function(data) {
+      console.log(data)
+      for (let i = 0; i < data.length; i++) {
+        if (!(data[i].tanggal_mulai_kerja_medan && data[i].tanggal_berhenti_kerja)) continue;
+        let a = moment(data[i].tanggal_mulai_kerja_medan);
+            b = moment(data[i].tanggal_berhenti_kerja);
+        let years = b.diff(a, 'year');
+        b.add(years, 'years');
+        let months = b.diff(a, 'months');
+        b.add(months, 'months');
+        let days = a.diff(b, 'days');
+
+        result.push([
+          i+1,
+          data[i].nik,
+          data[i].nama_depan +' '+(data[i].nama_belakang ? data[i].nama_belakang : ''),
+          data[i].tanggal_mulai_kerja_medan ? moment(data[i].tanggal_mulai_kerja_medan).format('Do MMMM YYYY') : '',
+          data[i].tanggal_berhenti_kerja ? moment(data[i].tanggal_berhenti_kerja).format('Do MMMM YYYY') : '',
+          years + ' tahun ' + months + ' bulan ' + days + ' hari'
+        ])
+      }
+      $.fn.dataTable.ext.errMode = 'none';
+      $('#dataTable').DataTable({
+        dom: 'Bfrtip',
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
+        buttons: [
+          'pageLength',
+          'copyHtml5',
+          'excelHtml5',
+          {
+            extend: 'pdf',
+            text: 'Pdf',
+            orientation: 'landscape'
+          }
+        ],
+        data: result,
+        columns: [
+          {title : 'No.'},
+          {title : 'NIK'},
+          {title : 'Nama'},
+          {title : 'Tgl Masuk Kerja'},
+          {title : 'Tgl Berhenti Kerja'},
+          {title : 'Durasi'}
+        ]
+      });
+    })
+
+  }
+
+</script>
+</body>
+
+</html>

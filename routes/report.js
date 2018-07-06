@@ -115,6 +115,9 @@ router.get("/punctualityReport", authentication.reportAccess, (req, res) => {
         res.render("report/punctualityReport", {configuration: configuration});
     });
 })
+router.get("/durasiKerjaReport", authentication.reportAccess, (req, res) => {
+    res.render("report/durasiKerjaReport");
+})
 
 router.delete("/:id",authentication.reportAccess,function(req,res){
     db.Fulldata.findByIdAndRemove(req.params.id,function(err){
