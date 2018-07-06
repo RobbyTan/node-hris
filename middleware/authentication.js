@@ -10,7 +10,7 @@ authentication.isLoggedIn = function isLoggedIn(req,res,next){
 }
 authentication.payrollAccess = function payrollAccess(req, res, next) {
 	if (req.isAuthenticated() 
-			&& [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3].includes(req.user._id)) {
+			&& [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3].includes(req.user._id.toString())) {
 		next();
 	} else {
 		res.redirect("back");

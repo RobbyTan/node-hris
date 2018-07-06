@@ -176,7 +176,7 @@
 			let sudahBanyakPelanggaran = 
 					emp.telat5Count >= 6 || 
 					emp.telat15Count >= 4 || 
-					emp.tidakClockOutCount >= 1;
+					emp.tidakClockOutCount >= 4;
 			if (!sudahBanyakPelanggaran) continue;
       result.push([
         emp.nik,
