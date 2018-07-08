@@ -8,23 +8,23 @@ const authentication = require('../middleware/authentication.js')
 const bcrypt = require('bcrypt')
 
 router.get("/access/view/pph",authentication.reportAccess,(req,res)=>{
-    res.render('./report/accessView')
+  res.render('./report/accessView')
 })
 router.get("/access/upload/pph",authentication.reportAccess,(req,res)=>{
-    res.render('./report/accessUpload')
+  res.render('./report/accessUpload')
 })
 router.post("/access/view/pph",authentication.reportAccess,(req,res)=>{ 
-    db.Configuration.findOne({}, (err, configuration) => {
-        hash=configuration.password;
-        if(bcrypt.compareSync(req.body.password, hash)) {
-            session=req.session;
-            session.name=req.user.username;
-            res.redirect("/report/view/pph")
-            console.log(session.name)
-        } else {
-            res.redirect('/report/access/view/pph')
-        }
-    })
+  db.Configuration.findOne({}, (err, configuration) => {
+    hash=configuration.password;
+    if(bcrypt.compareSync(req.body.password, hash)) {
+      session=req.session;
+      session.name=req.user.username;
+      res.redirect("/report/view/pph")
+      console.log(session.name)
+    } else {
+      res.redirect('/report/access/view/pph')
+    }
+  })
     // if(req.body.password == process.env.PASS){
     //     session=req.session;
     //     session.name=req.user.username;
@@ -34,19 +34,19 @@ router.post("/access/view/pph",authentication.reportAccess,(req,res)=>{
     //     res.redirect('/report/access')
     // }
     
-})
+  })
 router.post("/access/upload/pph",authentication.reportAccess,(req,res)=>{ 
-    db.Configuration.findOne({}, (err, configuration) => {
-        hash=configuration.password;
-        if(bcrypt.compareSync(req.body.password, hash)) {
-            session=req.session;
-            session.name=req.user.username;
-            res.redirect("/report/upload/pph")
-            console.log(session.name)
-        } else {
-            res.redirect('/report/access/upload/pph')
-        }
-    })
+  db.Configuration.findOne({}, (err, configuration) => {
+    hash=configuration.password;
+    if(bcrypt.compareSync(req.body.password, hash)) {
+      session=req.session;
+      session.name=req.user.username;
+      res.redirect("/report/upload/pph")
+      console.log(session.name)
+    } else {
+      res.redirect('/report/access/upload/pph')
+    }
+  })
     // if(req.body.password == process.env.PASS){
     //     session=req.session;
     //     session.name=req.user.username;
@@ -56,78 +56,81 @@ router.post("/access/upload/pph",authentication.reportAccess,(req,res)=>{
     //     res.redirect('/report/access')
     // }
     
-})
+  })
 router.post("/access/customReport",authentication.reportAccess,(req,res)=>{ 
-    db.Configuration.findOne({}, (err, configuration) => {
-        hash=configuration.password;
-        if(bcrypt.compareSync(req.body.password, hash)) {
-            session=req.session;
-            session.name=req.user.username;
-            res.redirect("/report/customReport")
-            console.log(session.name)
-        } else {
-            res.redirect('/report/access/customReport')
-        }
-    })
+  db.Configuration.findOne({}, (err, configuration) => {
+    hash=configuration.password;
+    if(bcrypt.compareSync(req.body.password, hash)) {
+      session=req.session;
+      session.name=req.user.username;
+      res.redirect("/report/customReport")
+      console.log(session.name)
+    } else {
+      res.redirect('/report/access/customReport')
+    }
+  })
 })
 router.get('/upload/pph',authentication.reportAccess, (req, res) => {
-    if(req.session.name){
-       res.render('./report/uploadPph');
-   }else{
-    res.redirect('/report/access/upload/pph')
+  if(req.session.name){
+   res.render('./report/uploadPph');
+ }else{
+  res.redirect('/report/access/upload/pph')
 }
 })
 router.get('/upload/pphexcel',authentication.reportAccess, (req, res) => {
-    if(req.session.name){
-     res.render('./report/uploadPphExcel')
-    }else{
-    res.redirect('/report/access/upload/pph')
+  if(req.session.name){
+   res.render('./report/uploadPphExcel')
+ }else{
+  res.redirect('/report/access/upload/pph')
 }
 })
 router.get('/view/pph',authentication.reportAccess, (req, res) => {
-    if(req.session.name){
-      db.Fulldata.find({}, function (err, allData) {
-        if (err) {
-          console.log(err)
+  if(req.session.name){
+    db.Fulldata.find({}, function (err, allData) {
+      if (err) {
+        console.log(err)
       } else {
-          res.render('./report/viewPphReport', {pph: allData})
+        res.render('./report/viewPphReport', {pph: allData})
       }
-  })
+    })
   }else{
     res.redirect('/report/access/view/pph')
-}
+  }
 })
 router.get("/access/customReport",authentication.reportAccess,(req,res)=>{
-    res.render("report/accessCustomReport")
+  res.render("report/accessCustomReport")
 })
 router.get("/customReport",authentication.reportAccess,(req,res)=>{
-    if (req.session.name) {
-        let columnNames = Object.keys(db.Fulldata.schema.tree)
-                                .filter(name => !['id', '_id', '__v'].includes(name));
-        res.render('./report/customReport', {columnNames : columnNames});
-    } else {
-        res.redirect('/report/access/customReport');
-    }
+  if (req.session.name) {
+    let columnNames = Object.keys(db.Fulldata.schema.tree)
+    .filter(name => !['id', '_id', '__v'].includes(name));
+    res.render('./report/customReport', {columnNames : columnNames});
+  } else {
+    res.redirect('/report/access/customReport');
+  }
+})
+router.get("/punctualityReportMenu",authentication.reportAccess,(req,res)=>{
+  res.render("report/punctualityReportMenu");
 })
 router.get("/punctualityReport", authentication.reportAccess, (req, res) => {
-    db.Configuration.findOne({}, function (err, configuration) {
-        if (err) return res.status(404).redirect('back');
-        res.render("report/punctualityReport", {configuration: configuration});
-    });
+  db.Configuration.findOne({}, function (err, configuration) {
+    if (err) return res.status(404).redirect('back');
+    res.render("report/punctualityReport", {configuration: configuration});
+  });
 })
 router.get("/durasiKerjaReport", authentication.reportAccess, (req, res) => {
-    res.render("report/durasiKerjaReport");
+  res.render("report/durasiKerjaReport");
 })
 
 router.delete("/:id",authentication.reportAccess,function(req,res){
-    db.Fulldata.findByIdAndRemove(req.params.id,function(err){
-        if(err){
-        console.log(err);
-        res.redirect("/report/view/pph");
-        }else{
-            res.redirect("/report/view/pph");
-        }
-    })
+  db.Fulldata.findByIdAndRemove(req.params.id,function(err){
+    if(err){
+      console.log(err);
+      res.redirect("/report/view/pph");
+    }else{
+      res.redirect("/report/view/pph");
+    }
+  })
 });
 
 router.post('/new/upload', upload.single('file'), async (req, res) => {
@@ -154,16 +157,16 @@ router.post('/new/upload', upload.single('file'), async (req, res) => {
 			if (roa.length) result[sheetName] = roa
 		})
 		let data = result['Sheet1']
-        console.log(data);
-        data.forEach(async (fulldata, idx) => {
+    console.log(data);
+    data.forEach(async (fulldata, idx) => {
           // if (idx === data.length - 3) return
           if(idx<=3){
             return
-        }
-        if(data.length<10){
+          }
+          if(data.length<110){
            return 
-       }else {
-        let newFullData = {
+         }else if(fulldata[1] && fulldata[2] && fulldata[53] && fulldata[111] ) {
+          let newFullData = {
            kategori_pegawai: fulldata[0],
            nik: fulldata[1],
            nama_depan : fulldata[2],
@@ -277,25 +280,24 @@ router.post('/new/upload', upload.single('file'), async (req, res) => {
            jenis_mata_uang : fulldata[110],
            jumlah_gaji_saat_ini : fulldata[111],
            penerimaan_gaji : fulldata[112]
-       }
+         }
+        console.log(newFullData)
 
-       console.log(newFullData)
-
-       await db.Fulldata.create(newFullData, function (err, newlyCreated) {
-           if (err) {
-            console.log(err)
+        await db.Fulldata.create(newFullData, function (err, newlyCreated) {
+         if (err) {
+          console.log(err)
         } else {
             // redirect back to events page
             console.log('Employee created')
-        }
+          }
+        })
+      }
     })
-   }
-})
 } catch (err) {
-    console.log(err)
-    return res.status(422).json({
-       error: 'Error'
-   })
+  console.log(err)
+  return res.status(422).json({
+   error: 'Error'
+ })
 }
 return res.status(200).send(toJson(workbook))
 })
