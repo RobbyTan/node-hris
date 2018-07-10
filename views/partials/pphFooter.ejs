@@ -6,6 +6,15 @@
     $(".button-collapse").sideNav();
   </script>
   <script type="text/javascript">
+    function toProperCase(s) {
+      let tokens = s.split('_');
+      return tokens.reduce((acc, cur, idx) => {
+        let curS = cur.substring(0, 1).toUpperCase() + cur.substring(1).toLowerCase();
+        if (idx > 0) curS = ' ' + curS;
+        return acc + curS;
+      }, '');
+    }
+
     //Dropzone
     Dropzone.options.uploadExcel = {
       url: "/report/new/upload",
@@ -16,10 +25,18 @@
       accept: function(file, done) {
         done();
       },
-      success: function(file, response){
-        console.log("response "+response);
-        console.log("file "+file)
-        toastr.info("Done");
+      success: function(file, response) {
+        if (response.success) {
+          $('#status_box').slideUp('fast');
+          toastr.info('Done');
+        } else if (response.colArray) {
+          let emptyColHTML = 
+            response.colArray.reduce(
+              (acc, cur) => acc+`<li>${toProperCase(cur.name)} (Column ${cur.col})</li>`,
+            '');
+          $('#status_box').slideDown('fast');
+          $('#status_box ul').html(emptyColHTML);
+        }
       }
     };
 
