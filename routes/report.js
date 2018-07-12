@@ -135,6 +135,12 @@ router.get("/tidakClockOut", authentication.reportAccess, async (req, res) => {
     res.render("report/tidakClockOutReport", {configuration: configuration});
   });
 })
+router.get("/40jam", authentication.reportAccess, async (req, res) => {
+  db.Configuration.findOne({}, function (err, configuration) {
+    if (err) return res.redirect('back');
+    res.render("report/40jamReport", {configuration: configuration});
+  });
+})
 
 router.get("/durasiKerjaReport", authentication.reportAccess, (req, res) => {
   res.render("report/durasiKerjaReport");

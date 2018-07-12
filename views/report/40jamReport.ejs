@@ -1,6 +1,6 @@
 <% include ../partials/attendanceHeader%>
 <div class="container">
-	<h3>Tidak Clock Out</h3>
+	<h3>Punctuality Report</h3>
 	
 	<table class="table">
 		<label class="pl-3">From:</label>
@@ -30,7 +30,8 @@
 					<td>Departemen</td>
 					<td>Atasan Langsung</td>
 					<td>Jam Masuk</td>
-					<td>Pelanggaran</td>
+					<td>Distribusi Jam Kerja</td>
+					<td>Total Jam Kerja</td>
 				</tr>
 			</thead>
 			<tbody>
@@ -117,12 +118,12 @@
 		let employeeDict = {};
 		for (let nik in attendanceDict) {
 			employeeDict[nik] = {
-				tidakClockOutCount: 0,
+				totalJamKerja: '', listJamKerja: '',
 				...attendanceDict[nik][0]
 			};
 			attendanceDict[nik].sort((a, b) => a.absensi[0].date.valueOf - b.absensi[0].date.valueOf);
 
-			// tidakClockOut
+			// telat5, telat15, tidakClockOut
 			for (let att of attendanceDict[nik]) {
 				let clockPairingResult = ClockPairing.process(att.absensi, {
 					dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
@@ -130,7 +131,6 @@
 					jamMasuk: att.jam_masuk
 				});
 				att.clockPairingResult = clockPairingResult;
-				if (clockPairingResult.tidakClockOut) employeeDict[nik].tidakClockOutCount += 1;
 			}
 
 			// jam kerja per minggu
@@ -169,7 +169,7 @@
 		let result = [];
     for (let nik in employeeDict) {
 			let emp = employeeDict[nik];
-			let sudahBanyakPelanggaran = emp.tidakClockOutCount >= 4;
+			let sudahBanyakPelanggaran = true;
 			if (!sudahBanyakPelanggaran) continue;
       result.push([
         emp.nik,
@@ -177,7 +177,8 @@
         emp.department,
         (emp.atasan_langsung ? emp.atasan_langsung : ''),
 				(emp.jam_masuk ? (emp.jam_masuk+':00'): ''),
-				`Tidak clock out/in: ${emp.tidakClockOutCount} x`
+				emp.listJamKerja,
+				emp.totalJamKerja
       ]);
     }
 
@@ -202,7 +203,8 @@
         {title: "Departemen"},
         {title: "Atasan Langsung"},
 				{title: "Jam Masuk"},
-        {title: "Pelanggaran"}
+				{title: "Distribusi Jam Kerja"},
+        {title: "Total Jam Kerja"}
       ]
     })
   }
