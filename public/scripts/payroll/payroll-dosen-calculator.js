@@ -40,16 +40,19 @@ let PayrollDosenCalculator = (function() {
   }
 
   function process(attendances, options) {
-    attendances = attendances.filter(attendance => attendance.department==='Dosen Tidak Tetap');
-    let totalDurasiKerjaMs = {};
+    // attendances = attendances.filter(attendance => attendance.department==='Dosen Tidak Tetap');
+    let totalDurasiKerjaMs = {}, totalSesi = {};
     for (let attendance of attendances) {
       let clockPairingResult = ClockPairing.process(attendance.absensi, {
         dosenTidakTetapMaxTime: options.dosenTidakTetapMaxTime,
         department: attendance.department
       });
-      // akumulasi durasi kerja dosen
+      // akumulasi durasi kerja
       if (!totalDurasiKerjaMs[attendance.nik]) totalDurasiKerjaMs[attendance.nik] = 0;
       totalDurasiKerjaMs[attendance.nik] += _toMiliSeconds(clockPairingResult.totalWorkingTime);
+      // akumulasi total sesi
+      if (!totalSesi[attendance.nik]) totalSesi[attendance.nik] = 0;
+      totalSesi[attendance.nik] += clockPairingResult.totalSesi;
     }
     let payrollResult = [];
     for (let nik in totalDurasiKerjaMs) {
@@ -60,6 +63,7 @@ let PayrollDosenCalculator = (function() {
       let totalGaji = gajiPokok;
       let payrollObject = {
         ...fullDataDictionary[nik],
+        totalSesi: totalSesi[nik],
         total_durasi_kerja_ms: totalDurasiKerjaMs[nik],
         gaji_pokok: gajiPokok,
         total_gaji: totalGaji

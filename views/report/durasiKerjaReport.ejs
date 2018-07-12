@@ -40,7 +40,7 @@
 
   function loadData(){
     let result = [];
-    $.getJSON('/api/employeedata',
+    $.getJSON('/api/fulldata',
       {
         nik: 1,
         nama_depan: 1,
@@ -49,23 +49,22 @@
         tanggal_berhenti_kerja: 1
       }
     ).then(function(data) {
-      console.log(data)
       for (let i = 0; i < data.length; i++) {
         if (!(data[i].tanggal_mulai_kerja_medan && data[i].tanggal_berhenti_kerja)) continue;
-        let a = moment(data[i].tanggal_mulai_kerja_medan);
+        let a = moment(data[i].tanggal_mulai_kerja_medan),
             b = moment(data[i].tanggal_berhenti_kerja);
         let years = b.diff(a, 'year');
-        b.add(years, 'years');
+        b.subtract(years, 'years');
         let months = b.diff(a, 'months');
-        b.add(months, 'months');
-        let days = a.diff(b, 'days');
+        b.subtract(months, 'months');
+        let days = b.diff(a, 'days');
 
         result.push([
           i+1,
           data[i].nik,
           data[i].nama_depan +' '+(data[i].nama_belakang ? data[i].nama_belakang : ''),
-          data[i].tanggal_mulai_kerja_medan ? moment(data[i].tanggal_mulai_kerja_medan).format('Do MMMM YYYY') : '',
-          data[i].tanggal_berhenti_kerja ? moment(data[i].tanggal_berhenti_kerja).format('Do MMMM YYYY') : '',
+          moment(data[i].tanggal_mulai_kerja_medan).format('Do MMMM YYYY'),
+          moment(data[i].tanggal_berhenti_kerja).format('Do MMMM YYYY'),
           years + ' tahun ' + months + ' bulan ' + days + ' hari'
         ])
       }

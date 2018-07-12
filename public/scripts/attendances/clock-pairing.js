@@ -111,6 +111,36 @@ let ClockPairing = (function() {
     }
     return newClockValidator;
   };
+  function _DTTFirstClockValidatorFactory(inClocks, tolerance, beforeColor, afterColor) {
+    return function(myClock) {
+      let myClockMs = _toMiliSeconds(myClock);
+      let inClocksMs = inClocks.map(clock => _toMiliSeconds(clock));
+      let toleranceMs = _toMiliSeconds(tolerance);
+      let closestClockMs = -1, closestGap = 48*60*60*1000;
+      for (let i = 0; i < inClocksMs.length; i++) {
+        let currentGap = Math.abs(myClockMs - inClocksMs[i]);
+        if (currentGap < closestGap) {
+          closestClockMs = inClocksMs[i];
+          closestGap = currentGap;
+        }
+      }
+      let clockInTime, telat5 = false;
+      if (closestClockMs - toleranceMs <= myClockMs && myClockMs <= closestClockMs + toleranceMs) {
+        clockInTime = myClock;
+      } else if (myClockMs < closestClockMs) {
+        clockInTime = `<span style="color:white; background:${beforeColor};">${myClock}</span>`;
+      } else if (myClockMs > closestClockMs) {
+        clockInTime = `<span style="color:white; background:${afterColor};">${myClock}</span>`;
+      }
+      if (myClockMs > closestClockMs && closestClockMs - myClockMs > 5*60*1000) {
+        telat5 = true;
+      }
+      return {
+        clockInTime: clockInTime,
+        telat5: telat5
+      };
+    };
+  }
 
   function _highlight(text, bColor, fColor) {
     return `<span style="color: ${fColor || 'white'}; background: ${bColor};">${text}</span>`;
@@ -127,12 +157,16 @@ let ClockPairing = (function() {
     let attendancePairs = paramAttendancePairs.slice();
     let attendancePairsDisplay = '';
     if (['Dosen Tidak Tetap'].includes(options.department.trim())) { // jika Dosen Tidak Tetap
-      let validateClockInRange = _clockValidatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
+      // let validateClockInRange = _clockValidatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
+      let validateClockInRange = _DTTFirstClockValidatorFactory(['09:00', '17:30'], '00:15', 'rgb(44, 116, 232)', 'rgb(244,72,66)');
       let validateClockOutRange = _clockValidatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)");
       let validateDurationRange = _clockValidatorFactory([[options.dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)");
       attendancePairsDisplay = attendancePairs.reduce((acc, cur) => {
-        let clockInTime = _highlightManualType(cur.attendanceIn) || validateClockInRange(cur.attendanceIn.date.format("HH:mm:ss"));
-        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || validateClockOutRange(cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
+        let validationResult = validateClockInRange(cur.attendanceIn.date.format("HH:mm:ss"));
+        let clockInTime = _highlightManualType(cur.attendanceIn) || validationResult.clockInTime;
+        telat5 = telat5 || validationResult.telat5;
+        let clockOutTime = cur.attendanceOut ? 
+          (_highlightManualType(cur.attendanceOut) || validateClockOutRange(cur.attendanceOut.date.format("HH:mm:ss"))) : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${ validateDurationRange(cur.duration.format("HH:mm:ss")) })` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
@@ -160,14 +194,16 @@ let ClockPairing = (function() {
       attendancePairs.shift();
       attendancePairsDisplay += attendancePairs.reduce((acc, cur) => {
         let clockInTime = _highlightManualType(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
-        let clockOutTime = cur.attendanceOut ? (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
+        let clockOutTime = cur.attendanceOut ? 
+          (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
     } else { // tidak ketentuan khusus
       attendancePairsDisplay = attendancePairs.reduce((acc, cur) => {
         let clockInTime = _highlightManualType(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
-        let clockOutTime = cur.attendanceOut ? _highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss") : _highlight('[empty]', 'orange');
+        let clockOutTime = cur.attendanceOut ? 
+          (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
@@ -218,10 +254,18 @@ let ClockPairing = (function() {
     let clocks = attendances.map(att => moment(att.date));
     let clockPairs = _getClockPairs(clocks);
     let attendancePairs = _getAttendancePairs(attendances);
+
     let flaggedClockPairs = _getFlaggedClockPairs(attendancePairs, options);
     let totalWorkingTime = _getTotalWorkingTime(clockPairs, options);
     let flaggedTotalWorkingTime = _getFlaggedTotalWorkingTime(clockPairs, options);
+    
     if (clockPairs && !clockPairs[clockPairs.length-1].clockOut) tidakClockOut = true;
+    let totalSesi = 0;
+    if (clockPairs) {
+      totalSesi = clockPairs.length;
+      if (tidakClockOut) totalSesi -= 1;
+    }
+
     return {
       clockPairs: clockPairs,
       flaggedClockPairs: flaggedClockPairs,
@@ -229,7 +273,8 @@ let ClockPairing = (function() {
       flaggedTotalWorkingTime: flaggedTotalWorkingTime,
       telat5: telat5,
       telat15: telat15,
-      tidakClockOut: tidakClockOut
+      tidakClockOut: tidakClockOut,
+      totalSesi: totalSesi
     };
   }
 

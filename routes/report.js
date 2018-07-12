@@ -203,7 +203,7 @@ router.post('/new/upload', upload.single('file'), async (req, res) => {
           kategori_pegawai: fulldata[0],
           nik: fulldata[1],
           nama_depan: fulldata[2],
-          nama_tegah: fulldata[3],
+          nama_tengah: fulldata[3],
           nama_belakang: fulldata[4],
           tanggal_mulai_kerja_medan: fulldata[5],
           tanggal_mulai_kerja_karawaci: fulldata[6],
@@ -319,6 +319,7 @@ router.post('/new/upload', upload.single('file'), async (req, res) => {
           if (err) {
             console.log(err)
           } else {
+            console.log('new', newlyCreated.tanggal_berhenti_kerja);
             console.log('Employee created')
           }
         })

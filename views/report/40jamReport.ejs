@@ -123,7 +123,7 @@
 			};
 			attendanceDict[nik].sort((a, b) => a.absensi[0].date.valueOf - b.absensi[0].date.valueOf);
 
-			// telat5, telat15, tidakClockOut
+			// attach clockPairingResult
 			for (let att of attendanceDict[nik]) {
 				let clockPairingResult = ClockPairing.process(att.absensi, {
 					dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
@@ -150,16 +150,14 @@
 				}
 				startDate.add(1, 'days');
 			}
-			startDate.subtract(1, 'days');
-			if (startDate.format('dddd') != 'Sunday') {
-				totalJamKerjaMs += curTotalJamKerjaMs;
-				listJamKerjaMs.push(curTotalJamKerjaMs);
-			}
 
 			// formatting jam kerja per minggu
 			employeeDict[nik].totalJamKerja = toHHMMSS(totalJamKerjaMs);
 			for (let jamKerjaMs of listJamKerjaMs) {
-				employeeDict[nik].listJamKerja += toHHMMSS(jamKerjaMs) + '<br>';
+				if (jamKerjaMs < 40*60*60*1000)
+					employeeDict[nik].listJamKerja += `<span style="background:red;color:white;">${toHHMMSS(jamKerjaMs)}</span><br>`;
+				else
+					employeeDict[nik].listJamKerja += `${toHHMMSS(jamKerjaMs)}<br>`;
 			}
 		}
 		return employeeDict;
@@ -208,6 +206,29 @@
       ]
     })
   }
+
+	$('#from_txt').change(shiftDateInput);
+	$('#to_txt').change(shiftDateInput);
+	function shiftDateInput() {
+		let strFromDate = $('#from_txt').val();
+		if (strFromDate != '') {
+			let momentFromDate = moment(strFromDate, 'YYYY-MM-DD');
+			while (momentFromDate.format('dddd') != 'Monday') momentFromDate.subtract(1, 'days');
+			if (momentFromDate.format('YYYY-MM-DD') != strFromDate) {
+				toastr.info('From Date is shifted.');
+				$('#from_txt').val(momentFromDate.format('YYYY-MM-DD'));
+			}
+		}
+		let strToDate = $('#to_txt').val();
+		if (strToDate != '') {
+			let momentToDate = moment(strToDate, 'YYYY-MM-DD');
+			while (momentToDate.format('dddd') != 'Sunday') momentToDate.add(1, 'days');
+			if (momentToDate.format('YYYY-MM-DD') != strToDate) {
+				toastr.info('To Date is shifted.');
+				$('#to_txt').val(momentToDate.format('YYYY-MM-DD'));
+			}
+		}
+	}
 
   $('#generate_button').on('click', async function() {
     if (!dateInputValidator.isValid()) return;

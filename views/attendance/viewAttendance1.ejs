@@ -139,7 +139,6 @@
         (data[i].atasan_langsung ? data[i].atasan_langsung : ''),
         moment(data[i].absensi.length ? data[i].absensi[0].date : data[i].current_date).format("D MMMM YYYY"),
         (data[i].jam_masuk ? (data[i].jam_masuk+ ':00' ): ""),
-        // (data[i].jam_masuk + ':00') || '',
         clockPairsDisplay,
         flaggedTotalWorkingTime,
         clockPairingResult.telat5 ? 'TELAT' : ''
