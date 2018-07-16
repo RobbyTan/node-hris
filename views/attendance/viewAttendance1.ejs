@@ -1,17 +1,17 @@
 <% include ../partials/attendanceHeader%>
 <style>
-  #data_table tbody td:nth-child(7) {
-    cursor: pointer;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-  }
-  #data_table tbody td:nth-child(7):hover {
-    background: lightgray;
-  }
+#data_table tbody td:nth-child(7) {
+  cursor: pointer;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+#data_table tbody td:nth-child(7):hover {
+  background: lightgray;
+}
 </style>
 <div class="container">
   <h3>View Attendance With Sign In/Out</h3>
@@ -78,20 +78,27 @@
 <script src="/scripts/attendances/clock-list-dialog.js"></script>
 
 <script type="text/javascript">
+  $('body').tooltip({
+    selector: '[data-toggle="tooltip"]'
+  });
+  // Tooltips Initialization
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
   $(".button-collapse").sideNav();
   $('.mdb-select').material_select();
   $('#data_table').DataTable({
     dom: 'Bfrtip',
     lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
     buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
-      }
+    'pageLength',
+    'copyHtml5',
+    'excelHtml5',
+    {
+      extend: 'pdf',
+      text: 'Pdf',
+      orientation: 'landscape'
+    }
     ]
   });
 
@@ -142,7 +149,7 @@
         clockPairsDisplay,
         flaggedTotalWorkingTime,
         clockPairingResult.telat5 ? 'TELAT' : ''
-      ])
+        ])
     }
 
     $('#data_table').DataTable({
@@ -150,26 +157,26 @@
       dom: 'Bfrtip',
       lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
       buttons: [
-        'pageLength',
-        'copyHtml5',
-        'excelHtml5',
-        {
-          extend: 'pdf',
-          text: 'Pdf',
-          orientation: 'landscape'
-        }
+      'pageLength',
+      'copyHtml5',
+      'excelHtml5',
+      {
+        extend: 'pdf',
+        text: 'Pdf',
+        orientation: 'landscape'
+      }
       ],
       data: result,
       columns: [
-        {title: "NIK"},
-        {title: "Nama"},
-        {title: "Department"},
-        {title: "Atasan Langsung"},
-        {title: "Tanggal"},
-        {title: "Jam Masuk"},
-        {title: "Absensi"},
-        {title: "Total Durasi Jam Kerja"},
-        {title: "Telat"}
+      {title: "NIK"},
+      {title: "Nama"},
+      {title: "Department"},
+      {title: "Atasan Langsung"},
+      {title: "Tanggal"},
+      {title: "Jam Masuk"},
+      {title: "Absensi"},
+      {title: "Total Durasi Jam Kerja"},
+      {title: "Telat"}
       ]
     })
   }
@@ -227,6 +234,7 @@
       loadingSpinner.init();
     }
   });
+
 </script>
 </body>
 

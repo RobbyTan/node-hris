@@ -57,7 +57,7 @@ let PayrollDosenCalculator = (function() {
     let payrollResult = [];
     for (let nik in totalDurasiKerjaMs) {
       if (!fullDataDictionary[nik]) continue;
-      let rateGajiPerJamStr = fullDataDictionary[nik].jumlah_gaji_saat_ini;
+      let rateGajiPerJamStr = fullDataDictionary[nik].jumlah_gaji_saat_ini || '0';
       let rateGajiPerJam = +(rateGajiPerJamStr.replace(/[^0-9]/g, ''));
       let gajiPokok = (totalDurasiKerjaMs[nik]/(60*60*1000.0))*rateGajiPerJam;
       let totalGaji = gajiPokok;

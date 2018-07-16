@@ -7,12 +7,8 @@ const moment = require('moment')
 const authentication = require('../middleware/authentication.js')
 const bcrypt = require('bcrypt')
 
-router.get("/access/view/pph", authentication.reportAccess, (req, res) => {
-  res.render('./report/accessView')
-})
-router.get("/access/upload/pph", authentication.reportAccess, (req, res) => {
-  res.render('./report/accessUpload')
-})
+
+
 router.post("/access/view/pph", authentication.reportAccess, (req, res) => {
   db.Configuration.findOne({}, (err, configuration) => {
     hash = configuration.password;
@@ -22,7 +18,7 @@ router.post("/access/view/pph", authentication.reportAccess, (req, res) => {
       res.redirect("/report/view/pph")
       console.log(session.name)
     } else {
-      res.redirect('/report/access/view/pph')
+      res.redirect('/report/access/view')
     }
   })
   // if(req.body.password == process.env.PASS){
@@ -44,7 +40,7 @@ router.post("/access/upload/pph", authentication.reportAccess, (req, res) => {
       res.redirect("/report/upload/pph")
       console.log(session.name)
     } else {
-      res.redirect('/report/access/upload/pph')
+      res.redirect('/report/access/upload')
     }
   })
   // if(req.body.password == process.env.PASS){
@@ -57,7 +53,7 @@ router.post("/access/upload/pph", authentication.reportAccess, (req, res) => {
   // }
 
 })
-router.post("/access/customReport", authentication.reportAccess, (req, res) => {
+router.post("/access/custom", authentication.reportAccess, (req, res) => {
   db.Configuration.findOne({}, (err, configuration) => {
     hash = configuration.password;
     if (bcrypt.compareSync(req.body.password, hash)) {
@@ -66,22 +62,25 @@ router.post("/access/customReport", authentication.reportAccess, (req, res) => {
       res.redirect("/report/customReport")
       console.log(session.name)
     } else {
-      res.redirect('/report/access/customReport')
+      res.redirect('/report/access/custom')
     }
   })
+})
+router.get("/access/:id",authentication.isLoggedIn,(req,res)=>{
+  res.render('./report/accessView',{type:req.params.id});
 })
 router.get('/upload/pph', authentication.reportAccess, (req, res) => {
   if (req.session.name) {
     res.render('./report/uploadPph');
   } else {
-    res.redirect('/report/access/upload/pph')
+    res.redirect('/report/access/upload')
   }
 })
 router.get('/upload/pphexcel', authentication.reportAccess, (req, res) => {
   if (req.session.name) {
     res.render('./report/uploadPphExcel')
   } else {
-    res.redirect('/report/access/upload/pph')
+    res.redirect('/report/access/upload')
   }
 })
 router.get('/view/pph', authentication.reportAccess, (req, res) => {
@@ -96,12 +95,10 @@ router.get('/view/pph', authentication.reportAccess, (req, res) => {
       }
     })
   } else {
-    res.redirect('/report/access/view/pph')
+    res.redirect('/report/access/view')
   }
 })
-router.get("/access/customReport", authentication.reportAccess, (req, res) => {
-  res.render("report/accessCustomReport")
-})
+
 router.get("/customReport", authentication.reportAccess, (req, res) => {
   if (req.session.name) {
     let columnNames = Object.keys(db.Fulldata.schema.tree)
@@ -110,7 +107,7 @@ router.get("/customReport", authentication.reportAccess, (req, res) => {
       columnNames: columnNames
     });
   } else {
-    res.redirect('/report/access/customReport');
+    res.redirect('/report/access/custom');
   }
 })
 

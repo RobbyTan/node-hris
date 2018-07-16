@@ -17,53 +17,37 @@ app.use(require("express-session")({
 }));
 
 router.get("/",authentication.payrollAccess,(req,res)=>{
-	if (req.session.payroll) {
-		res.render("./payroll/viewPayroll")
-	} else {
-		res.redirect("/payroll/access");
-	}
+	res.render("./payroll/viewPayroll")
 })
 
 router.get("/view/manual",authentication.payrollAccess,(req,res)=>{
-	if (req.session.payroll) {
-		db.Configuration.findOne({}, (err, configuration) => {
-			if (err) console.log(err);
-			else {
-				res.render("./payroll/payrollDosen", {configuration: configuration});
-			}
-		});
-	} else {
-		res.redirect("/payroll/access");
-	}
+	db.Configuration.findOne({}, (err, configuration) => {
+		if (err) console.log(err);
+		else {
+			res.render("./payroll/payrollDosen", {configuration: configuration});
+		}
+	});
 })
 
 router.get("/view/generatedpayroll",authentication.payrollAccess,(req,res)=>{
-	if (req.session.payroll) {
-		db.PayrollReport.find({}).sort({endDate: -1}).exec(function(err, payrollReports) {
-			console.log(payrollReports)
-			res.render("./payroll/generatedPayroll", {payrollReports:payrollReports});
-		});
-	} else {
-		res.redirect("/payroll/access");
-	}
+	db.PayrollReport.find({}).sort({endDate: -1}).exec(function(err, payrollReports) {
+		console.log(payrollReports)
+		res.render("./payroll/generatedPayroll", {payrollReports:payrollReports});
+	});
 })
 router.get("/view/generatedpayroll/:id",authentication.payrollAccess, async (req,res) => {
-	if (req.session.payroll) {
-		let configuration = await db.Configuration.findOne({});
-		let payrollReport = await db.PayrollReport.findById(req.params.id);
-		res.render("./payroll/generatedPayrollDetail", {
-			configuration: configuration,
-			payrollReport: payrollReport
-		});
-	} else{
-		res.redirect("/payroll/access");
-	}
+	let configuration = await db.Configuration.findOne({});
+	let payrollReport = await db.PayrollReport.findById(req.params.id);
+	res.render("./payroll/generatedPayrollDetail", {
+		configuration: configuration,
+		payrollReport: payrollReport
+	});
 })
 
-router.get("/access",authentication.payrollAccess,(req,res)=>{
+router.get("/access",authentication.access,(req,res)=>{
 	res.render('./payroll/access')
 })
-router.post("/access",authentication.payrollAccess,(req,res)=>{	
+router.post("/access",authentication.access,(req,res)=>{	
 	db.Configuration.findOne({}, (err, configuration) => {
 		hash=configuration.payrollPassword;
 		if(bcrypt.compareSync(req.body.password, hash)) {

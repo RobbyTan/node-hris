@@ -107,7 +107,12 @@ let ClockPairing = (function() {
         }
       }
       // kalau tidak ada yang match, return clock yg sudah di-flag
-      return `<span style="color: white; background: ${color};">${clock}</span>`;
+      if(color == "rgb(173,244,66)"){
+        return `<span data-toggle="tooltip" data-placement="right" title="Tidak Memenuhi 8 Jam" style="color: white; background: ${color};">${clock}</span>`;
+      }else if (color == "rgb(244,72,66)"){
+        return `<span data-toggle="tooltip" data-placement="right" title="Telat diatas 15 Menit" style="color: white; background: ${color};">${clock}</span>`;
+      }
+      
     }
     return newClockValidator;
   };
@@ -128,7 +133,7 @@ let ClockPairing = (function() {
       if (closestClockMs - toleranceMs <= myClockMs && myClockMs <= closestClockMs + toleranceMs) {
         clockInTime = myClock;
       } else if (myClockMs < closestClockMs) {
-        clockInTime = `<span style="color:white; background:${beforeColor};">${myClock}</span>`;
+        clockInTime = `<span data-toggle="tooltip" data-placement="right" title="Sebelum 15 Menit Range" style="color:white; background:${beforeColor};">${myClock}</span>`;
       } else if (myClockMs > closestClockMs) {
         clockInTime = `<span style="color:white; background:${afterColor};">${myClock}</span>`;
       }
@@ -143,7 +148,7 @@ let ClockPairing = (function() {
   }
 
   function _highlight(text, bColor, fColor) {
-    return `<span style="color: ${fColor || 'white'}; background: ${bColor};">${text}</span>`;
+    return `<span data-toggle="tooltip" data-placement="right" title="Tidak Clock In/Out" style="color: ${fColor || 'white'}; background: ${bColor};">${text}</span>`;
   }
   function _highlightManualType(attendance) {
     if (attendance.type && attendance.type === 'manual') {

@@ -7,7 +7,7 @@
 			<div class="card-body mx-4">
 				<!--Header-->
 				<div class="text-center">
-					<h3 class="dark-grey-text mb-5"><strong>Report</strong></h3>
+					<h3 id="title" class="dark-grey-text mb-5"><strong>Report</strong></h3>
 				</div>
 				<!--Body-->
 				<form class="" action="/report/access/view/pph" method="post" id="form">
@@ -32,8 +32,18 @@ crossorigin="anonymous">
 </script>
 <script src="/scripts/mdb.js"></script>
 <script type="text/javascript">
-
+	let type ='<%=type%>';
+	$('#title').text(setTitle(type)+" Report");
 	$(".button-collapse").sideNav();
+	if(type=='view'||type=='upload'){
+		$("#form").attr("action",'/report/access/'+type+'/pph');
+	}else{
+		$("#form").attr("action",'/report/access/'+type);
+	}
+
+	function setTitle(string) {
+		return string.charAt(0).toUpperCase() + string.slice(1);
+	}
 </script>
 
 
