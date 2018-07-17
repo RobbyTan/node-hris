@@ -176,8 +176,8 @@ let ClockPairing = (function() {
       // let validateJamMasuk15 = _clockValidatorFactory([["00:00", jamMasukToleransi.format('HH:mm:ss')]], "rgb(244,72,66)");
       let batasJamMasukToleransi5Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:05:00');
       let batasJamMasukToleransi15Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:15:00');
-      let validateJamMasuk5 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi5Ms)]], "rgb(244,72,66)", '');
-      let validateJamMasuk15 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi15Ms)]], "rgb(244,72,66)", '');
+      let validateJamMasuk5 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi5Ms)]], "rgb(244,72,66)", 'Telat 5 menit');
+      let validateJamMasuk15 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi15Ms)]], "rgb(244,72,66)", 'Telat 15 menit');
       attendancePairsDisplay = (cur => {
         // assign status telat
         if (!['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(options.department.trim())) {

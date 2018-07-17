@@ -186,7 +186,7 @@ router.post('/new/upload', upload.single('file'), async (req, res) => {
     })
     let data = result['Sheet1'];
     data.forEach(async (fulldata, idx) => {
-      let nullIndices = retrieveNullIndices(fulldata, [1, 2, 53, 111]);
+      let nullIndices = retrieveNullIndices(fulldata, [1, 2, 53]);
       if (idx <= 3) {
         return;
       }
