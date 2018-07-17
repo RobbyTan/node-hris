@@ -73,7 +73,7 @@ let ClockPairing = (function() {
     for (let i = 1; i < attendances.length; i++) {
       //apabila selisih lebih dari 15 menit (dalam milliseconds), berarti valid
       if (attendances[i].date.diff(currentAttendance.date) > 15 * 60 * 1000) {
-        currentClock = attendances[i];
+        currentAttendance = attendances[i];
         validAttendances.push(attendances[i]);
       }
     }
@@ -97,7 +97,11 @@ let ClockPairing = (function() {
     return attendancePairs;
   }
 
-  function _clockValidatorFactory(pRanges, color) {
+  function _produceFlag(color, content, tooltipMsg) {
+    return `<span data-toggle="tooltip" data-placement="right" title="${tooltipMsg}" style="color:white; background:${color};">${content}</span>`;
+  }
+
+  function _clockValidatorFactory(pRanges, color, tooltipMsg) {
     let newClockValidator = function (clock) {
       let ranges = pRanges;
       for (let range of ranges) {
@@ -106,14 +110,9 @@ let ClockPairing = (function() {
           return clock;
         }
       }
-      // kalau tidak ada yang match, return clock yg sudah di-flag
-      if(color == "rgb(173,244,66)"){
-        return `<span data-toggle="tooltip" data-placement="right" title="Tidak Memenuhi 8 Jam" style="color: white; background: ${color};">${clock}</span>`;
-      }else if (color == "rgb(244,72,66)"){
-        return `<span data-toggle="tooltip" data-placement="right" title="Telat diatas 15 Menit" style="color: white; background: ${color};">${clock}</span>`;
-      }
-      
-    }
+      return _produceFlag(color, clock, tooltipMsg);
+    } 
+      "Telat diatas 15 Menit"
     return newClockValidator;
   };
   function _DTTFirstClockValidatorFactory(inClocks, tolerance, beforeColor, afterColor) {
@@ -133,9 +132,9 @@ let ClockPairing = (function() {
       if (closestClockMs - toleranceMs <= myClockMs && myClockMs <= closestClockMs + toleranceMs) {
         clockInTime = myClock;
       } else if (myClockMs < closestClockMs) {
-        clockInTime = `<span data-toggle="tooltip" data-placement="right" title="Sebelum 15 Menit Range" style="color:white; background:${beforeColor};">${myClock}</span>`;
+        clockInTime = _produceFlag(beforeColor, myClock, 'DTT sebelum 15 menit');
       } else if (myClockMs > closestClockMs) {
-        clockInTime = `<span style="color:white; background:${afterColor};">${myClock}</span>`;
+        clockInTime = _produceFlag(afterColor, myClock, 'DTT setelah 15 menit');
       }
       if (myClockMs > closestClockMs && closestClockMs - myClockMs > 5*60*1000) {
         telat5 = true;
@@ -147,12 +146,9 @@ let ClockPairing = (function() {
     };
   }
 
-  function _highlight(text, bColor, fColor) {
-    return `<span data-toggle="tooltip" data-placement="right" title="Tidak Clock In/Out" style="color: ${fColor || 'white'}; background: ${bColor};">${text}</span>`;
-  }
-  function _highlightManualType(attendance) {
+  function _produceFlagManualClock(attendance) {
     if (attendance.type && attendance.type === 'manual') {
-      return _highlight(attendance.date.format('HH:mm:ss'), 'orange');
+      return _produceFlag('orange', attendance.date.format('HH:mm:ss'), 'manual clock');
     }
     return null;
   }
@@ -164,14 +160,14 @@ let ClockPairing = (function() {
     if (['Dosen Tidak Tetap'].includes(options.department.trim())) { // jika Dosen Tidak Tetap
       // let validateClockInRange = _clockValidatorFactory([["08:45", "09:15"], ["17:15", "17:45"]], "rgb(244,72,66)");
       let validateClockInRange = _DTTFirstClockValidatorFactory(['09:00', '17:30'], '00:15', 'rgb(44, 116, 232)', 'rgb(244,72,66)');
-      let validateClockOutRange = _clockValidatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)");
-      let validateDurationRange = _clockValidatorFactory([[options.dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)");
+      let validateClockOutRange = _clockValidatorFactory([["12:15", "12:45"], ["20:45", "21:15"]], "rgb(244,72,66)", "DTT ClockOut diluar Range");
+      let validateDurationRange = _clockValidatorFactory([[options.dosenTidakTetapMaxTime, "23:59"]], "rgb(173,244,66)", "DTT > 3.5 jam");
       attendancePairsDisplay = attendancePairs.reduce((acc, cur) => {
         let validationResult = validateClockInRange(cur.attendanceIn.date.format("HH:mm:ss"));
-        let clockInTime = _highlightManualType(cur.attendanceIn) || validationResult.clockInTime;
+        let clockInTime = _produceFlagManualClock(cur.attendanceIn) || validationResult.clockInTime;
         telat5 = telat5 || validationResult.telat5;
         let clockOutTime = cur.attendanceOut ? 
-          (_highlightManualType(cur.attendanceOut) || validateClockOutRange(cur.attendanceOut.date.format("HH:mm:ss"))) : _highlight('[empty]', 'orange');
+          (_produceFlagManualClock(cur.attendanceOut) || validateClockOutRange(cur.attendanceOut.date.format("HH:mm:ss"))) : _produceFlag('orange', '[empty]', 'incomplete clock');
         let durationTime = cur.duration ? `(${ validateDurationRange(cur.duration.format("HH:mm:ss")) })` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
@@ -180,8 +176,8 @@ let ClockPairing = (function() {
       // let validateJamMasuk15 = _clockValidatorFactory([["00:00", jamMasukToleransi.format('HH:mm:ss')]], "rgb(244,72,66)");
       let batasJamMasukToleransi5Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:05:00');
       let batasJamMasukToleransi15Ms = _toMiliSeconds(options.jamMasuk) + _toMiliSeconds('00:15:00');
-      let validateJamMasuk5 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi5Ms)]], "rgb(244,72,66)");
-      let validateJamMasuk15 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi15Ms)]], "rgb(244,72,66)");
+      let validateJamMasuk5 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi5Ms)]], "rgb(244,72,66)", '');
+      let validateJamMasuk15 = _clockValidatorFactory([["00:00", _toHHMMSS(batasJamMasukToleransi15Ms)]], "rgb(244,72,66)", '');
       attendancePairsDisplay = (cur => {
         // assign status telat
         if (!['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(options.department.trim())) {
@@ -190,25 +186,25 @@ let ClockPairing = (function() {
         }
 
         let clockInTime = 
-          _highlightManualType(cur.attendanceIn) || validateJamMasuk15(cur.attendanceIn.date.format("HH:mm:ss"));
+          _produceFlagManualClock(cur.attendanceIn) || validateJamMasuk15(cur.attendanceIn.date.format("HH:mm:ss"));
         let clockOutTime = cur.attendanceOut ? 
-          (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
+          (_produceFlagManualClock(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _produceFlag('orange', '[empty]', 'incomplete clock');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       })(attendancePairs[0]);
       attendancePairs.shift();
       attendancePairsDisplay += attendancePairs.reduce((acc, cur) => {
-        let clockInTime = _highlightManualType(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
+        let clockInTime = _produceFlagManualClock(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
         let clockOutTime = cur.attendanceOut ? 
-          (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
+          (_produceFlagManualClock(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _produceFlag('orange', '[empty]', 'incomplete clock');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
     } else { // tidak ketentuan khusus
       attendancePairsDisplay = attendancePairs.reduce((acc, cur) => {
-        let clockInTime = _highlightManualType(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
+        let clockInTime = _produceFlagManualClock(cur.attendanceIn) || cur.attendanceIn.date.format("HH:mm:ss");
         let clockOutTime = cur.attendanceOut ? 
-          (_highlightManualType(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _highlight('[empty]', 'orange');
+          (_produceFlagManualClock(cur.attendanceOut) || cur.attendanceOut.date.format("HH:mm:ss")) : _produceFlag('orange', '[empty]', 'incomplete clock');
         let durationTime = cur.duration ? `(${cur.duration.format("HH:mm:ss")})` : '';
         return acc + `${clockInTime} - ${clockOutTime} ${durationTime}<br><br>`
       }, '');
@@ -236,16 +232,16 @@ let ClockPairing = (function() {
     let totalWorkingTime = _getTotalWorkingTime(clockPairs, options);
     let flaggedTotalWorkingTime = totalWorkingTime;
     if (['Sunday', 'Saturday'].includes(clockPairs[0].clockIn.format('dddd'))) {
-      let validateDuration = _clockValidatorFactory([['02:00', '23:59']], 'rgb(173,244,66)');
+      let validateDuration = _clockValidatorFactory([['02:00', '23:59']], 'rgb(173,244,66)', 'Weekend < 2 jam');
       flaggedTotalWorkingTime = validateDuration(totalWorkingTime);
     } else if (['Dosen Tidak Tetap', 'Mahasiswa Magang'].includes(options.department.trim())) { // jika Pegawai Tidak Tetap
       flaggedTotalWorkingTime = totalWorkingTime;
     } else {    // jika Pegawai Tetap
       if (clockPairs.length == 1) {
-        let validateDuration = _clockValidatorFactory([['09:00', '23:59']], 'rgb(173,244,66)');
+        let validateDuration = _clockValidatorFactory([['09:00', '23:59']], 'rgb(173,244,66)', 'Karyawan Tetap < 9 jam');
         flaggedTotalWorkingTime = validateDuration(totalWorkingTime);
       } else if (clockPairs.length >= 2) {
-        let validateDuration = _clockValidatorFactory([['08:00', '23:59']], 'rgb(173,244,66)');
+        let validateDuration = _clockValidatorFactory([['08:00', '23:59']], 'rgb(173,244,66)', 'Karyawan Tetap < 8 jam');
         flaggedTotalWorkingTime = validateDuration(totalWorkingTime);
       }
     }
