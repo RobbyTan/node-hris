@@ -1,6 +1,6 @@
 <% include ../partials/attendanceHeader%>
 <div class="container">
-	<h3>Punctuality Report</h3>
+	<h3>40 jam per minggu</h3>
 	
 	<table class="table">
 		<label class="pl-3">From:</label>
@@ -134,12 +134,14 @@
 			}
 
 			// jam kerja per minggu
-			let curTotalJamKerjaMs = 0, totalJamKerjaMs = 0, listJamKerjaMs = [],
-					startDate = attendanceDict[nik][0].absensi[0].date,
-					endDate = moment(attendanceDict[nik].slice(-1)[0].absensi[0].date).add(1, 'days'),
+			let startDate = moment($('#from_txt').val()),
+					numberOfDays = moment($('#to_txt').val()).diff(moment($('#from_txt').val()), 'days') + 1,
+			    curTotalJamKerjaMs = 0, 
+					totalJamKerjaMs = 0, 
+					listJamKerjaMs = [],
 					attIndex = 0;
-			while (startDate.format('DD-MM-YYYY') != endDate.format('DD-MM-YYYY')) {
-				if (startDate.format('DD-MM-YYYY') == attendanceDict[nik][attIndex].absensi[0].date.format('DD-MM-YYYY')) {
+			for (let dayCounter = 0; dayCounter < numberOfDays; dayCounter++) {
+				if (attIndex < attendanceDict[nik].length && startDate.format('DD-MM-YYYY') == attendanceDict[nik][attIndex].absensi[0].date.format('DD-MM-YYYY')) {
 					curTotalJamKerjaMs += toMiliSeconds(attendanceDict[nik][attIndex].clockPairingResult.totalWorkingTime);
 					attIndex += 1;
 				}
@@ -153,11 +155,15 @@
 
 			// formatting jam kerja per minggu
 			employeeDict[nik].totalJamKerja = toHHMMSS(totalJamKerjaMs);
+			startDate = moment($('#from_txt').val());
 			for (let jamKerjaMs of listJamKerjaMs) {
-				if (jamKerjaMs < 40*60*60*1000)
-					employeeDict[nik].listJamKerja += `<span style="background:red;color:white;">${toHHMMSS(jamKerjaMs)}</span><br>`;
-				else
-					employeeDict[nik].listJamKerja += `${toHHMMSS(jamKerjaMs)}<br>`;
+				if (jamKerjaMs < 40*60*60*1000)  {
+					employeeDict[nik].listJamKerja += `<span style="background:red;color:white;">${toHHMMSS(jamKerjaMs)}</span> (${startDate.format('D MMM')} - ${moment(startDate).add(6, 'days').format('D MMM')}) <br>`;
+					employeeDict[nik].kurangJam = true;
+				} else {
+					employeeDict[nik].listJamKerja += `${toHHMMSS(jamKerjaMs)} (${startDate.format('D MMM')} - ${moment(startDate).add(6, 'days').format('D MMM')}) <br>`;
+				}
+				startDate.add(7, 'days');
 			}
 		}
 		return employeeDict;
@@ -167,7 +173,7 @@
 		let result = [];
     for (let nik in employeeDict) {
 			let emp = employeeDict[nik];
-			let sudahBanyakPelanggaran = true;
+			let sudahBanyakPelanggaran = emp.kurangJam;
 			if (!sudahBanyakPelanggaran) continue;
       result.push([
         emp.nik,

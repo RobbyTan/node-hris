@@ -30,7 +30,8 @@
 					<td>Departemen</td>
 					<td>Atasan Langsung</td>
 					<td>Jam Masuk</td>
-					<td>Pelanggaran</td>
+					<td>Tanggal Telat</td>
+					<td>Telat 15 Menit</td>
 				</tr>
 			</thead>
 			<tbody>
@@ -118,11 +119,13 @@
 		for (let nik in attendanceDict) {
 			employeeDict[nik] = {
 				telat15Count: 0,
+				telat15ListHTML: '',
 				...attendanceDict[nik][0]
 			};
 			attendanceDict[nik].sort((a, b) => a.absensi[0].date.valueOf - b.absensi[0].date.valueOf);
 
-			// telat5, telat15, tidakClockOut
+			// telat15
+			let HTMLcounter = 1;
 			for (let att of attendanceDict[nik]) {
 				let clockPairingResult = ClockPairing.process(att.absensi, {
 					dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
@@ -130,46 +133,21 @@
 					jamMasuk: att.jam_masuk
 				});
 				att.clockPairingResult = clockPairingResult;
-				if (clockPairingResult.telat15) employeeDict[nik].telat15Count += 1;
-			}
-
-			// jam kerja per minggu
-			let curTotalJamKerjaMs = 0, totalJamKerjaMs = 0, listJamKerjaMs = [],
-					startDate = attendanceDict[nik][0].absensi[0].date,
-					endDate = moment(attendanceDict[nik].slice(-1)[0].absensi[0].date).add(1, 'days'),
-					attIndex = 0;
-			while (startDate.format('DD-MM-YYYY') != endDate.format('DD-MM-YYYY')) {
-				if (startDate.format('DD-MM-YYYY') == attendanceDict[nik][attIndex].absensi[0].date.format('DD-MM-YYYY')) {
-					curTotalJamKerjaMs += toMiliSeconds(attendanceDict[nik][attIndex].clockPairingResult.totalWorkingTime);
-					attIndex += 1;
+				if (clockPairingResult.telat15) {
+					employeeDict[nik].telat15ListHTML += `(${HTMLcounter++}) ${att.absensi[0].date.format('D MMM YYYY')} <br>`;
+					employeeDict[nik].telat15Count += 1;
 				}
-				if (startDate.format('dddd') == 'Sunday') {
-					totalJamKerjaMs += curTotalJamKerjaMs;
-					listJamKerjaMs.push(curTotalJamKerjaMs);
-					curTotalJamKerjaMs = 0;
-				}
-				startDate.add(1, 'days');
-			}
-			startDate.subtract(1, 'days');
-			if (startDate.format('dddd') != 'Sunday') {
-				totalJamKerjaMs += curTotalJamKerjaMs;
-				listJamKerjaMs.push(curTotalJamKerjaMs);
-			}
-
-			// formatting jam kerja per minggu
-			employeeDict[nik].totalJamKerja = toHHMMSS(totalJamKerjaMs);
-			for (let jamKerjaMs of listJamKerjaMs) {
-				employeeDict[nik].listJamKerja += toHHMMSS(jamKerjaMs) + '<br>';
 			}
 		}
 		return employeeDict;
 	}
 
   function renderTable(employeeDict) {
+		const TELAT15_LIMIT = 3;
 		let result = [];
     for (let nik in employeeDict) {
 			let emp = employeeDict[nik];
-			let sudahBanyakPelanggaran = emp.telat15Count >= 4;
+			let sudahBanyakPelanggaran = emp.telat15Count > TELAT15_LIMIT;
 			if (!sudahBanyakPelanggaran) continue;
       result.push([
         emp.nik,
@@ -177,7 +155,8 @@
         emp.department,
         (emp.atasan_langsung ? emp.atasan_langsung : ''),
 				(emp.jam_masuk ? (emp.jam_masuk+':00'): ''),
-				`Telat (15 min): ${emp.telat15Count} x <br>`
+				(emp.telat15ListHTML.length > 0 ? emp.telat15ListHTML : '-'),
+				`<strong> ${emp.telat15Count - TELAT15_LIMIT} X </strong>`
       ]);
     }
 
@@ -202,7 +181,8 @@
         {title: "Departemen"},
         {title: "Atasan Langsung"},
 				{title: "Jam Masuk"},
-        {title: "Pelanggaran"}
+        {title: "Tanggal Telat"},
+        {title: "Telat 15 Menit"}
       ]
     })
   }

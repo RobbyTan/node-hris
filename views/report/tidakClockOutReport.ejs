@@ -1,6 +1,6 @@
 <% include ../partials/attendanceHeader%>
 <div class="container">
-	<h3>Tidak Clock Out</h3>
+	<h3>Tidak Clock In/Out</h3>
 	
 	<table class="table">
 		<label class="pl-3">From:</label>
@@ -30,7 +30,8 @@
 					<td>Departemen</td>
 					<td>Atasan Langsung</td>
 					<td>Jam Masuk</td>
-					<td>Pelanggaran</td>
+					<td>Tanggal Tidak Clock</td>
+					<td>Tidak Clock In/Out</td>
 				</tr>
 			</thead>
 			<tbody>
@@ -118,11 +119,13 @@
 		for (let nik in attendanceDict) {
 			employeeDict[nik] = {
 				tidakClockOutCount: 0,
+				tidakClockListHTML: '',
 				...attendanceDict[nik][0]
 			};
 			attendanceDict[nik].sort((a, b) => a.absensi[0].date.valueOf - b.absensi[0].date.valueOf);
 
 			// tidakClockOut
+			let HTMLcounter = 1;
 			for (let att of attendanceDict[nik]) {
 				let clockPairingResult = ClockPairing.process(att.absensi, {
 					dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
@@ -130,46 +133,21 @@
 					jamMasuk: att.jam_masuk
 				});
 				att.clockPairingResult = clockPairingResult;
-				if (clockPairingResult.tidakClockOut) employeeDict[nik].tidakClockOutCount += 1;
-			}
-
-			// jam kerja per minggu
-			let curTotalJamKerjaMs = 0, totalJamKerjaMs = 0, listJamKerjaMs = [],
-					startDate = attendanceDict[nik][0].absensi[0].date,
-					endDate = moment(attendanceDict[nik].slice(-1)[0].absensi[0].date).add(1, 'days'),
-					attIndex = 0;
-			while (startDate.format('DD-MM-YYYY') != endDate.format('DD-MM-YYYY')) {
-				if (startDate.format('DD-MM-YYYY') == attendanceDict[nik][attIndex].absensi[0].date.format('DD-MM-YYYY')) {
-					curTotalJamKerjaMs += toMiliSeconds(attendanceDict[nik][attIndex].clockPairingResult.totalWorkingTime);
-					attIndex += 1;
+				if (clockPairingResult.tidakClockOut) {
+					employeeDict[nik].tidakClockListHTML += `(${HTMLcounter++}) ${att.absensi[0].date.format('D MMM YYYY')} <br>`;
+					employeeDict[nik].tidakClockOutCount += 1;
 				}
-				if (startDate.format('dddd') == 'Sunday') {
-					totalJamKerjaMs += curTotalJamKerjaMs;
-					listJamKerjaMs.push(curTotalJamKerjaMs);
-					curTotalJamKerjaMs = 0;
-				}
-				startDate.add(1, 'days');
-			}
-			startDate.subtract(1, 'days');
-			if (startDate.format('dddd') != 'Sunday') {
-				totalJamKerjaMs += curTotalJamKerjaMs;
-				listJamKerjaMs.push(curTotalJamKerjaMs);
-			}
-
-			// formatting jam kerja per minggu
-			employeeDict[nik].totalJamKerja = toHHMMSS(totalJamKerjaMs);
-			for (let jamKerjaMs of listJamKerjaMs) {
-				employeeDict[nik].listJamKerja += toHHMMSS(jamKerjaMs) + '<br>';
 			}
 		}
 		return employeeDict;
 	}
 
   function renderTable(employeeDict) {
+		const NOCLOCK_LIMIT = 1;
 		let result = [];
     for (let nik in employeeDict) {
 			let emp = employeeDict[nik];
-			let sudahBanyakPelanggaran = emp.tidakClockOutCount >= 4;
+			let sudahBanyakPelanggaran = emp.tidakClockOutCount > NOCLOCK_LIMIT;
 			if (!sudahBanyakPelanggaran) continue;
       result.push([
         emp.nik,
@@ -177,7 +155,8 @@
         emp.department,
         (emp.atasan_langsung ? emp.atasan_langsung : ''),
 				(emp.jam_masuk ? (emp.jam_masuk+':00'): ''),
-				`Tidak clock out/in: ${emp.tidakClockOutCount} x`
+				(emp.tidakClockListHTML.length > 0 ? emp.tidakClockListHTML : '-'),
+				`<strong> ${emp.tidakClockOutCount - NOCLOCK_LIMIT} X </strong>`
       ]);
     }
 
@@ -202,7 +181,8 @@
         {title: "Departemen"},
         {title: "Atasan Langsung"},
 				{title: "Jam Masuk"},
-        {title: "Pelanggaran"}
+				{title: "Tanggal Tidak Clock"},
+        {title: "Tidak Clock In/Out"}
       ]
     })
   }

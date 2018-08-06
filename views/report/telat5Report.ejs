@@ -29,8 +29,9 @@
 					<td>Nama</td>
 					<td>Departemen</td>
 					<td>Atasan Langsung</td>
-					<td>Jam Masuk</td>
-					<td>Pelanggaran</td>
+          <td>Jam Masuk</td>
+          <td>Tanggal Telat</td>
+					<td>Telat 5 Menit</td>
 				</tr>
 			</thead>
 			<tbody>
@@ -117,12 +118,14 @@
 		let employeeDict = {};
 		for (let nik in attendanceDict) {
 			employeeDict[nik] = {
-				telat5Count: 0,
-				...attendanceDict[nik][0]
+        telat5Count: 0,
+        telat5ListHTML: '',
+        ...attendanceDict[nik][0],
 			};
 			attendanceDict[nik].sort((a, b) => a.absensi[0].date.valueOf - b.absensi[0].date.valueOf);
 
-			// telat5
+      // telat5
+      let HTMLcounter = 1;
 			for (let att of attendanceDict[nik]) {
 				let clockPairingResult = ClockPairing.process(att.absensi, {
 					dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
@@ -130,25 +133,30 @@
 					jamMasuk: att.jam_masuk
 				});
 				att.clockPairingResult = clockPairingResult;
-				if (clockPairingResult.telat5) employeeDict[nik].telat5Count += 1;
+				if (clockPairingResult.telat5) {
+          employeeDict[nik].telat5ListHTML += `(${HTMLcounter++}) ${att.absensi[0].date.format('D MMM YYYY')} <br>`;
+          employeeDict[nik].telat5Count += 1;
+        }
 			}
 		}
 		return employeeDict;
 	}
 
   function renderTable(employeeDict) {
+    const TELAT5_LIMIT = 5;
 		let result = [];
     for (let nik in employeeDict) {
 			let emp = employeeDict[nik];
-			let sudahBanyakPelanggaran = emp.telat5Count >= 6;
+			let sudahBanyakPelanggaran = emp.telat5Count > TELAT5_LIMIT;
 			if (!sudahBanyakPelanggaran) continue;
       result.push([
         emp.nik,
         emp.first_Name + ' ' + (emp.last_Name ? emp.last_Name : ''),
         emp.department,
         (emp.atasan_langsung ? emp.atasan_langsung : ''),
-				(emp.jam_masuk ? (emp.jam_masuk+':00'): ''),
-				`Telat (5 min): ${emp.telat5Count} x <br>`
+        (emp.jam_masuk ? (emp.jam_masuk+':00'): ''),
+        (emp.telat5ListHTML.length > 0 ? emp.telat5ListHTML : '-'),
+				`<strong> ${emp.telat5Count - TELAT5_LIMIT} X </strong>`
       ]);
     }
 
@@ -172,8 +180,9 @@
         {title: "Nama"},
         {title: "Departemen"},
         {title: "Atasan Langsung"},
-				{title: "Jam Masuk"},
-        {title: "Pelanggaran"}
+        {title: "Jam Masuk"},
+        {title: "Tanggal Telat"},
+        {title: "Telat 5 Menit"}
       ]
     })
   }
