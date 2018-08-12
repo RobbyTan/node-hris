@@ -30,21 +30,21 @@ router.get('/view2',authentication.isLoggedIn, (req, res) => {
 //   res.render('./attendance/viewAttendance3')
 // })
 
-router.get('/upload',authentication.isLoggedIn, (req, res) => {
+router.get('/upload', authentication.isLoggedIn, (req, res) => {
   res.render('./attendance/uploadAttendance')
 })
 
-router.get('/uploadexcel',authentication.isLoggedIn, (req, res) => {
+router.get('/uploadexcel', authentication.isLoggedIn, (req, res) => {
   res.render('./attendance/uploadAttendanceExcel')
 })
 
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', authentication.isLoggedIn, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(422).json({
       error: 'Please Upload a file'
     })
   }
-  let workbook
+  let workbook;
   let toJson = function toJson (workbook) {
     let result = {}
     workbook.SheetNames.forEach(function (sheetName) {

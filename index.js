@@ -38,7 +38,6 @@ passport.deserializeUser(User.deserializeUser());
 app.use(function(req, res, next) {
 	res.locals.currentUser = req.user;
 	next();
-	// untuk memberikan akses currentUser ke semua
 })
 
 app.get('/', (req, res) => {
@@ -57,28 +56,30 @@ app.get("/logout",function(req,res){
   res.redirect("/login");
 });
 
-// app.get('/register',(req,res)=>{
+// app.get('/register', (req, res) => {
 // 	res.render('register');
 // })
-// app.post("/register",function(req,res){
-// 		var newUser = new User({username:req.body.username});
+// app.post("/register", function(req, res) {
+// 		var newUser = new User({username: req.body.username});
 // 		console.log(newUser)
-// 		User.register(newUser,req.body.password,function(err,user){
-// 		if(err){
+// 		User.register(newUser,req.body.password, function(err, user) {
+// 		if (err) {
 // 			console.log(err);
-// 			return res.render("register");
+// 			return res.render('register');
 // 		}
-// 		passport.authenticate("local")(req,res,function(){
-// 			res.redirect("/dashboard");
+// 		passport.authenticate('local')(req, res, function() {
+// 			res.redirect('/dashboard');
 // 		});
 // 	});
 // })
-app.post("/login",passport.authenticate("local",{
-	successRedirect : "/dashboard",
-	failureRedirect : "/login"
-}),function(req,res){
+
+app.post("/login",passport.authenticate('local', {
+	successRedirect : '/dashboard',
+	failureRedirect : '/login'
+}), function(req, res) {
 
 })
+
 app.use('/attendance', attendanceRoutes)
 app.use('/employee', employeeRoutes)
 app.use('/api', apiRoutes)

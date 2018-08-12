@@ -1,3 +1,4 @@
+const querystring = require('querystring'); 
 const express = require('express')
 const router = express.Router()
 const xlsx = require('xlsx')
@@ -7,143 +8,87 @@ const moment = require('moment')
 const authentication = require('../middleware/authentication.js')
 const bcrypt = require('bcrypt')
 
+router.get('/access', authentication.reportAccess(true), async(req, res) => {
+  const queryString = querystring.stringify({continueUrl: req.query.continueUrl});
+  res.render('./partials/accessView', {
+    title: 'Master Data', 
+    postUrl: '/report/access?'+queryString
+  });
+});
+router.post('/access', authentication.reportAccess(true), async(req, res) => {
+  let configuration = await db.Configuration.findOne({});
+  let hash = configuration.password;
+  if (bcrypt.compareSync(req.body.password, hash)) {
+    req.session.reportUserId = req.user._id.toString();
+    res.redirect(req.query.continueUrl);
+  } else {
+    res.redirect('back');
+  }
+});
 
-
-router.post("/access/view/pph", authentication.reportAccess, (req, res) => {
-  db.Configuration.findOne({}, (err, configuration) => {
-    hash = configuration.password;
-    if (bcrypt.compareSync(req.body.password, hash)) {
-      session = req.session;
-      session.name = req.user.username;
-      res.redirect("/report/view/pph")
-      console.log(session.name)
+router.get('/upload/pph', authentication.reportAccess(), (req, res) => {
+  res.render('./report/uploadPph');
+})
+router.get('/upload/pphexcel', authentication.reportAccess(), (req, res) => {
+  res.render('./report/uploadPphExcel')
+})
+router.get('/view/pph', authentication.reportAccess(), (req, res) => {
+  db.Fulldata.find({}, function (err, allData) {
+    if (err) {
+      console.log(err)
     } else {
-      res.redirect('/report/access/view')
+      res.render('./report/viewPphReport', {
+        pph: allData
+      })
     }
-  })
-  // if(req.body.password == process.env.PASS){
-  //     session=req.session;
-  //     session.name=req.user.username;
-  //     res.redirect("/report/view/pph")
-  //     console.log(session.name)
-  // }else{
-  //     res.redirect('/report/access')
-  // }
-
-})
-router.post("/access/upload/pph", authentication.reportAccess, (req, res) => {
-  db.Configuration.findOne({}, (err, configuration) => {
-    hash = configuration.password;
-    if (bcrypt.compareSync(req.body.password, hash)) {
-      session = req.session;
-      session.name = req.user.username;
-      res.redirect("/report/upload/pph")
-      console.log(session.name)
-    } else {
-      res.redirect('/report/access/upload')
-    }
-  })
-  // if(req.body.password == process.env.PASS){
-  //     session=req.session;
-  //     session.name=req.user.username;
-  //     res.redirect("/report/upload/pph")
-  //     console.log(session.name)
-  // }else{
-  //     res.redirect('/report/access')
-  // }
-
-})
-router.post("/access/custom", authentication.reportAccess, (req, res) => {
-  db.Configuration.findOne({}, (err, configuration) => {
-    hash = configuration.password;
-    if (bcrypt.compareSync(req.body.password, hash)) {
-      session = req.session;
-      session.name = req.user.username;
-      res.redirect("/report/customReport")
-      console.log(session.name)
-    } else {
-      res.redirect('/report/access/custom')
-    }
-  })
-})
-router.get("/access/:id",authentication.isLoggedIn,(req,res)=>{
-  res.render('./report/accessView',{type:req.params.id});
-})
-router.get('/upload/pph', authentication.reportAccess, (req, res) => {
-  if (req.session.name) {
-    res.render('./report/uploadPph');
-  } else {
-    res.redirect('/report/access/upload')
-  }
-})
-router.get('/upload/pphexcel', authentication.reportAccess, (req, res) => {
-  if (req.session.name) {
-    res.render('./report/uploadPphExcel')
-  } else {
-    res.redirect('/report/access/upload')
-  }
-})
-router.get('/view/pph', authentication.reportAccess, (req, res) => {
-  if (req.session.name) {
-    db.Fulldata.find({}, function (err, allData) {
-      if (err) {
-        console.log(err)
-      } else {
-        res.render('./report/viewPphReport', {
-          pph: allData
-        })
-      }
-    })
-  } else {
-    res.redirect('/report/access/view')
-  }
+  });
 })
 
-router.get("/customReport", authentication.reportAccess, (req, res) => {
-  if (req.session.name) {
-    let columnNames = Object.keys(db.Fulldata.schema.tree)
-      .filter(name => !['id', '_id', '__v'].includes(name));
-    res.render('./report/customReport', {
-      columnNames: columnNames
-    });
-  } else {
-    res.redirect('/report/access/custom');
+router.get("/customReport", authentication.reportAccess(), (req, res) => {
+  let columnNames = Object.keys(db.Fulldata.schema.tree);
+  columnNames = columnNames.filter(name => !['id', '_id', '__v'].includes(name));
+  const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3];
+  if (!grantedUserIDs.includes(req.user._id.toString())) {
+    columnNames = columnNames.filter(name => !['jumlah_gaji_saat_ini'].includes(name));
   }
+  res.render('./report/customReport', {
+    columnNames: columnNames
+  });
 })
 
-router.get("/punctualityReportMenu", authentication.reportAccess, (req, res) => {
+router.get("/punctualityReportMenu", authentication.reportAccess(), (req, res) => {
   res.render("report/punctualityReportMenu");
 })
-router.get("/telat5", authentication.reportAccess, async (req, res) => {
+router.get("/telat5", authentication.reportAccess(), async(req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
     if (err) return res.redirect('back');
     res.render("report/telat5Report", {configuration: configuration});
   });
 })
-router.get("/telat15", authentication.reportAccess, async (req, res) => {
+router.get("/telat15", authentication.reportAccess(), async(req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
     if (err) return res.redirect('back');
     res.render("report/telat15Report", {configuration: configuration});
   });
 })
-router.get("/tidakClockOut", authentication.reportAccess, async (req, res) => {
+router.get("/tidakClockOut", authentication.reportAccess(), async (req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
     if (err) return res.redirect('back');
     res.render("report/tidakClockOutReport", {configuration: configuration});
   });
 })
-router.get("/40jam", authentication.reportAccess, async (req, res) => {
+router.get("/40jam", authentication.reportAccess(), async (req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
     if (err) return res.redirect('back');
     res.render("report/40jamReport", {configuration: configuration});
   });
 })
 
-router.get("/durasiKerjaReport", authentication.reportAccess, (req, res) => {
+router.get("/durasiKerjaReport", authentication.reportAccess(), (req, res) => {
   res.render("report/durasiKerjaReport");
 })
 
-router.delete("/:id", authentication.reportAccess, function (req, res) {
+router.delete("/:id", authentication.reportAccess(), function (req, res) {
   db.Fulldata.findByIdAndRemove(req.params.id, function (err) {
     if (err) {
       console.log(err);
@@ -154,7 +99,7 @@ router.delete("/:id", authentication.reportAccess, function (req, res) {
   })
 });
 
-router.post('/new/upload', upload.single('file'), async (req, res) => {
+router.post('/new/upload', authentication.reportAccess(), upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(422).json({
       error: 'Please Upload a file'
@@ -308,7 +253,7 @@ router.post('/new/upload', upload.single('file'), async (req, res) => {
           nik_keluarga_uph: fulldata[108],
           perhitungan_gaji: fulldata[109],
           jenis_mata_uang: fulldata[110],
-          jumlah_gaji_saat_ini: fulldata[111],
+          // jumlah_gaji_saat_ini: fulldata[111],
           penerimaan_gaji: fulldata[112]
         }
 

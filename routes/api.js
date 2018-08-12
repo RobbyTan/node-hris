@@ -2,11 +2,11 @@ const express = require('express')
 const router = express.Router()
 const db = require('../models')
 const moment = require('moment')
-const methodOverride = require("method-override")
+const methodOverride = require('method-override')
 
 router.use(methodOverride("_method"));
-// attendance route
 
+// attendance route
 router.get('/attendancesfull', async(req, res) => {
   let from = req.query.from
   let to = req.query.to
@@ -17,7 +17,6 @@ router.get('/attendancesfull', async(req, res) => {
     res.json({})
   }
 })
-
 router.get('/attendances', async(req, res) => {
   let from = req.query.from
   let to = req.query.to

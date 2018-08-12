@@ -1,34 +1,40 @@
+const querystring = require('querystring'); 
+let authentication = {};
 
-var authentication={};
-
-
-authentication.isLoggedIn = function isLoggedIn(req,res,next){
-	if(req.isAuthenticated()){
+authentication.isLoggedIn = function(req, res, next) {
+	if (req.isAuthenticated()) {
 		return next();
 	}
 	res.redirect("/login");
 }
-authentication.payrollAccess = function payrollAccess(req, res, next) {
-	if (req.isAuthenticated() && req.session.payroll 
-			&& [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3].includes(req.user._id.toString())) {
-		next();
-	} else {
-		res.redirect("/payroll/access");
-	}
+
+authentication.reportAccess = function(dontDirectToAccess) {
+	return function(req, res, next) {
+		if (!req.isAuthenticated()) {
+			res.redirect(`/login`);
+		} else if (!dontDirectToAccess && !req.session.reportUserId) {
+			const queryString = querystring.stringify({continueUrl: req.originalUrl});
+			res.redirect('/report/access?'+queryString);
+		} else {
+			next();
+		}
+	};
 }
-authentication.reportAccess = function reportAccess(req, res, next) {
-	if (req.isAuthenticated()) {
-		next();
-	} else {
-		res.redirect("back");
-	}
-}
-authentication.access = function access(req, res, next) {
-	if (req.isAuthenticated()&& [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3].includes(req.user._id.toString())) {
-		next();
-	} else {
-		res.redirect("back");
-	}
+
+authentication.payrollAccess = function(dontDirectToAccess) {
+	return function(req, res, next) {
+		const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3];
+		if (!req.isAuthenticated()) {
+			res.redirect(`/login`);
+		} else if (!grantedUserIDs.includes(req.user._id.toString())) {
+			res.redirect('back');
+		} else if (!dontDirectToAccess && !grantedUserIDs.includes(req.session.payrollUserId || '')) {
+			const queryString = querystring.stringify({continueUrl: req.originalUrl});
+			res.redirect('/payroll/access?'+queryString);
+		} else {
+			next();
+		}
+	};
 }
 
 module.exports = authentication;
