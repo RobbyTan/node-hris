@@ -73,6 +73,7 @@ router.get('/employeedata', (req, res) => {
         nama_depan: 1,
         nama_belakang: 1,
         kategori_pegawai: 1,
+        tanggal_lahir : 1,
         atasan_langsung: 1,
         jam_masuk: 1
       }
