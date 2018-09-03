@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
@@ -17,7 +19,6 @@ const configurationRoutes = require('./routes/configuration')
 const payrollRoutes = require('./routes/payroll')
 
 // apply middleware
-require('dotenv').config()
 app.use(bodyParser.urlencoded({extended: true}))
 app.set('view engine', 'ejs')
 app.use(express.static(path.join(__dirname, '/public')))
