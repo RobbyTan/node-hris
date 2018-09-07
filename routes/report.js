@@ -257,7 +257,7 @@ router.post('/new/upload', authentication.reportAccess(), upload.single('file'),
           penerimaan_gaji: fulldata[112]
         }
 
-        await db.Fulldata.create(newFullData, function (err, newlyCreated) {
+        await db.Fulldata.update({nik : newFullData.nik},newFullData,{upsert: true}, function (err, newlyCreated) {
           if (err) {
             console.log(err)
           } else {
