@@ -5,12 +5,12 @@ const { upload } = require('../middleware/upload')
 const db = require('../models')
 const auth = require('../middleware/authentication.js')
 
-router.get('/', auth.isLoggedIn, (req, res) => {
-  res.render('employee/index')
+router.get('/view', auth.isLoggedIn, (req, res) => {
+  res.render('employee/view')
 })
 
-router.get('/new', auth.isLoggedIn, (req, res) => {
-  res.render('employee/new')
+router.get('/new/menu', auth.isLoggedIn, (req, res) => {
+  res.render('employee/new-menu')
 })
 
 router.get('/new/upload', auth.isLoggedIn, (req, res) => {

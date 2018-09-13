@@ -111,8 +111,7 @@ let ClockPairing = (function() {
         }
       }
       return _produceFlag(color, clock, tooltipMsg);
-    } 
-      "Telat diatas 15 Menit"
+    }
     return newClockValidator;
   };
   function _DTTFirstClockValidatorFactory(inClocks, tolerance, beforeColor, afterColor) {

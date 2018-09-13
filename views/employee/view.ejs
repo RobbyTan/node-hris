@@ -18,6 +18,7 @@
             <td>Nama</td>
             <td>Tanggal Lahir</td>
             <td>Kategori Kepegawaian</td>
+            <td>Departemen</td>
             <td>Jam Masuk</td>
             <td>Atasan Langsung</td>
           </tr>
@@ -70,6 +71,7 @@
           emp.nama_depan + ' ' + (emp.nama_belakang ? emp.nama_belakang : ''),
           emp.tanggal_lahir ? moment.utc(emp.tanggal_lahir).format("DD MMM YYYY") : '-',
           emp.kategori_pegawai ? emp.kategori_pegawai : '-',
+          emp.department ? emp.department : '-',
           emp.jam_masuk ? emp.jam_masuk : '-',
           emp.atasan_langsung ? emp.atasan_langsung : '-'
         ])

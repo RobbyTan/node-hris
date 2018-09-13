@@ -4,41 +4,30 @@ const xlsx = require('xlsx')
 const { upload } = require('../middleware/upload')
 const db = require('../models')
 const moment = require('moment')
-const authentication = require('../middleware/authentication.js')
+const auth = require('../middleware/authentication')
 
 // attendance route
-
-router.get('/view', authentication.isLoggedIn, (req, res) => {
-  res.render('./attendance/viewAttendance')
+router.get('/view/menu', auth.isLoggedIn, (req, res) => {
+  res.render('attendance/view-menu')
 })
 
-router.get('/view1', authentication.isLoggedIn, (req, res) => {
-  db.Configuration.findOne({}, function (err, configuration) {
-    if (err) {
-      console.log(err)
-    } else {
-      res.render('./attendance/viewAttendance1', { configuration: configuration })
-    }
-  })
+router.get('/view/1', auth.isLoggedIn, (req, res) => {
+  res.render('attendance/view-1')
 })
 
-router.get('/view2', authentication.isLoggedIn, (req, res) => {
-  res.render('./attendance/viewAttendance2')
+router.get('/view/2', auth.isLoggedIn, (req, res) => {
+  res.render('attendance/view-2')
 })
 
-// router.get('/view3',authentication.isLoggedIn, (req, res) => {
-//   res.render('./attendance/viewAttendance3')
-// })
-
-router.get('/upload', authentication.isLoggedIn, (req, res) => {
-  res.render('./attendance/uploadAttendance')
+router.get('/new/menu', auth.isLoggedIn, (req, res) => {
+  res.render('attendance/new-menu')
 })
 
-router.get('/uploadexcel', authentication.isLoggedIn, (req, res) => {
-  res.render('./attendance/uploadAttendanceExcel')
+router.get('/new/upload', auth.isLoggedIn, (req, res) => {
+  res.render('./attendance/new-upload')
 })
 
-router.post('/upload', authentication.isLoggedIn, upload.single('file'), async (req, res) => {
+router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(422).json({
       error: 'Please Upload a file'

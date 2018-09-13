@@ -12,7 +12,7 @@ let ClockListDialog = (function () {
   let firstRun = false;
 
   function getClocks(person, callback) {
-    $.getJSON("/api/attendances/" + person.nik, {
+    $.getJSON("/api/attendance/" + person.nik, {
       date: person.date
     }).then(clockList => {
       callback(clockList);
@@ -104,7 +104,7 @@ let ClockListDialog = (function () {
 
       $.ajax({
         type:'POST',
-        url : '/api/attendances',
+        url : '/api/attendance',
         headers : {
           nik: selectedNIK,
           timestamp: moment(selectedDateStr + newClockStr, 'YYYYMMDDHH:mm:ss').toDate()
@@ -158,21 +158,21 @@ let ClockListDialog = (function () {
     let table = $('#'+config.tableId).DataTable();
     $('#'+config.tableId+' tbody').on('dblclick', 'td', function() {
       let cell = table.cell(this);
-      if (!cell.length || cell.index().column != 6) return;
+      if (!cell.length || cell.index().column != 7) return;
       let row = cell.index().row;
 
       clocksCell = cell;
-      telatCell = table.cell(row, 8);
-      totalTimeCell = table.cell(row, 7);
-      jamMasukCell = table.cell(row, 5);
+      telatCell = table.cell(row, 9);
+      totalTimeCell = table.cell(row, 8);
+      jamMasukCell = table.cell(row, 6);
       person = {
         nik: table.cell(row, 0).data(),
         name: table.cell(row, 1).data(),
-        date: moment(table.cell(row, 4).data(), 'DD MMM YYYY').format("YYYY-M-D")
+        date: moment(table.cell(row, 5).data(), 'DD MMM YYYY').format("YYYY-M-D")
       };
       selectedNIK = person.nik;
       department = table.cell(row, 2).data();
-      selectedDateStr = moment(table.cell(row, 4).data(), 'DD MMM YYYY').format("YYYYMMDD");
+      selectedDateStr = moment(table.cell(row, 5).data(), 'DD MMM YYYY').format("YYYYMMDD");
       showClockListDialog(person);
     });
 
