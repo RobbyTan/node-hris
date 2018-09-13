@@ -8,21 +8,21 @@ const authentication = require('../middleware/authentication.js')
 
 // attendance route
 
-router.get('/view',authentication.isLoggedIn,(req, res) => {
+router.get('/view', authentication.isLoggedIn, (req, res) => {
   res.render('./attendance/viewAttendance')
 })
 
-router.get('/view1',authentication.isLoggedIn, (req, res) => {
-    db.Configuration.findOne({},function(err, configuration){
-    if(err){
-      console.log(err);
-    }else{
-      res.render('./attendance/viewAttendance1',{configuration: configuration})
+router.get('/view1', authentication.isLoggedIn, (req, res) => {
+  db.Configuration.findOne({}, function (err, configuration) {
+    if (err) {
+      console.log(err)
+    } else {
+      res.render('./attendance/viewAttendance1', { configuration: configuration })
     }
   })
 })
 
-router.get('/view2',authentication.isLoggedIn, (req, res) => {
+router.get('/view2', authentication.isLoggedIn, (req, res) => {
   res.render('./attendance/viewAttendance2')
 })
 
@@ -44,11 +44,11 @@ router.post('/upload', authentication.isLoggedIn, upload.single('file'), async (
       error: 'Please Upload a file'
     })
   }
-  let workbook;
+  let workbook
   let toJson = function toJson (workbook) {
     let result = {}
     workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1})
+      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
       if (roa.length) result[sheetName] = roa
     })
     return JSON.stringify(result, 2, 2)
@@ -58,7 +58,7 @@ router.post('/upload', authentication.isLoggedIn, upload.single('file'), async (
 
     let result = {}
     workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1})
+      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
       if (roa.length) result[sheetName] = roa
     })
     let data = result['Sheet1']
@@ -70,7 +70,7 @@ router.post('/upload', authentication.isLoggedIn, upload.single('file'), async (
       let newAttendance = {
         nik: attendance[2],
         date: moment(attendance[0] + attendance[1], 'YYYYMMDDHHmmss').toDate(),
-        type: "auto"
+        type: 'auto'
       }
 
       await db.Absensi.create(newAttendance, function (err, newlyCreated) {

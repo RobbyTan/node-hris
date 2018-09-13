@@ -1,4 +1,4 @@
-let mongoose = require('mongoose');
+let mongoose = require('mongoose')
 
 let keteranganPayrollSchema = new mongoose.Schema({
   nik: String,
@@ -6,8 +6,8 @@ let keteranganPayrollSchema = new mongoose.Schema({
   endDate: Date,
   nominal: Number,
   keterangan: String
-});
+})
 
-let KeteranganPayroll = mongoose.model('KeteranganPayroll', keteranganPayrollSchema);
+let KeteranganPayroll = mongoose.model('KeteranganPayroll', keteranganPayrollSchema)
 
-module.exports = KeteranganPayroll;
+module.exports = KeteranganPayroll

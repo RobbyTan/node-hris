@@ -6,7 +6,7 @@ let attendanceSchema = new mongoose.Schema({
   },
   nik: {
     type: String,
-    ref: 'Employee'// model yang kita connect
+    ref: 'Employee'
   },
   type: {
     type: String,
@@ -14,6 +14,4 @@ let attendanceSchema = new mongoose.Schema({
   }
 })
 
-var Attendance = mongoose.model('Attendance', attendanceSchema)
-
-module.exports = Attendance
+module.exports = mongoose.model('Attendance', attendanceSchema)

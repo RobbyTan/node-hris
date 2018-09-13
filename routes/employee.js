@@ -3,28 +3,21 @@ const router = express.Router()
 const xlsx = require('xlsx')
 const { upload } = require('../middleware/upload')
 const db = require('../models')
-const authentication = require('../middleware/authentication.js')
-// employee route
+const auth = require('../middleware/authentication.js')
 
-router.get('/',authentication.isLoggedIn, (req, res) => {
-  res.render('./employee/mainEmployee')
+router.get('/', auth.isLoggedIn, (req, res) => {
+  res.render('employee/index')
 })
-router.get('/view',authentication.isLoggedIn, (req, res) => {
-  db.Fulldata.find({}, function (err, allEmployee) {
-    if (err) {
-      console.log(err)
-    } else {
-      res.render('./employee/viewEmployee', {employees: allEmployee})
-    }
-  })
+
+router.get('/new', auth.isLoggedIn, (req, res) => {
+  res.render('employee/new')
 })
-router.get('/new',authentication.isLoggedIn, (req, res) => {
-  res.render('./employee/statusEmployee')
+
+router.get('/new/upload', auth.isLoggedIn, (req, res) => {
+  res.render('employee/new-upload')
 })
-router.get('/new/upload', authentication.isLoggedIn,(req, res) => {
-  res.render('./employee/uploadEmployee')
-})
-router.post('/new/upload',upload.single('file'), async (req, res) => {
+
+router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(422).json({
       error: 'Please Upload a file'
@@ -34,7 +27,7 @@ router.post('/new/upload',upload.single('file'), async (req, res) => {
   let toJson = function toJson (workbook) {
     let result = {}
     workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1})
+      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
       if (roa.length) result[sheetName] = roa
     })
     return JSON.stringify(result, 2, 2)
@@ -44,7 +37,7 @@ router.post('/new/upload',upload.single('file'), async (req, res) => {
 
     let result = {}
     workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1})
+      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
       if (roa.length) result[sheetName] = roa
     })
     let data = result['Sheet1']
@@ -60,7 +53,7 @@ router.post('/new/upload',upload.single('file'), async (req, res) => {
         birthday: employee[5],
         department: employee[6],
         jam_masuk: employee[7] ? new Date('12-12-2000 ' + employee[7]) : null,
-        atasan_langsung: employee[8]}
+        atasan_langsung: employee[8] }
 
       console.log(employee)
 
@@ -68,7 +61,7 @@ router.post('/new/upload',upload.single('file'), async (req, res) => {
         if (err) {
 
         } else {
-            // redirect back to events page
+          // redirect back to events page
           console.log('Employee created')
         }
       })
@@ -80,11 +73,6 @@ router.post('/new/upload',upload.single('file'), async (req, res) => {
     })
   }
   return res.status(200).send(toJson(workbook))
-})
-
-router.post('/',authentication.isLoggedIn, (req, res) => {
-  var status = req.body.status
-  res.render('./employee/newEmployee', {status: status})
 })
 
 module.exports = router

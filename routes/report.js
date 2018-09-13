@@ -1,4 +1,4 @@
-const querystring = require('querystring'); 
+const querystring = require('querystring')
 const express = require('express')
 const router = express.Router()
 const xlsx = require('xlsx')
@@ -8,26 +8,26 @@ const moment = require('moment')
 const authentication = require('../middleware/authentication.js')
 const bcrypt = require('bcrypt')
 
-router.get('/access', authentication.reportAccess(true), async(req, res) => {
-  const queryString = querystring.stringify({continueUrl: req.query.continueUrl});
+router.get('/access', authentication.reportAccess(true), async (req, res) => {
+  const queryString = querystring.stringify({ continueUrl: req.query.continueUrl })
   res.render('./partials/accessView', {
-    title: 'Master Data', 
-    postUrl: '/report/access?'+queryString
-  });
-});
-router.post('/access', authentication.reportAccess(true), async(req, res) => {
-  let configuration = await db.Configuration.findOne({});
-  let hash = configuration.password;
+    title: 'Master Data',
+    postUrl: '/report/access?' + queryString
+  })
+})
+router.post('/access', authentication.reportAccess(true), async (req, res) => {
+  let configuration = await db.Configuration.findOne({})
+  let hash = configuration.password
   if (bcrypt.compareSync(req.body.password, hash)) {
-    req.session.reportUserId = req.user._id.toString();
-    res.redirect(req.query.continueUrl);
+    req.session.reportUserId = req.user._id.toString()
+    res.redirect(req.query.continueUrl)
   } else {
-    res.redirect('back');
+    res.redirect('back')
   }
-});
+})
 
 router.get('/upload/pph', authentication.reportAccess(), (req, res) => {
-  res.render('./report/uploadPph');
+  res.render('./report/uploadPph')
 })
 router.get('/upload/pphexcel', authentication.reportAccess(), (req, res) => {
   res.render('./report/uploadPphExcel')
@@ -41,63 +41,63 @@ router.get('/view/pph', authentication.reportAccess(), (req, res) => {
         pph: allData
       })
     }
-  });
+  })
 })
 
-router.get("/customReport", authentication.reportAccess(), (req, res) => {
-  let columnNames = Object.keys(db.Fulldata.schema.tree);
-  columnNames = columnNames.filter(name => !['id', '_id', '__v'].includes(name));
-  const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3];
+router.get('/customReport', authentication.reportAccess(), (req, res) => {
+  let columnNames = Object.keys(db.Fulldata.schema.tree)
+  columnNames = columnNames.filter(name => !['id', '_id', '__v'].includes(name))
+  const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3]
   if (!grantedUserIDs.includes(req.user._id.toString())) {
-    columnNames = columnNames.filter(name => !['jumlah_gaji_saat_ini'].includes(name));
+    columnNames = columnNames.filter(name => !['jumlah_gaji_saat_ini'].includes(name))
   }
   res.render('./report/customReport', {
     columnNames: columnNames
-  });
+  })
 })
 
-router.get("/punctualityReportMenu", authentication.reportAccess(), (req, res) => {
-  res.render("report/punctualityReportMenu");
+router.get('/punctualityReportMenu', authentication.reportAccess(), (req, res) => {
+  res.render('report/punctualityReportMenu')
 })
-router.get("/telat5", authentication.reportAccess(), async(req, res) => {
+router.get('/telat5', authentication.reportAccess(), async (req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
-    if (err) return res.redirect('back');
-    res.render("report/telat5Report", {configuration: configuration});
-  });
+    if (err) return res.redirect('back')
+    res.render('report/telat5Report', { configuration: configuration })
+  })
 })
-router.get("/telat15", authentication.reportAccess(), async(req, res) => {
+router.get('/telat15', authentication.reportAccess(), async (req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
-    if (err) return res.redirect('back');
-    res.render("report/telat15Report", {configuration: configuration});
-  });
+    if (err) return res.redirect('back')
+    res.render('report/telat15Report', { configuration: configuration })
+  })
 })
-router.get("/tidakClockOut", authentication.reportAccess(), async (req, res) => {
+router.get('/tidakClockOut', authentication.reportAccess(), async (req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
-    if (err) return res.redirect('back');
-    res.render("report/tidakClockOutReport", {configuration: configuration});
-  });
+    if (err) return res.redirect('back')
+    res.render('report/tidakClockOutReport', { configuration: configuration })
+  })
 })
-router.get("/40jam", authentication.reportAccess(), async (req, res) => {
+router.get('/40jam', authentication.reportAccess(), async (req, res) => {
   db.Configuration.findOne({}, function (err, configuration) {
-    if (err) return res.redirect('back');
-    res.render("report/40jamReport", {configuration: configuration});
-  });
+    if (err) return res.redirect('back')
+    res.render('report/40jamReport', { configuration: configuration })
+  })
 })
 
-router.get("/durasiKerjaReport", authentication.reportAccess(), (req, res) => {
-  res.render("report/durasiKerjaReport");
+router.get('/durasiKerjaReport', authentication.reportAccess(), (req, res) => {
+  res.render('report/durasiKerjaReport')
 })
 
-router.delete("/:id", authentication.reportAccess(), function (req, res) {
+router.delete('/:id', authentication.reportAccess(), function (req, res) {
   db.Fulldata.findByIdAndRemove(req.params.id, function (err) {
     if (err) {
-      console.log(err);
-      res.redirect("/report/view/pph");
+      console.log(err)
+      res.redirect('/report/view/pph')
     } else {
-      res.redirect("/report/view/pph");
+      res.redirect('/report/view/pph')
     }
   })
-});
+})
 
 router.post('/new/upload', authentication.reportAccess(), upload.single('file'), async (req, res) => {
   if (!req.file) {
@@ -105,12 +105,12 @@ router.post('/new/upload', authentication.reportAccess(), upload.single('file'),
       error: 'Please Upload a file'
     })
   }
-  let accNullIndices = new Set();
-  function retrieveNullIndices(row, priorityIndices) {
-    return priorityIndices.filter(idx => !row[idx]);
+  let accNullIndices = new Set()
+  function retrieveNullIndices (row, priorityIndices) {
+    return priorityIndices.filter(idx => !row[idx])
   }
-  let workbook;
-  function toJson(workbook) {
+  let workbook
+  function toJson (workbook) {
     let result = {}
     workbook.SheetNames.forEach(function (sheetName) {
       let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
@@ -121,25 +121,25 @@ router.post('/new/upload', authentication.reportAccess(), upload.single('file'),
     return JSON.stringify(result, 2, 2)
   }
   try {
-    let result = {};
-    workbook = xlsx.readFile(req.file.path);
+    let result = {}
+    workbook = xlsx.readFile(req.file.path)
     workbook.SheetNames.forEach(function (sheetName) {
       let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], {
         header: 1
-      });
-      if (roa.length) result[sheetName] = roa;
+      })
+      if (roa.length) result[sheetName] = roa
     })
-    let data = result['Sheet1'];
+    let data = result['Sheet1']
     data.forEach(async (fulldata, idx) => {
-      let nullIndices = retrieveNullIndices(fulldata, [1, 2, 53]);
+      let nullIndices = retrieveNullIndices(fulldata, [1, 2, 53])
       if (idx <= 3) {
-        return;
+        return
       }
       if (data.length <= 3) {
-        return;
+
       } else if (nullIndices.length) {
-        nullIndices.forEach(idx => accNullIndices.add(idx));
-        console.log(accNullIndices);
+        nullIndices.forEach(idx => accNullIndices.add(idx))
+        console.log(accNullIndices)
       } else {
         let newFullData = {
           kategori_pegawai: fulldata[0],
@@ -257,11 +257,11 @@ router.post('/new/upload', authentication.reportAccess(), upload.single('file'),
           penerimaan_gaji: fulldata[112]
         }
 
-        await db.Fulldata.update({nik : newFullData.nik},newFullData,{upsert: true}, function (err, newlyCreated) {
+        await db.Fulldata.update({ nik: newFullData.nik }, newFullData, { upsert: true }, function (err, newlyCreated) {
           if (err) {
             console.log(err)
           } else {
-            console.log('new', newlyCreated.tanggal_berhenti_kerja);
+            console.log('new', newlyCreated.tanggal_berhenti_kerja)
             console.log('Employee created')
           }
         })
@@ -274,26 +274,26 @@ router.post('/new/upload', authentication.reportAccess(), upload.single('file'),
     })
   }
   if (accNullIndices.size) {
-    function decToAlpha(val) {
-      let result = '';
+    function decToAlpha (val) {
+      let result = ''
       while (val) {
-        let mod = val % 26;
-        result = String.fromCharCode('A'.charCodeAt(0) + mod) + result;
-        val = Math.floor(val/26);
+        let mod = val % 26
+        result = String.fromCharCode('A'.charCodeAt(0) + mod) + result
+        val = Math.floor(val / 26)
       }
-      if (result.length > 1) result = String.fromCharCode(result.charCodeAt(0)-1) + result.substr(1);
-      return result;
+      if (result.length > 1) result = String.fromCharCode(result.charCodeAt(0) - 1) + result.substr(1)
+      return result
     }
-    let indices = Array.from(accNullIndices); indices.sort((a, b) => a-b);
+    let indices = Array.from(accNullIndices); indices.sort((a, b) => a - b)
     let columnNames = Object.keys(db.Fulldata.schema.tree)
-                            .filter(name => !['id', '_id', '__v'].includes(name));
-    let colArray = [];
+      .filter(name => !['id', '_id', '__v'].includes(name))
+    let colArray = []
     indices.forEach(idx => {
-      colArray.push({name: columnNames[idx], col: decToAlpha(idx)});
-    });
-    return res.status(200).json({colArray: colArray});
+      colArray.push({ name: columnNames[idx], col: decToAlpha(idx) })
+    })
+    return res.status(200).json({ colArray: colArray })
   }
-  return res.status(200).json({success: true});
+  return res.status(200).json({ success: true })
 })
 
 module.exports = router

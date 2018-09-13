@@ -1,0 +1,23 @@
+<html>
+
+<% include ../partials/head %>
+
+<body>
+  <% include ../partials/nav %>
+
+  <div class="container mt-5">
+    <h3>New Employee</h3>
+    <a type="button" class="btn btn-primary" href="/employee/new/upload">Upload Excel</a>
+  </div>
+
+  <% include ../partials/script %>
+
+  <script>
+    $(document).ready(function () {
+      $('.mdb-select').material_select()
+      $('.button-collapse').sideNav()
+    })
+  </script>
+</body>
+
+</html>
