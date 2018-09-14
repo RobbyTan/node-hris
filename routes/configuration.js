@@ -1,17 +1,15 @@
 const express = require('express')
 const router = express.Router()
 const xlsx = require('xlsx')
-const {
-  upload
-} = require('../middleware/upload')
-const db = require('../models')
 const moment = require('moment')
-const authentication = require('../middleware/authentication.js')
 const bcrypt = require('bcrypt')
+const db = require('../models')
+const authentication = require('../middleware/authentication.js')
+const { upload } = require('../middleware/upload')
 
 router.get('/', authentication.isLoggedIn, (req, res) => {
   db.Configuration.findOne({}, (err, configuration) => {
-    res.render('configuration', {
+    res.render('configuration/configuration', {
       configuration: configuration
     })
   })

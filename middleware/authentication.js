@@ -2,16 +2,14 @@ const querystring = require('querystring')
 let authentication = {}
 
 function isLoggedIn (req, res, next) {
-  return next()
   if (req.isAuthenticated()) return next()
-  res.redirect('/login')
+  res.redirect('/user/login')
 }
 
 function reportAccess (dontDirectToAccess) {
   return function (req, res, next) {
-    return next()
     if (!req.isAuthenticated()) {
-      res.redirect(`/login`)
+      res.redirect(`/user/login`)
     } else if (!dontDirectToAccess && !req.session.reportUserId) {
       const queryString = querystring.stringify({ continueUrl: req.originalUrl })
       res.redirect('/report/access?' + queryString)
@@ -23,10 +21,9 @@ function reportAccess (dontDirectToAccess) {
 
 function payrollAccess (dontDirectToAccess) {
   return function (req, res, next) {
-    return next()
     const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3]
     if (!req.isAuthenticated()) {
-      res.redirect(`/login`)
+      res.redirect(`/user/login`)
     } else if (!grantedUserIDs.includes(req.user._id.toString())) {
       res.redirect('back')
     } else if (!dontDirectToAccess && !grantedUserIDs.includes(req.session.payrollUserId || '')) {

@@ -1,8 +1,20 @@
-<% include ../partials/attendanceHeader%>
-<div class="container">
-  <h3>View Payroll</h3>
-  <a type="button" class="btn btn-primary" href="/payroll/view/manual">Manual Date Payroll</a>
-  <a type="button" class="btn btn-primary" href="/payroll/view/generatedpayroll">Generated Payroll Report System</a>
-  <!-- <a type="button" class="btn btn-primary" href="/attendance/view3">Attendance with no filter</a> -->
-</div>
-<% include ../partials/attendanceFooter%>
+<html>
+
+<% include ../partials/head %>
+
+<body>
+  <% include ../partials/nav %>
+  <div class="container mt-3">
+    <h3>View Payroll</h3>
+    <a type="button" class="btn btn-primary" href="/payroll/view/manual">Manual Date Payroll</a>
+    <a type="button" class="btn btn-primary" href="/payroll/view/generatedpayroll">Generated Payroll Report System</a>
+    <!-- <a type="button" class="btn btn-primary" href="/attendance/view3">Attendance with no filter</a> -->
+  </div>
+
+  <% include ../partials/script %>
+  <script>
+    $(".button-collapse").sideNav();
+  </script>
+</body>
+
+</html>

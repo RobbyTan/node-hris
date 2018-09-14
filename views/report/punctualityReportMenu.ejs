@@ -1,10 +1,24 @@
-<% include ../partials/attendanceHeader%>
-<div class="container">
-  <h3>Punctuality Report</h3>
-  <a type="button" class="btn btn-primary" href="/report/telat5">5 Minutes Report</a>
-  <a type="button" class="btn btn-primary" href="/report/telat15">15 Minutes Report</a>
-  <a type="button" class="btn btn-primary" href="/report/tidakClockOut">No Clock-In/Out Report</a>
-  <a type="button" class="btn btn-primary" href="/report/40jam">Weekly Working Hours Report</a>
-  <!-- <a type="button" class="btn btn-primary" href="/attendance/view3">Attendance with no filter</a> -->
-</div>
-<% include ../partials/attendanceFooter%>
+<html>
+
+<% include ../partials/head %>
+
+<body>
+
+  <div class="container mt-3">
+    <% include ../partials/nav %>
+    <h3>Punctuality Report</h3>
+    <a type="button" class="btn btn-primary" href="/report/telat5">5 Minutes Report</a>
+    <a type="button" class="btn  btn-primary" href="/report/telat15">15 Minutes Report</a>
+    <a type="button" class="btn btn-primary" href="/report/tidakClockOut">No Clock-In/Out Report</ a>
+    <a type="button" class="btn btn-primary" href="/report/40jam">Weekly Working Hours Report</a> 
+  </div>
+
+  <% include ../partials/script %>
+  <script>
+    $(".button-collapse").sideNav();
+    $('.mdb-select').material_select();
+  </script>
+
+</body>
+
+</html>

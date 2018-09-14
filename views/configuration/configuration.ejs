@@ -1,72 +1,67 @@
-<% include partials/attendanceHeader%>
-<h1>Configuration</h1>
-<hr>
-<!-- Default input -->
-<form id="formMaxTime">
-	<div class="row" style="padding-top: 20px">
-		<div class="col-6">
-			<label for="inputTime">Set Dosen Tidak Tetap Maximum Time :</label>
-		</div>
-		<div class="col-6">
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-lg-2">
-			<div class="input-group clockpicker">
-				<input type="text" id="txtMaxTime" name="maxTime" pattern="^([0-1][0-9]|2[0-3]):([0-5][0-9])$" class="form-control" value="<%= configuration.dosenTidakTetapMaxTime %>" placeholder="HH:mm">
+<html>
+
+<% include ../partials/head %>
+
+<body>
+	<% include ../partials/nav %>
+
+	<div class="container mt-3">
+
+		<h1>Configuration</h1>
+		<hr>
+		<!-- Default input -->
+		<form id="formMaxTime">
+			<div class="row" style="padding-top: 20px">
+				<div class="col-6">
+					<label for="inputTime">Set Dosen Tidak Tetap Maximum Time :</label>
+				</div>
+				<div class="col-6">
+				</div>
 			</div>
-		</div>
+			<div class="row">
+				<div class="col-lg-2">
+					<div class="input-group clockpicker">
+						<input type="text" id="txtMaxTime" name="maxTime" pattern="^([0-1][0-9]|2[0-3]):([0-5][0-9])$" class="form-control"
+						 value="<%= configuration.dosenTidakTetapMaxTime %>" placeholder="HH:mm">
+					</div>
+				</div>
+			</div>
+			<button type="submit" class="btn btn-md btn-primary btn-rounded" id="btnSave" style="margin-top: 20px">Save Settings</button>
+		</form>
+		<hr>
+		<label>Reset Report Password</label><br>
+		<a href="/configuration/reset/password" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset
+			Password</a>
+		<hr>
+		<label>Reset Payroll Password</label><br>
+		<a href="/configuration/reset/password/payroll" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset
+			Password</a>
 	</div>
-	<button type="submit" class="btn btn-md btn-primary btn-rounded" id="btnSave" style="margin-top: 20px">Save Settings</button>
-</form><hr>
-<label>Reset Report Password</label><br>
-<a href="/configuration/reset/password" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset Password</a><hr>
-<label>Reset Payroll Password</label><br>
-<a href="/configuration/reset/password/payroll" class="btn btn-md btn-primary btn-rounded" style="margin-top: 20px">Reset Password</a>
-<script type="text/javascript" src="/scripts/bootstrap-clockpicker.min.js"></script>
-<script type="text/javascript">
-	$('.clockpicker').clockpicker({
-		autoclose: true,
-		placement: 'bottom',
-		donetext: 'Done'
-	});
-	$('#formMaxTime').on('submit', function(error) {
-		error.preventDefault();
-		let maxTime = {
-			maxTime: $('#txtMaxTime').val()
-		}
 
-		$.ajax({
-			type:'POST',
-			url : '/api/configuration/DosenMaxTime',
-			headers : maxTime,
-			success : function(data){
-				console.log(data);
-				toastr.options = {
-					"closeButton": false,
-					"debug": false,
-					"newestOnTop": false,
-					"progressBar": false,
-					"positionClass": "toast-top-center",
-					"preventDuplicates": false,
-					"onclick": null,
-					"showDuration": 300,
-					"hideDuration": 500,
-					"timeOut": 3000,
-					"extendedTimeOut": 1000,
-					"showEasing": "swing",
-					"hideEasing": "linear",
-					"showMethod": "fadeIn",
-					"hideMethod": "fadeOut"
-				}
-				toastr.info('Settings Updated');
-			},
-			error : function(){
-				console.log("error updating DosenMaxTime")
+	<% include ../partials/script %>
+	<script src="/scripts/bootstrap-clockpicker.min.js"></script>
+	<script>
+		$(".button-collapse").sideNav();
+		$('#formMaxTime').on('submit', function (error) {
+			error.preventDefault();
+			let maxTime = {
+				maxTime: $('#txtMaxTime').val()
 			}
+
+			$.ajax({
+				type: 'POST',
+				url: '/api/configuration/DosenMaxTime',
+				headers: maxTime,
+				success: function (data) {
+					console.log(data);
+					toastr.info('Settings Updated');
+				},
+				error: function () {
+					console.log("error updating DosenMaxTime")
+				}
+			})
 		})
-	})
+	</script>
+</body>
 
-</script>
-
-<% include partials/attendanceFooter%>
+</html>

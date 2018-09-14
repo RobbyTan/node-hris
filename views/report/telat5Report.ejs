@@ -1,5 +1,11 @@
-<% include ../partials/attendanceHeader%>
-<div class="container">
+<html>
+
+<% include ../partials/head-table %>
+
+<body>
+
+<div class="container mt-3">
+  <% include ../partials/nav %>
 	<h3>Telat 5 Menit</h3>
 	
 	<table class="table">
@@ -193,7 +199,7 @@
     let toString = $('#to_txt').val();
     loadingSpinner.start();
     try {
-			let attendances = await $.getJSON("/api/attendances", {from:fromString, to:toString});
+			let attendances = await $.getJSON("/api/attendance", {from:fromString, to:toString});
 			let employeeDict = processPunctuality(attendances);
       renderTable(employeeDict);
       loadingSpinner.stop();

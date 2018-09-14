@@ -1,4 +1,7 @@
-<% include ../partials/attendanceHeader%>
+<html>
+
+<% include ../partials/head-table %>
+
 <style>
   #data_table tbody td:nth-child(19), #data_table tbody td:nth-child(20) {
     cursor: pointer;
@@ -13,108 +16,110 @@
     background: lightgray;
   }
 </style>
-<div class="container">
-  <h3>Manual Date Payroll</h3>
-  <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
-  <table class="table">
-    <label class="pl-3">From:</label>
-    <div class="md-form col-xl-3">
-      <input name="from" type="date" id="from_txt" required>
-    </div>
-    <label class="pl-3">To:</label>
-    <div class="md-form col-xl-3">
-      <input name="to" type="date" id="to_txt" required>
-    </div>
-    <button id="generate_button" type="button" class="btn btn-primary">Generate</button>
-    <br>
-    <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
-      <div class="spinner-layer spinner-blue-only">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div>
-        <div class="gap-patch">
-          <div class="circle"></div>
-        </div>
-        <div class="circle-clipper right">
-          <div class="circle"></div>
+
+<body>
+  <div class="container">
+    <h3>Manual Date Payroll</h3>
+    <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
+    <table class="table">
+      <label class="pl-3">From:</label>
+      <div class="md-form col-xl-3">
+        <input name="from" type="date" id="from_txt" required>
+      </div>
+      <label class="pl-3">To:</label>
+      <div class="md-form col-xl-3">
+        <input name="to" type="date" id="to_txt" required>
+      </div>
+      <button id="generate_button" type="button" class="btn btn-primary">Generate</button>
+      <br>
+      <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
+        <div class="spinner-layer spinner-blue-only">
+          <div class="circle-clipper left">
+            <div class="circle"></div>
+          </div>
+          <div class="gap-patch">
+            <div class="circle"></div>
+          </div>
+          <div class="circle-clipper right">
+            <div class="circle"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <table id="data_table" class="table stripe" cellspacing="0" width="100%">
-      <thead>
-        <tr>
-          <td>Kategori Kepegawaian</td>
-          <td>Nomor Induk Karyawan (NIK)</td>
-          <td>Nama Depan</td>
-          <td>Nama Tengah</td>
-          <td>Nama Belakang/Marga</td>
-          <td>Departemen/Fakultas</td>
-          <td>Spesialisasi</td>
-          <td>Cost Center</td>
-          <td>Nama Mata Kuliah</td>
-          <td>Jumlah Sesi Tutorial</td>
-          <td>Jumlah Sesi Lecture</td>
-          <td>Total Sesi</td>
-          <td>Perhitungan Gaji</td>
-          <td>Jenis Mata Uang</td>
-          <td>Jumlah Gaji Saat Ini</td>
-          <td>Penerimaan Gaji</td>
-          <td>Total Durasi Jam Kerja</td>
-          <td>Gaji Pokok/Total Gaji per Jam</td>
-          <td>Penambahan/Pengurangan</td>
-          <td>Keterangan Penambahan/Pengurangan</td>
-          <td>Total Gaji Yang Diterima</td>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
+      <table id="data_table" class="table stripe" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <td>Kategori Kepegawaian</td>
+            <td>Nomor Induk Karyawan (NIK)</td>
+            <td>Nama Depan</td>
+            <td>Nama Tengah</td>
+            <td>Nama Belakang/Marga</td>
+            <td>Departemen/Fakultas</td>
+            <td>Spesialisasi</td>
+            <td>Cost Center</td>
+            <td>Nama Mata Kuliah</td>
+            <td>Jumlah Sesi Tutorial</td>
+            <td>Jumlah Sesi Lecture</td>
+            <td>Total Sesi</td>
+            <td>Perhitungan Gaji</td>
+            <td>Jenis Mata Uang</td>
+            <td>Jumlah Gaji Saat Ini</td>
+            <td>Penerimaan Gaji</td>
+            <td>Total Durasi Jam Kerja</td>
+            <td>Gaji Pokok/Total Gaji per Jam</td>
+            <td>Penambahan/Pengurangan</td>
+            <td>Keterangan Penambahan/Pengurangan</td>
+            <td>Total Gaji Yang Diterima</td>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
     </table>
-  </table>
-</div>
+  </div>
 
-<!-- Modal -->
-<div class="modal fade" id="modal_keterangan" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Pengeditan Gaji</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="modal_keterangan_title" class="alert alert-primary" role="alert"></div>
-        <!-- Material form group -->
-        <!--Blue select-->
-        <form id="form_keterangan">
-          <select class="mdb-select colorful-select dropdown-primary" id="option_keterangan">
-            <option value="1">Penambahan</option>
-            <option value="2">Pengurangan</option>
-          </select>
-          <!--/Blue select-->
-          <div class="md-form form-group mt-5">
-            <input type="number" class="form-control" id="nominal_txt" placeholder="" required>
-            <label for="formGroupExampleInputMD">Jumlah</label>
-          </div>
-          <!-- Material input -->
-          <div class="md-form form-group mt-5">
-            <input type="text" class="form-control" id="keterangan_txt" placeholder="Izin bekerja" required>
-            <label for="formGroupExampleInput2MD">Keterangan</label>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" id="add_keterangan_btn" class="btn btn-primary">ADD</button>
-          </div>
-        </form>
-        <!-- Material form group -->
+  <!-- Modal -->
+  <div class="modal fade" id="modal_keterangan" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Pengeditan Gaji</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="modal_keterangan_title" class="alert alert-primary" role="alert"></div>
+          <!-- Material form group -->
+          <!--Blue select-->
+          <form id="form_keterangan">
+            <select class="mdb-select colorful-select dropdown-primary" id="option_keterangan">
+              <option value="1">Penambahan</option>
+              <option value="2">Pengurangan</option>
+            </select>
+            <!--/Blue select-->
+            <div class="md-form form-group mt-5">
+              <input type="number" class="form-control" id="nominal_txt" placeholder="" required>
+              <label for="formGroupExampleInputMD">Jumlah</label>
+            </div>
+            <!-- Material input -->
+            <div class="md-form form-group mt-5">
+              <input type="text" class="form-control" id="keterangan_txt" placeholder="Izin bekerja" required>
+              <label for="formGroupExampleInput2MD">Keterangan</label>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="submit" id="add_keterangan_btn" class="btn btn-primary">ADD</button>
+            </div>
+          </form>
+          <!-- Material form group -->
+        </div>
       </div>
     </div>
   </div>
-</div>
-</div>
-</main>
-<br>
+
+</body>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
 <script src="/scripts/mdb.js"></script>
@@ -134,32 +139,15 @@
 <script src="/scripts/attendances/clock-pairing.js"></script>
 <script src="/scripts/payroll/payroll-dosen-calculator.js"></script>
 
-<script type="text/javascript">
+<script>
   $(".button-collapse").sideNav();
   $('.mdb-select').material_select();
-  $('#data_table').DataTable({
-    dom: 'Bfrtip',
-    lengthMenu: [
-      [10, 25, 50, -1],
-      [10, 25, 50, "All"]
-    ],
-    buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
-      }
-    ]
-  });
 
   //initialize form
-  let monthTo = (moment().month()+1)<10 ? "0"+(moment().month()+1) : (moment().month()+1);
-  let monthFrom = moment().month()<10?"0"+moment().month():moment().month();
-  let dateTo = moment().year()+"-"+monthTo+"-15";
-  let dateFrom = moment().year()+"-"+monthFrom+"-16";
+  let monthTo = (moment().month() + 1) < 10 ? "0" + (moment().month() + 1) : (moment().month() + 1);
+  let monthFrom = moment().month() < 10 ? "0" + moment().month() : moment().month();
+  let dateTo = moment().year() + "-" + monthTo + "-15";
+  let dateFrom = moment().year() + "-" + monthFrom + "-16";
   $('#from_txt').val(dateFrom);
   $('#to_txt').val(dateTo);
 
@@ -175,14 +163,18 @@
   });
 
   function applyPrecision(num, precision) {
-    return Math.round((num + 0.00001) * (10**precision)) / (10**precision);
+    return Math.round((num + 0.00001) * (10 ** precision)) / (10 ** precision);
   }
-  function formatToRupiah(value){
-    let formatted = value.toLocaleString('en-US', {minimumFractionDigits: 2});
+
+  function formatToRupiah(value) {
+    let formatted = value.toLocaleString('en-US', {
+      minimumFractionDigits: 2
+    });
     return 'IDR ' + formatted.replace(/,/g, '#').replace(/\./g, ',').replace(/#/g, '.');
   }
+
   function toNumber(token) {
-    let stringToken = token+'';
+    let stringToken = token + '';
     let cleanToken = stringToken.replace(/[^0-9,]+/g, '').replace(/,/g, '.');
     let numberToken = Number(cleanToken);
     return numberToken;
@@ -220,60 +212,104 @@
         row.penerimaan_gaji,
 
         //data perhitungan gaji dan ayroll
-        applyPrecision(row.total_durasi_kerja_ms/(60*60*1000.0), 2) + ' jam',
+        applyPrecision(row.total_durasi_kerja_ms / (60 * 60 * 1000.0), 2) + ' jam',
         formatToRupiah(applyPrecision(row.gaji_pokok, 2)),
         nominals || '-',
         keterangans || '-',
         formatToRupiah(applyPrecision(row.total_gaji + totalNominal, 2))
-        ]);
+      ]);
     }
     $('#data_table').DataTable({
       destroy: true,
       dom: 'Bfrtip',
-      lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
+      lengthMenu: [
+        [10, 25, 50, -1],
+        [10, 25, 50, "All"]
+      ],
       buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
-      }
+        'pageLength',
+        'copyHtml5',
+        'excelHtml5',
+        {
+          extend: 'pdf',
+          text: 'Pdf',
+          orientation: 'landscape'
+        }
       ],
       data: result,
-      columns: [
-        {title: 'Kategori Pegawai'},  
-        {title: 'NIK'},
+      columns: [{
+          title: 'Kategori Pegawai'
+        },
+        {
+          title: 'NIK'
+        },
 
         // nama lengkap sesuai KTP
-        {title: 'Nama depan'},
-        {title: 'Nama tengah'},
-        {title: 'Nama belakang'},
+        {
+          title: 'Nama depan'
+        },
+        {
+          title: 'Nama tengah'
+        },
+        {
+          title: 'Nama belakang'
+        },
 
         // posisi kerja
-        {title: 'Departemen'},
-        {title: 'Spesialisasi'},
-        {title: 'Cost Center'},
+        {
+          title: 'Departemen'
+        },
+        {
+          title: 'Spesialisasi'
+        },
+        {
+          title: 'Cost Center'
+        },
 
         // data jadwal dosen
-        {title: 'Nama Mata Kuliah'},
-        {title: 'Jumlah Sesi Tutorial'},
-        {title: 'Jumlah Sesi Lecture'},
-        {title: 'Total Sesi'},
+        {
+          title: 'Nama Mata Kuliah'
+        },
+        {
+          title: 'Jumlah Sesi Tutorial'
+        },
+        {
+          title: 'Jumlah Sesi Lecture'
+        },
+        {
+          title: 'Total Sesi'
+        },
 
         // data payroll
-        {title: 'Perhitungan gaji'},
-        {title: 'Jenis mata uang'},
-        {title: 'Jumlah gaji saat ini'},
-        {title: 'Penerimaan gaji'},
+        {
+          title: 'Perhitungan gaji'
+        },
+        {
+          title: 'Jenis mata uang'
+        },
+        {
+          title: 'Jumlah gaji saat ini'
+        },
+        {
+          title: 'Penerimaan gaji'
+        },
 
         // Perhitungan Jam Kerja dan Payroll
-        {title: 'Total durasi kerja'},
-        {title: 'Gaji pokok/Total gaji per jam'},
-        {title: 'Penambahan/Pengurangan'},
-        {title: 'Keterangan Penambahan/Pengurangan'},
-        {title: 'Total gaji yang diterima'}
+        {
+          title: 'Total durasi kerja'
+        },
+        {
+          title: 'Gaji pokok/Total gaji per jam'
+        },
+        {
+          title: 'Penambahan/Pengurangan'
+        },
+        {
+          title: 'Keterangan Penambahan/Pengurangan'
+        },
+        {
+          title: 'Total gaji yang diterima'
+        }
       ]
     });
   }
@@ -293,7 +329,7 @@
       getKeteranganList({
         startDate: new Date(fromString),
         endDate: new Date(toString)
-      }, function(keteranganList) {
+      }, function (keteranganList) {
         let nikToKeteranganList = {};
         //kelompokkan keterangan berdasarkan nik
         keteranganList.forEach(ket => {
@@ -315,23 +351,25 @@
 
   function bindFormKeterangan() {
     let dataTable = $('#data_table').DataTable();
-    $('#data_table tbody').on('dblclick', 'td', function(){
+    $('#data_table tbody').on('dblclick', 'td', function () {
       let cell = dataTable.cell(this);
       if (!cell.length || ![18, 19].includes(cell.index().column)) return;
       let row = cell.index().row;
 
       let nik = dataTable.cell(row, 1).data();
       let nama = '';
-      [2, 3, 4].forEach(e => 
-        {let data = dataTable.cell(row, e).data(); if (data) nama += data+' ';});
+      [2, 3, 4].forEach(e => {
+        let data = dataTable.cell(row, e).data();
+        if (data) nama += data + ' ';
+      });
       $('#modal_keterangan_title')
         .html(`${nama} <span style="float:right">${nik}</span>`)
       $('#modal_keterangan').modal('show');
 
       $('#form_keterangan').unbind();
-      $('#form_keterangan').on('submit', function(err) {
+      $('#form_keterangan').on('submit', function (err) {
         err.preventDefault();
-        let multiplier = $('#option_keterangan :selected').text()==='Penambahan' ? 1 : -1;
+        let multiplier = $('#option_keterangan :selected').text() === 'Penambahan' ? 1 : -1;
         let newKeterangan = {
           nik: dataTable.cell(row, 1).data(),
           startDate: new Date($('#from_txt').val()),
@@ -343,15 +381,15 @@
         //insert to database
         $.ajax({
           type: 'POST',
-          url : '/api/keteranganpayroll',
+          url: '/api/keteranganpayroll',
           headers: newKeterangan,
-          success : function(data) {
+          success: function (data) {
             //update table
             getKeteranganList({
               nik: newKeterangan.nik,
               startDate: newKeterangan.startDate,
               endDate: newKeterangan.endDate
-            }, function(keteranganList) {
+            }, function (keteranganList) {
               let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(keteranganList);
               dataTable.cell(row, 18).data(nominals);
               dataTable.cell(row, 19).data(keterangans);
@@ -362,7 +400,7 @@
               $('#keterangan_txt').val('');
             });
           },
-          error : function() {
+          error: function () {
             toastr.info('Error occured!');
             console.log("Ajax Error occured!");
           }
@@ -384,18 +422,19 @@
   }
 
   function processNominalAndKeterangan(keteranganList) {
-    let nominals = null, keterangans = null, totalNominal = null;
+    let nominals = null,
+      keterangans = null,
+      totalNominal = null;
     if (keteranganList.length) {
       nominals = '', keterangans = '', totalNominal = 0;
       keteranganList.forEach(ket => {
-        nominals += ((ket.nominal>0?'(+) ':'(-) ') + Math.abs(ket.nominal)) + '<br>';
+        nominals += ((ket.nominal > 0 ? '(+) ' : '(-) ') + Math.abs(ket.nominal)) + '<br>';
         keterangans += ket.keterangan + '<br> ';
         totalNominal += ket.nominal;
       });
     }
     return [nominals || '-', keterangans || '-', totalNominal || 0];
   }
-
 </script>
 </body>
 

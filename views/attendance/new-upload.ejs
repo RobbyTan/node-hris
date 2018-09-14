@@ -1,11 +1,44 @@
-<% include ../partials/attendanceHeader%>
-<div class="container">
-  <h2>Upload Attendance Excel</h2>
-  <form method="post" action="/attendance/new/upload" class="dropzone" id="uploadExcel" enctype="multipart/form-data">
-    <div class="fallback">
-      <input name="file" type="file" multiple />
-    </div>
-  </form>
-  <p id="successText"></p>
-</div>
-<% include ../partials/attendanceFooter%>
+<html>
+
+<% include ../partials/head %>
+
+<body>
+  <% include ../partials/nav %>
+
+  <div class="container mt-5">
+    <h2>Upload Attendance Excel</h2>
+    <form method="post" action="/attendance/new/upload" class="dropzone" id="uploadExcel" enctype="multipart/form-data">
+      <div class="fallback">
+        <input name="file" type="file" multiple />
+      </div>
+    </form>
+    <p id="successText"></p>
+  </div>
+
+  <% include ../partials/script %>
+  <script>
+    $(document).ready(function () {
+      console.log('document ready')
+      $('.mdb-select').material_select()
+      $('.button-collapse').sideNav()
+    })
+
+    //Dropzone
+    Dropzone.options.uploadExcel = {
+      url: '/attendance/new/upload',
+      paramName: 'file',
+      dictDefaultMessage: 'Drag an excel file to upload, or click to select one',
+      acceptedFiles: '.xlsx',
+      maxFilesize: 1, // MB
+      accept: function (file, done) {
+        done()
+      },
+      success: function (file, response) {
+        console.log(response)
+        console.log('success')
+      }
+    }
+  </script>
+</body>
+
+</html>

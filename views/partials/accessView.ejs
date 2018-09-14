@@ -1,5 +1,8 @@
-<% include ../partials/dashboardHeader%>
+<html>
 
+<% include ../partials/head %>
+
+<body>
 	<div class="container-fluid mt-5 row justify-content-center">
 		<section class="form-elegant col-10 col-sm-8 col-md-6 col-xl-5">
 			<!--Form without header-->
@@ -7,7 +10,8 @@
 				<div class="card-body mx-4">
 					<!--Header-->
 					<div class="text-center">
-						<h3 id="title" class="dark-grey-text mb-5"><strong><%= title %></strong></h3>
+						<h3 id="title" class="dark-grey-text mb-5"><strong>
+								<%= title %></strong></h3>
 					</div>
 					<!--Body-->
 					<form class="" action="<%= postUrl %>" method="POST">
@@ -26,10 +30,10 @@
 		</section>
 	</div>
 
-	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-	<script src="/scripts/mdb.js"></script>
+	<% include ../partials/script %>
 	<script>
 		$(".button-collapse").sideNav();
 	</script>
 </body>
+
 </html>

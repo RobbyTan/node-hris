@@ -1,21 +1,24 @@
-<% include ../partials/attendanceHeader%>
-<div class="container">
-  <h2>Upload salary excel</h2>
-  <form method="POST" action="" class="dropzone" id="uploadExcel" enctype="multipart/form-data">
-    <div class="fallback">
-      <input name="file" type="file" multiple />
-    </div>
-  </form>
-  <br>
-</div>
-</div>
-</main>
-<!--Main Layout-->
-  <script src="/scripts/mdb.js"></script>
-  <script type="text/javascript">
+<html>
+
+<% include ../partials/head %>
+
+<body>
+
+    <% include ../partials/nav %>
+
+  <div class="container mt-3">
+    <h2>Upload Salary Excel</h2>
+    <form method="POST" action="" class="dropzone" id="uploadExcel" enctype="multipart/form-data">
+      <div class="fallback">
+        <input name="file" type="file" multiple />
+      </div>
+    </form>
+    <br>
+  </div>
+
+  <% include ../partials/script %>
+  <script>
     $(".button-collapse").sideNav();
-  </script>
-  <script type="text/javascript">
     //Dropzone
     Dropzone.options.uploadExcel = {
       url: '/payroll/salary?_method=PUT',
@@ -23,10 +26,10 @@
       dictDefaultMessage: 'Drag an excel file to upload, or click to select one',
       acceptedFiles: '.xlsx',
       maxFilesize: 2, // MB
-      accept: function(file, done) {
+      accept: function (file, done) {
         done();
       },
-      success: function(file, response) {
+      success: function (file, response) {
         console.log('salaries updated');
       }
     };
@@ -34,4 +37,3 @@
 </body>
 
 </html>
-

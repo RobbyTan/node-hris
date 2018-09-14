@@ -1,41 +1,38 @@
-<% include ../partials/dashboardHeader%>
+<html>
 
-<div class="container-fluid mt-5 row justify-content-center">
-	<section class="form-elegant col-10 col-sm-8 col-md-6 col-xl-5">
-		<!--Form without header-->
-		<div class="card">
-			<div class="card-body mx-4">
-				<!--Header-->
-				<div class="text-center">
-					<h3 class="dark-grey-text mb-5"><strong>Payroll</strong></h3>
+<% include ../partials/head %>
+
+<body>
+	<div class="container-fluid mt-5 row justify-content-center">
+		<section class="form-elegant col-10 col-sm-8 col-md-6 col-xl-5">
+			<!--Form without header-->
+			<div class="card">
+				<div class="card-body mx-4">
+					<!--Header-->
+					<div class="text-center">
+						<h3 class="dark-grey-text mb-5"><strong>Payroll</strong></h3>
+					</div>
+					<!--Body-->
+					<form class="" action="/payroll/access" method="post" id="form">
+						<div class="md-form pb-3">
+							<input type="password" id="password" class="form-control" name="password" required>
+							<label for="Form-pass1">Password</label>
+						</div>
+						<div class="text-center mb-3">
+							<button type="submit" class="btn blue-gradient btn-block btn-rounded z-depth-1a" id="btnContinue">Continue</button>
+						</div>
+					</form>
 				</div>
-				<!--Body-->
-				<form class="" action="/payroll/access" method="post" id="form">
-					<div class="md-form pb-3">
-						<input type="password" id="password" class="form-control" name="password" required>
-						<label for="Form-pass1">Password</label>
-					</div>
-					<div class="text-center mb-3">
-						<button type="submit" class="btn blue-gradient btn-block btn-rounded z-depth-1a" id="btnContinue">Continue</button>
-					</div>
-				</form>
+				<!--Footer-->
 			</div>
-			<!--Footer-->
-		</div>
-		<!--/Form without header-->
-	</section>
-</div>
-<script
-src="https://code.jquery.com/jquery-3.2.1.min.js"
-integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-crossorigin="anonymous">
-</script>
-<script src="/scripts/mdb.js"></script>
-<script type="text/javascript">
+			<!--/Form without header-->
+		</section>
+	</div>
 
-	$(".button-collapse").sideNav();
-</script>
-
-
+	<% include ../partials/script %>
+	<script>
+		$(".button-collapse").sideNav()
+	</script>
 </body>
+
 </html>

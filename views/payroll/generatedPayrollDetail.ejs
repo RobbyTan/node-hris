@@ -1,4 +1,7 @@
-<% include ../partials/attendanceHeader%>
+<html>
+
+<% include ../partials/head-table %>
+
 <style>
   #data_table tbody td:nth-child(19), #data_table tbody td:nth-child(20) {
     cursor: pointer;
@@ -13,434 +16,398 @@
     background: lightgray;
   }
 </style>
-<div class="container">
-  <% let momentStartDate = new moment(payrollReport.startDate); %>
-	<% let momentEndDate = new moment(payrollReport.endDate); %>
-  <% let endMonthName = momentEndDate.format('MMMM'); %>
-	<% let endYear = momentEndDate.format('YYYY'); %>
-  <h3>Periode <%= endMonthName %> <%= endYear %></h3>
-  <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
-  <table class="table">
-    <label class="pl-3">From:</label>
-    <div class="md-form col-xl-3">
-      <input name="from" type="date" id="input_from" required>
-    </div>
-    <label class="pl-3">To:</label>
-    <div class="md-form col-xl-3">
-      <input name="to" type="date" id="input_to" required>
-    </div>
-    <button id="btn_save" type="button" class="btn btn-primary">Save</button>
-    <button id="btn_discard" type="button" class="btn btn-blue-grey">Discard</button>
-    <br>
-    <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
-      <div class="spinner-layer spinner-blue-only">
-        <div class="circle-clipper left">
-          <div class="circle"></div>
-        </div>
-        <div class="gap-patch">
-          <div class="circle"></div>
-        </div>
-        <div class="circle-clipper right">
-          <div class="circle"></div>
+
+<body>
+
+  <% include ../partials/nav %>
+  <div class="container">
+    <% let momentStartDate = new moment(payrollReport.startDate); %>
+    <% let momentEndDate = new moment(payrollReport.endDate); %>
+    <% let endMonthName = momentEndDate.format('MMMM'); %>
+    <% let endYear = momentEndDate.format('YYYY'); %>
+    <h3>Periode
+      <%= endMonthName %>
+      <%= endYear %>
+    </h3>
+    <div id="validation-alert" class="alert alert-danger" style="display: none; text-align: center;" role="alert"></div>
+    <table class="table">
+      <label class="pl-3">From:</label>
+      <div class="md-form col-xl-3">
+        <input name="from" type="date" id="input_from" required>
+      </div>
+      <label class="pl-3">To:</label>
+      <div class="md-form col-xl-3">
+        <input name="to" type="date" id="input_to" required>
+      </div>
+      <button id="btn_save" type="button" class="btn btn-primary">Save</button>
+      <button id="btn_discard" type="button" class="btn btn-blue-grey">Discard</button>
+      <br>
+      <div class="preloader-wrapper big active" id="spinner" style="display: none;top: 50%; left: 50%;">
+        <div class="spinner-layer spinner-blue-only">
+          <div class="circle-clipper left">
+            <div class="circle"></div>
+          </div>
+          <div class="gap-patch">
+            <div class="circle"></div>
+          </div>
+          <div class="circle-clipper right">
+            <div class="circle"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <table id="data_table" class="table stripe" cellspacing="0" width="100%">
-      <thead>
-        <tr>
-          <td>Kategori Kepegawaian</td>
-          <td>Nomor Induk Karyawan (NIK)</td>
-          <td>Nama Depan</td>
-          <td>Nama Tengah</td>
-          <td>Nama Belakang/Marga</td>
-          <td>Departemen/Fakultas</td>
-          <td>Spesialisasi</td>
-          <td>Cost Center</td>
-          <td>Nama Mata Kuliah</td>
-          <td>Jumlah Sesi Tutorial</td>
-          <td>Jumlah Sesi Lecture</td>
-          <td>Total Sesi</td>
-          <td>Perhitungan Gaji</td>
-          <td>Jenis Mata Uang</td>
-          <td>Jumlah Gaji Saat Ini</td>
-          <td>Penerimaan Gaji</td>
-          <td>Total Durasi Jam Kerja</td>
-          <td>Gaji Pokok/Total Gaji per Jam</td>
-          <td>Penambahan/Pengurangan</td>
-          <td>Keterangan Penambahan/Pengurangan</td>
-          <td>Total Gaji Yang Diterima</td>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
+      <table id="data_table" class="table stripe" cellspacing="0" width="100%">
+        <thead>
+          <tr>
+            <td>Kategori Kepegawaian</td>
+            <td>Nomor Induk Karyawan (NIK)</td>
+            <td>Nama Depan</td>
+            <td>Nama Tengah</td>
+            <td>Nama Belakang/Marga</td>
+            <td>Departemen/Fakultas</td>
+            <td>Spesialisasi</td>
+            <td>Cost Center</td>
+            <td>Nama Mata Kuliah</td>
+            <td>Jumlah Sesi Tutorial</td>
+            <td>Jumlah Sesi Lecture</td>
+            <td>Total Sesi</td>
+            <td>Perhitungan Gaji</td>
+            <td>Jenis Mata Uang</td>
+            <td>Jumlah Gaji Saat Ini</td>
+            <td>Penerimaan Gaji</td>
+            <td>Total Durasi Jam Kerja</td>
+            <td>Gaji Pokok/Total Gaji per Jam</td>
+            <td>Penambahan/Pengurangan</td>
+            <td>Keterangan Penambahan/Pengurangan</td>
+            <td>Total Gaji Yang Diterima</td>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
     </table>
-  </table>
-</div>
+  </div>
 
-<!-- Modal -->
-<div class="modal fade" id="modal_keterangan" tabindex="-1" role="dialog" aria-labelledby="modal_keteranganLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modal_keteranganLabel">Pengeditan Gaji</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div id="modal_keterangan_title" class="alert alert-primary" role="alert"></div>
-        <!-- Material form group -->
-        <!--Blue select-->
-        <form id="form_keterangan">
-          <select class="mdb-select colorful-select dropdown-primary" id="option_keterangan">
-            <option value="1">Penambahan</option>
-            <option value="2">Pengurangan</option>
-          </select>
-          <!--/Blue select-->
-          <div class="md-form form-group mt-5">
-            <input type="number" class="form-control" id="nominal_txt" placeholder="" required>
-            <label for="formGroupExampleInputMD">Jumlah</label>
-          </div>
-          <!-- Material input -->
-          <div class="md-form form-group mt-5">
-            <input type="text" class="form-control" id="keterangan_txt" placeholder="Izin bekerja" required>
-            <label for="formGroupExampleInput2MD">Keterangan</label>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="submit" id="add_keterangan_btn" class="btn btn-primary">ADD</button>
-          </div>
-        </form>
-        <!-- Material form group -->
+  <!-- Modal -->
+  <div class="modal fade" id="modal_keterangan" tabindex="-1" role="dialog" aria-labelledby="modal_keteranganLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modal_keteranganLabel">Pengeditan Gaji</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="modal_keterangan_title" class="alert alert-primary" role="alert"></div>
+          <!-- Material form group -->
+          <!--Blue select-->
+          <form id="form_keterangan">
+            <select class="mdb-select colorful-select dropdown-primary" id="option_keterangan">
+              <option value="1">Penambahan</option>
+              <option value="2">Pengurangan</option>
+            </select>
+            <!--/Blue select-->
+            <div class="md-form form-group mt-5">
+              <input type="number" class="form-control" id="nominal_txt" placeholder="" required>
+              <label for="formGroupExampleInputMD">Jumlah</label>
+            </div>
+            <!-- Material input -->
+            <div class="md-form form-group mt-5">
+              <input type="text" class="form-control" id="keterangan_txt" placeholder="Izin bekerja" required>
+              <label for="formGroupExampleInput2MD">Keterangan</label>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="submit" id="add_keterangan_btn" class="btn btn-primary">ADD</button>
+            </div>
+          </form>
+          <!-- Material form group -->
+        </div>
       </div>
     </div>
   </div>
-</div>
-</div>
-</main>
-<br>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
-<script src="/scripts/mdb.js"></script>
-<script type="text/javascript" src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js">
-</script>
-<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js">
-</script>
-<script src="/scripts/attendances/loading-spinner.js"></script>
-<script src="/scripts/attendances/clock-pairing.js"></script>
-<script src="/scripts/payroll/payroll-dosen-calculator.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js"></script>
+  <script src="/scripts/mdb.js"></script>
+  <script src="https://cdn.datatables.net/1.10.8/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js">
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+  <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
+  <script src="/scripts/attendances/loading-spinner.js"></script>
+  <script src="/scripts/attendances/clock-pairing.js"></script>
+  <script src="/scripts/payroll/payroll-dosen-calculator.js"></script>
 
-<script type="text/javascript">
-  $(".button-collapse").sideNav();
-  $('.mdb-select').material_select();
-  $('#data_table').DataTable({
-    dom: 'Bfrtip',
-    lengthMenu: [
-      [10, 25, 50, -1],
-      [10, 25, 50, "All"]
-    ],
-    buttons: [
-      'pageLength',
-      'copyHtml5',
-      'excelHtml5',
-      {
-        extend: 'pdf',
-        text: 'Pdf',
-        orientation: 'landscape'
+  <script type="text/javascript">
+    $(".button-collapse").sideNav()
+    $('.mdb-select').material_select()
+
+    let strOldStartDate = '<%= moment(payrollReport.startDate).format('YYYY-MM-DD') %>';
+    let strOldEndDate = '<%= moment(payrollReport.endDate).format('YYYY-MM-DD') %>';
+    let $inputFrom = $('#input_from');
+    let $inputTo = $('#input_to');
+    let $btnSave = $('#btn_save').hide();
+    let $btnDiscard = $('#btn_discard').hide();
+
+    //initialize form
+    (function initializeForm() {
+      $inputFrom.val(strOldStartDate);
+      $inputTo.val(strOldEndDate);
+    })();
+    let inputDateChangeListener = function () {
+      let newStartDate = $inputFrom.val();
+      let newEndDate = $inputTo.val();
+      if (newStartDate != strOldStartDate || newEndDate != strOldEndDate) {
+        $btnSave.show();
+        $btnDiscard.show();
+      } else {
+        $btnSave.hide();
+        $btnDiscard.hide();
       }
-    ]
-  });
+    };
+    $inputFrom.change(inputDateChangeListener);
+    $inputTo.change(inputDateChangeListener);
 
-  let strOldStartDate = '<%= moment(payrollReport.startDate).format('YYYY-MM-DD') %>';
-  let strOldEndDate = '<%= moment(payrollReport.endDate).format('YYYY-MM-DD') %>';
-  let $inputFrom = $('#input_from');
-  let $inputTo = $('#input_to');
-  let $btnSave = $('#btn_save').hide();
-  let $btnDiscard = $('#btn_discard').hide();
-
-  //initialize form
-  (function initializeForm() {
-    $inputFrom.val(strOldStartDate);
-    $inputTo.val(strOldEndDate);
-  })();
-  let inputDateChangeListener = function() {
-    let newStartDate = $inputFrom.val();
-    let newEndDate = $inputTo.val();
-    if (newStartDate != strOldStartDate || newEndDate != strOldEndDate) {
-      $btnSave.show(); $btnDiscard.show();
-    } else {
-      $btnSave.hide(); $btnDiscard.hide();
+    function validateReportForm() {
+      let momentStartDate = moment($inputFrom.val(), 'YYYY-MM-DD');
+      let momentEndDate = moment($inputTo.val(), 'YYYY-MM-DD');
+      if (momentEndDate.diff(momentStartDate) < 0) {
+        toastr.error('Start Date must be before End Date');
+        return false;
+      } else if (momentStartDate.format('M') == '12' && momentEndDate.format('M') == '1') {
+        return true;
+      } else if ((+momentEndDate.format('M')) - (+momentStartDate.format('M')) != 1) {
+        toastr.error('Payroll interval is not 1 month');
+        return false;
+      }
+      return true;
     }
-  };
-  $inputFrom.change(inputDateChangeListener);
-  $inputTo.change(inputDateChangeListener);
-
-  function validateReportForm() {
-		let momentStartDate = moment($inputFrom.val(), 'YYYY-MM-DD');
-		let momentEndDate = moment($inputTo.val(), 'YYYY-MM-DD');
-		if (momentEndDate.diff(momentStartDate) < 0) {
-			toastr.error('Start Date must be before End Date');
-			return false;
-		} else if (momentStartDate.format('M') == '12' && momentEndDate.format('M') == '1') {
-			return true;
-		} else if ((+momentEndDate.format('M')) - (+momentStartDate.format('M')) != 1) {
-			toastr.error('Payroll interval is not 1 month');
-			return false;
-		}
-		return true;
-	}
-  $btnSave.click(function() {
-    if (!validateReportForm()) return;
-    $.ajax({
-			type: 'POST',
-			url : `/api/payrollreport/<%= payrollReport._id %>?_method=PUT`,
-			headers: {
-				startdate: new Date($inputFrom.val()),
-				enddate: new Date($inputTo.val())
-			}
-		}).done(function(createdReport) {
-      strOldStartDate = $inputFrom.val();
-      strOldEndDate = $inputTo.val();
-      $btnSave.hide(); $btnDiscard.hide();
-      reloadTable();
-      let momentEndDate = moment(strOldEndDate, 'YYYY-MM-DD');
-      $('h3').text(`Periode ${momentEndDate.format('MMMM')} ${momentEndDate.format('YYYY')}`);
-			toastr.info('Report period updated');
-		}).fail(function(err) {
-      toastr.error(err.responseJSON.errorMsg);
-		});
-  });
-  $btnDiscard.click(function() {
-    $inputFrom.val(strOldStartDate);
-    $inputTo.val(strOldEndDate);
-    $btnSave.hide(); $btnDiscard.hide();
-  });
-
-  let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
-  let loadingSpinner = LoadingSpinner.bind({
-    spinner: 'spinner',
-    hideableNodes: ['data_table_wrapper'],
-    disableNodes: []
-  });
-
-  function applyPrecision(num, precision) {
-    return Math.round((num + 0.00001) * (10**precision)) / (10**precision);
-  }
-  function formatToRupiah(value){
-    let formatted = value.toLocaleString('en-US', {minimumFractionDigits: 2});
-    return 'IDR ' + formatted.replace(/,/g, '#').replace(/\./g, ',').replace(/#/g, '.');
-  }
-  function toNumber(token) {
-    let stringToken = token+'';
-    let cleanToken = stringToken.replace(/[^0-9,]+/g, '').replace(/,/g, '.');
-    let numberToken = Number(cleanToken);
-    return numberToken;
-  }
-
-  function renderTable(rows) {
-    $.fn.dataTable.ext.errMode = 'none';
-    let result = [];
-    for (let row of rows) {
-      let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(row.keteranganList);
-      result.push([
-        row.kategori_pegawai,
-        row.nik,
-
-        //nama lengkap sesuai KTP
-        row.nama_depan,
-        row.nama_tengah,
-        row.nama_belakang,
-
-        //posisi kerja
-        row.department,
-        row.spesialisasi,
-        row.cost_center,
-
-        //data jadwal dosen
-        '-',
-        '-',
-        '-',
-        row.totalSesi,
-
-        //data payroll
-        row.perhitungan_gaji,
-        row.jenis_mata_uang,
-        row.jumlah_gaji_saat_ini || '-',
-        row.penerimaan_gaji,
-
-        //data perhitungan gaji dan payroll
-        applyPrecision(row.total_durasi_kerja_ms/(60*60*1000.0), 2) + ' jam',
-        formatToRupiah(applyPrecision(row.gaji_pokok, 2)),
-        nominals || '-',
-        keterangans || '-',
-        formatToRupiah(applyPrecision(row.total_gaji + totalNominal, 2))
-      ]);
-    }
-    $('#data_table').DataTable({
-      destroy: true,
-      dom: 'Bfrtip',
-      lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, "All"] ],
-      buttons: [
-        'pageLength',
-        'copyHtml5',
-        'excelHtml5',
-        {
-          extend: 'pdf',
-          text: 'Pdf',
-          orientation: 'landscape'
+    $btnSave.click(function () {
+      if (!validateReportForm()) return;
+      $.ajax({
+        type: 'POST',
+        url: `/api/payrollreport/<%= payrollReport._id %>?_method=PUT`,
+        headers: {
+          startdate: new Date($inputFrom.val()),
+          enddate: new Date($inputTo.val())
         }
-      ],
-      data: result,
-      columns: [
-        {title: 'Kategori Pegawai'},  
-        {title: 'NIK'},
-  
-        // nama lengkap sesuai KTP
-        {title: 'Nama depan'},
-        {title: 'Nama tengah'},
-        {title: 'Nama belakang'},
-  
-        // posisi kerja
-        {title: 'Departemen'},
-        {title: 'Spesialisasi'},
-        {title: 'Cost Center'},
-  
-        // data jadwal dosen
-        {title: 'Nama Mata Kuliah'},
-        {title: 'Jumlah Sesi Tutorial'},
-        {title: 'Jumlah Sesi Lecture'},
-        {title: 'Total Sesi'},
-  
-        // data payroll
-        {title: 'Perhitungan gaji'},
-        {title: 'Jenis mata uang'},
-        {title: 'Jumlah gaji saat ini'},
-        {title: 'Penerimaan gaji'},
-  
-        // Perhitungan Jam Kerja dan Payroll
-        {title: 'Total durasi kerja'},
-        {title: 'Gaji pokok/Total gaji per jam'},
-        {title: 'Penambahan/Pengurangan'},
-        {title: 'Keterangan Penambahan/Pengurangan'},
-        {title: 'Total gaji yang diterima'}
-      ]
-    });    
-  }
-
-  function reloadTable() {
-    let fromString = $('#input_from').val();
-    let toString = $('#input_to').val();
-    loadingSpinner.start();
-    $.getJSON("/api/attendances", {
-      from: fromString,
-      to: toString
-    }).then(attendances => {
-      let payrollResult = PayrollDosenCalculator.process(attendances, {
-        dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
+      }).done(function (createdReport) {
+        strOldStartDate = $inputFrom.val();
+        strOldEndDate = $inputTo.val();
+        $btnSave.hide();
+        $btnDiscard.hide();
+        reloadTable();
+        let momentEndDate = moment(strOldEndDate, 'YYYY-MM-DD');
+        $('h3').text(`Periode ${momentEndDate.format('MMMM')} ${momentEndDate.format('YYYY')}`);
+        toastr.info('Report period updated');
+      }).fail(function (err) {
+        toastr.error(err.responseJSON.errorMsg);
       });
-      getKeteranganList(function(keteranganList) {
-        let nikToKeteranganList = {};
-        //kelompokkan keterangan berdasarkan nik
-        keteranganList.forEach(ket => {
-          if (!nikToKeteranganList[ket.nik]) nikToKeteranganList[ket.nik] = [];
-          nikToKeteranganList[ket.nik].push(ket);
-        });
-        //tempelkan keterangan ke payrollResult
-        payrollResult.forEach(e => {
-          e.keteranganList = nikToKeteranganList[e.nik] || [];
-        });
-        renderTable(payrollResult);
-        bindFormKeterangan();
-        loadingSpinner.stop();
-      });
-    }).catch(err => {
-      loadingSpinner.init();
     });
-  }
-  reloadTable();
+    $btnDiscard.click(function () {
+      $inputFrom.val(strOldStartDate);
+      $inputTo.val(strOldEndDate);
+      $btnSave.hide();
+      $btnDiscard.hide();
+    });
 
-  function bindFormKeterangan() {
-    let dataTable = $('#data_table').DataTable();
-    $('#data_table tbody').on('dblclick', 'td', function() {
-      let cell = dataTable.cell(this);
-      if (!cell.length || ![18, 19].includes(cell.index().column)) return;
-      let row = cell.index().row;
+    let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
+    let loadingSpinner = LoadingSpinner.bind({
+      spinner: 'spinner',
+      hideableNodes: ['data_table_wrapper'],
+      disableNodes: []
+    });
 
-      let nik = dataTable.cell(row, 1).data();
-      let nama = '';
-      [2, 3, 4].forEach(e => 
-        {let data = dataTable.cell(row, e).data(); if (data) nama += data+' ';});
-      $('#modal_keterangan_title').html(`${nama} <span style="float:right">${nik}</span>`)
-      $('#modal_keterangan').modal('show');
+    function applyPrecision(num, precision) {
+      return Math.round((num + 0.00001) * (10 ** precision)) / (10 ** precision);
+    }
 
-      $('#form_keterangan').unbind();
-      $('#form_keterangan').on('submit', function(err) {
-        err.preventDefault();
-        let multiplier = $('#option_keterangan :selected').text()==='Penambahan' ? 1 : -1;
-        let newKeterangan = {
-          nik: dataTable.cell(row, 1).data(),
-          nominal: multiplier * Number($('#nominal_txt').val()),
-          keterangan: $('#keterangan_txt').val()
-        };
-        //insert to database
-        $.ajax({
-          type: 'POST',
-          url: '/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll',
-          headers: newKeterangan,
-          success: function(data) {
-            //update table
-            getKeteranganList(function(keteranganList) {
-              keteranganList = keteranganList.filter(ket => ket.nik == nik);
-              let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(keteranganList);
-              dataTable.cell(row, 18).data(nominals);
-              dataTable.cell(row, 19).data(keterangans);
-              let totalGaji = toNumber(dataTable.cell(row, 20).data()) + newKeterangan.nominal;
-              dataTable.cell(row, 20).data(formatToRupiah(applyPrecision(totalGaji, 2)));
-              toastr.info('New Keterangan Inserted');
-              $('#nominal_txt').val('');
-              $('#keterangan_txt').val('');
-            });
-          },
-          error: function(err) {
-            toastr.error(err.errorMsg || 'error occured');
+    function formatToRupiah(value) {
+      let formatted = value.toLocaleString('en-US', {
+        minimumFractionDigits: 2
+      });
+      return 'IDR ' + formatted.replace(/,/g, '#').replace(/\./g, ',').replace(/#/g, '.');
+    }
+
+    function toNumber(token) {
+      let stringToken = token + '';
+      let cleanToken = stringToken.replace(/[^0-9,]+/g, '').replace(/,/g, '.');
+      let numberToken = Number(cleanToken);
+      return numberToken;
+    }
+
+    function renderTable(rows) {
+      $.fn.dataTable.ext.errMode = 'none';
+      let result = [];
+      for (let row of rows) {
+        let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(row.keteranganList);
+        result.push([
+          row.kategori_pegawai,
+          row.nik,
+
+          //nama lengkap sesuai KTP
+          row.nama_depan,
+          row.nama_tengah,
+          row.nama_belakang,
+
+          //posisi kerja
+          row.department,
+          row.spesialisasi,
+          row.cost_center,
+
+          //data jadwal dosen
+          '-',
+          '-',
+          '-',
+          row.totalSesi,
+
+          //data payroll
+          row.perhitungan_gaji,
+          row.jenis_mata_uang,
+          row.jumlah_gaji_saat_ini || '-',
+          row.penerimaan_gaji,
+
+          //data perhitungan gaji dan payroll
+          applyPrecision(row.total_durasi_kerja_ms / (60 * 60 * 1000.0), 2) + ' jam',
+          formatToRupiah(applyPrecision(row.gaji_pokok, 2)),
+          nominals || '-',
+          keterangans || '-',
+          formatToRupiah(applyPrecision(row.total_gaji + totalNominal, 2))
+        ]);
+      }
+      $('#data_table').DataTable({
+        destroy: true,
+        dom: 'Bfrtip',
+        lengthMenu: [
+          [10, 25, 50, -1],
+          [10, 25, 50, "All"]
+        ],
+        buttons: [
+          'pageLength',
+          'copyHtml5',
+          'excelHtml5',
+          {
+            extend: 'pdf',
+            text: 'Pdf',
+            orientation: 'landscape'
           }
-        });
-      });
-    })
-  }
-
-  function getKeteranganList(callback) {
-    $.getJSON('/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll', 
-      {}
-    ).then(keteranganList => {
-      callback(keteranganList);
-    }).catch(err => {
-      toastr.error('failed to fetch keteranganList');
-    });
-  }
-
-  function processNominalAndKeterangan(keteranganList) {
-    let nominals = null, keterangans = null, totalNominal = null;
-    if (keteranganList.length) {
-      nominals = '', keterangans = '', totalNominal = 0;
-      keteranganList.forEach(ket => {
-        nominals += ((ket.nominal>0?'(+) ':'(-) ') + Math.abs(ket.nominal)) + '<br>';
-        keterangans += ket.keterangan + '<br> ';
-        totalNominal += ket.nominal;
+        ],
+        data: result
       });
     }
-    return [nominals || '-', keterangans || '-', totalNominal || 0];
-  }
 
-</script>
+    function reloadTable() {
+      let fromString = $('#input_from').val();
+      let toString = $('#input_to').val();
+      loadingSpinner.start();
+      $.getJSON("/api/attendances", {
+        from: fromString,
+        to: toString
+      }).then(attendances => {
+        let payrollResult = PayrollDosenCalculator.process(attendances, {
+          dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
+        });
+        getKeteranganList(function (keteranganList) {
+          let nikToKeteranganList = {};
+          //kelompokkan keterangan berdasarkan nik
+          keteranganList.forEach(ket => {
+            if (!nikToKeteranganList[ket.nik]) nikToKeteranganList[ket.nik] = [];
+            nikToKeteranganList[ket.nik].push(ket);
+          });
+          //tempelkan keterangan ke payrollResult
+          payrollResult.forEach(e => {
+            e.keteranganList = nikToKeteranganList[e.nik] || [];
+          });
+          renderTable(payrollResult);
+          bindFormKeterangan();
+          loadingSpinner.stop();
+        });
+      }).catch(err => {
+        loadingSpinner.init();
+      });
+    }
+    reloadTable();
+
+    function bindFormKeterangan() {
+      let dataTable = $('#data_table').DataTable();
+      $('#data_table tbody').on('dblclick', 'td', function () {
+        let cell = dataTable.cell(this);
+        if (!cell.length || ![18, 19].includes(cell.index().column)) return;
+        let row = cell.index().row;
+
+        let nik = dataTable.cell(row, 1).data();
+        let nama = '';
+        [2, 3, 4].forEach(e => {
+          let data = dataTable.cell(row, e).data();
+          if (data) nama += data + ' ';
+        });
+        $('#modal_keterangan_title').html(`${nama} <span style="float:right">${nik}</span>`)
+        $('#modal_keterangan').modal('show');
+
+        $('#form_keterangan').unbind();
+        $('#form_keterangan').on('submit', function (err) {
+          err.preventDefault();
+          let multiplier = $('#option_keterangan :selected').text() === 'Penambahan' ? 1 : -1;
+          let newKeterangan = {
+            nik: dataTable.cell(row, 1).data(),
+            nominal: multiplier * Number($('#nominal_txt').val()),
+            keterangan: $('#keterangan_txt').val()
+          };
+          //insert to database
+          $.ajax({
+            type: 'POST',
+            url: '/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll',
+            headers: newKeterangan,
+            success: function (data) {
+              //update table
+              getKeteranganList(function (keteranganList) {
+                keteranganList = keteranganList.filter(ket => ket.nik == nik);
+                let [nominals, keterangans, totalNominal] = processNominalAndKeterangan(
+                  keteranganList);
+                dataTable.cell(row, 18).data(nominals);
+                dataTable.cell(row, 19).data(keterangans);
+                let totalGaji = toNumber(dataTable.cell(row, 20).data()) + newKeterangan.nominal;
+                dataTable.cell(row, 20).data(formatToRupiah(applyPrecision(totalGaji, 2)));
+                toastr.info('New Keterangan Inserted');
+                $('#nominal_txt').val('');
+                $('#keterangan_txt').val('');
+              });
+            },
+            error: function (err) {
+              toastr.error(err.errorMsg || 'error occured');
+            }
+          });
+        });
+      })
+    }
+
+    function getKeteranganList(callback) {
+      $.getJSON('/api/payrollreport/<%= payrollReport._id %>/keteranganpayroll', {}).then(keteranganList => {
+        callback(keteranganList);
+      }).catch(err => {
+        toastr.error('failed to fetch keteranganList');
+      });
+    }
+
+    function processNominalAndKeterangan(keteranganList) {
+      let nominals = null,
+        keterangans = null,
+        totalNominal = null;
+      if (keteranganList.length) {
+        nominals = '', keterangans = '', totalNominal = 0;
+        keteranganList.forEach(ket => {
+          nominals += ((ket.nominal > 0 ? '(+) ' : '(-) ') + Math.abs(ket.nominal)) + '<br>';
+          keterangans += ket.keterangan + '<br> ';
+          totalNominal += ket.nominal;
+        });
+      }
+      return [nominals || '-', keterangans || '-', totalNominal || 0];
+    }
+  </script>
 </body>
 
 </html>
