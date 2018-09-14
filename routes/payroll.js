@@ -28,6 +28,29 @@ router.post('/access', authentication.payrollAccess(true), async (req, res) => {
   }
 })
 
+router.get('/menu',(req,res)=>{
+  res.render('./payroll/uploadSalaryMenu')
+})
+
+router.get('/access/upload', authentication.payrollAccessUploadMonthly(true), (req, res) => {
+  const queryString = querystring.stringify({ continueUrl: req.query.continueUrl })
+  res.render('./partials/accessView', {
+    title: 'Upload Payroll Monthly',
+    postUrl: '/payroll/access?' + queryString
+  })
+})
+
+router.post('/access/upload', authentication.payrollAccess(true), async (req, res) => {
+  let configuration = await db.Configuration.findOne({})
+  let hash = configuration.payrollPassword
+  if (bcrypt.compareSync(req.body.password, hash)) {
+    req.session.payrollUserId = req.user._id.toString()
+    res.redirect(req.query.continueUrl)
+  } else {
+    res.redirect('back')
+  }
+})
+
 router.get('/', authentication.payrollAccess(), (req, res) => {
   res.render('./payroll/viewPayroll')
 })

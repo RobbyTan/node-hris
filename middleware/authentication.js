@@ -35,6 +35,22 @@ function payrollAccess (dontDirectToAccess) {
   }
 }
 
+function payrollAccessUploadMonthly (dontDirectToAccess) {
+  return function (req, res, next) {
+    const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3]
+    if (!req.isAuthenticated()) {
+      res.redirect(`/user/login`)
+    } else if (!grantedUserIDs.includes(req.user._id.toString())) {
+      res.redirect('back')
+    } else if (!dontDirectToAccess && !grantedUserIDs.includes(req.session.payrollUserId || '')) {
+      const queryString = querystring.stringify({ continueUrl: req.originalUrl })
+      res.redirect('/payroll/access?' + queryString)
+    } else {
+      next()
+    }
+  }
+}
+
 function blocked (blocked) {
   return (req, res, next) => {
     if (blocked) return res.redirect('back')
@@ -46,5 +62,6 @@ module.exports = {
   isLoggedIn,
   reportAccess,
   payrollAccess,
+  payrollAccessUploadMonthly,
   blocked
 }
