@@ -1,9 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const xlsx = require('xlsx')
+const moment = require('moment')
 const { upload } = require('../middleware/upload')
 const db = require('../models')
 const auth = require('../middleware/authentication.js')
+const cloudinary = require('cloudinary')
 
 router.get('/view', auth.isLoggedIn, (req, res) => {
   res.render('employee/view')
@@ -18,61 +20,109 @@ router.get('/new/upload', auth.isLoggedIn, (req, res) => {
 })
 
 router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {
-  if (!req.file) {
-    return res.status(422).json({
-      error: 'Please Upload a file'
-    })
-  }
-  let workbook
-  let toJson = function toJson (workbook) {
-    let result = {}
-    workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
-      if (roa.length) result[sheetName] = roa
-    })
-    return JSON.stringify(result, 2, 2)
+  if (!req.file) return res.status(404).json({ error: true })
+  try {
+    // let uploadResult = await cloudinary.v2.uploader.upload(req.file.path, { resource_type: 'raw' })
+  } catch (err) {
+    console.log('Fail cloudinary upload')
   }
   try {
-    workbook = xlsx.readFile(req.file.path)
+    let fulldataFields = getFulldataFields()
 
-    let result = {}
-    workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
-      if (roa.length) result[sheetName] = roa
-    })
-    let data = result['Sheet1']
+    let workbook = xlsx.readFile(req.file.path)
+    let rows = xlsx.utils.sheet_to_json(workbook.Sheets['Sheet1'], { header: 1 }).slice(3)
 
-    data.forEach(async (employee, idx) => {
-      // if (idx === data.length - 1) return
+    let invalidInfo = isFulldataExcelInvalid(rows)
+    if (invalidInfo) {
+      return res.status(404).json({ invalidInfo })
+    }
 
-      let newEmployee = {
-        startDate: employee[1],
-        nik: employee[2],
-        last_Name: employee[3],
-        first_Name: employee[4],
-        birthday: employee[5],
-        department: employee[6],
-        jam_masuk: employee[7] ? new Date('12-12-2000 ' + employee[7]) : null,
-        atasan_langsung: employee[8] }
-
-      console.log(employee)
-
-      await db.Employee.create(newEmployee, function (err, newlyCreated) {
-        if (err) {
-
-        } else {
-          // redirect back to events page
-          console.log('Employee created')
-        }
+    let newEmployees = rows.map(row => {
+      let empObj = {}
+      row.forEach((cell, idx) => {
+        empObj[fulldataFields[idx].name] = fulldataFields[idx].parse(cell)
       })
+      return empObj
     })
+    let createdEmployees = await db.Fulldata.create(newEmployees)
+    return res.json(createdEmployees)
   } catch (err) {
     console.log(err)
-    return res.status(422).json({
-      error: 'Error'
-    })
+    return res.status(404).json({ error: true })
   }
-  return res.status(200).send(toJson(workbook))
 })
+
+function isFulldataExcelInvalid(rows) {
+  let fulldataFields = getFulldataFields()
+
+  let mandatoryColumns = [];
+  [1, 2, 53].forEach(idx => {
+    if (rows.filter(row => row[idx]).length != rows.length) {
+      mandatoryColumns.push(colExcel(idx))
+    }
+  })
+
+  let mismatchTypeCell = []
+  let newEmployees = rows.map((row, rowIndex) => {
+    let empObj = {}
+    row.forEach((cell, cellIndex) => {
+      if (!fulldataFields[cellIndex].parse(cell)) {
+        mismatchTypeCell.push(`${rowIndex+1}${colExcel(cellIndex)}`)
+      }
+    })
+    return empObj
+  })
+  if (mandatoryColumns.length || mismatchTypeCell.length)
+    return { mandatoryColumns, mismatchTypeCell }
+  else return null
+}
+
+function colExcel (val) {
+  let result = ''
+  while (val) {
+    let mod = val % 26
+    result = String.fromCharCode('A'.charCodeAt(0) + mod) + result
+    val = Math.floor(val / 26)
+  }
+  if (result.length > 1) result = String.fromCharCode(result.charCodeAt(0) - 1) + result.substr(1)
+  return result
+}
+
+function getFulldataFields () {
+  let fieldsMap = db.Fulldata.schema.tree
+  fieldsMap['nik'] = 'String'
+  delete fieldsMap['id']
+  delete fieldsMap['_id']
+  delete fieldsMap['__v']
+  let fields = []
+  for (let name in fieldsMap) {
+    let datatype = fieldsMap[name] + ''
+    if (datatype.includes('Date')) {
+      fields.push({
+        name: name,
+        parse: function (date) {
+          if (moment(date, 'D-MMM-YYYY', true).isValid()) {
+            return moment(date, 'D-MMM-YYYY').toDate()
+          } else return null
+        }
+      })
+    } else if (datatype.includes('String')) {
+      fields.push({
+        name: name,
+        parse: function (string) { return string }
+      })
+    } else if (datatype.includes('Number')) {
+      fields.push({
+        name: name,
+        parse: function (number) {
+          if (number.match(/^[0-9,\.]$/g)) {
+            return +number
+          } else return null
+        }
+      })
+    }
+  }
+  return fields
+}
 
 module.exports = router
