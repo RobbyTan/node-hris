@@ -19,7 +19,7 @@ router.get('/new/upload', auth.isLoggedIn, (req, res) => {
   res.render('employee/new-upload')
 })
 
-router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {
+router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {  
   if (!req.file) return res.status(404).json({ error: true })
   try {
     // let uploadResult = await cloudinary.v2.uploader.upload(req.file.path, { resource_type: 'raw' })

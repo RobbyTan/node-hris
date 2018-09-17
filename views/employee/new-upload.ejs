@@ -12,6 +12,10 @@
         <input name="file" type="file" multiple />
       </div>
     </form>
+
+    <div class="alert alert-danger" role="alert" style="display:none;">
+      
+    </div>
   </div>
 
   <% include ../partials/script %>
@@ -35,9 +39,25 @@
       success: function (file, response) {
         console.log(response)
         console.log('success')
+        $('.alert-danger').empty().hide()
       },
       error: function(file, error) {
         console.log('error', error)
+        if (error.invalidInfo) {
+          $('.alert-danger').empty().show()
+          if (error.invalidInfo.mandatoryColumns) {
+            let $mandatoryList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mandatory Column Issues</h3>'))
+            for (let col of error.invalidInfo.mandatoryColumns) {
+              $mandatoryList.append($('<li>').text(col))
+            }
+          }
+          if (error.invalidInfo.mismatchTypeCell) {
+            let $mismatchList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mismatch Data Type Cell Issues</h3>'))
+            for (let cell of error.invalidInfo.mismatchTypeCell) {
+              $mismatchList.append($('<li>').text(cell))
+            }
+          }
+        }
       }
     }
   </script>
