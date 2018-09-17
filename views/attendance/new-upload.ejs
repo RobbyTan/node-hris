@@ -12,7 +12,8 @@
         <input name="file" type="file" multiple />
       </div>
     </form>
-    <p id="successText"></p>
+    
+    <div class="alert alert-danger" role="alert" style="display:none;"></div>
   </div>
 
   <% include ../partials/script %>
@@ -34,8 +35,33 @@
         done()
       },
       success: function (file, response) {
-        console.log(response)
-        console.log('success')
+        console.log('success', response)
+        $('.alert-danger').empty().hide()
+        if (response.success) {
+          toastr.success('Uploaded!')
+        } else {
+          toastr.success(`Failed to upload ${response.failCounter} rows`)
+        }
+      },
+      error: function(file, error) {
+        console.log('error', error)
+        if (error.invalidInfo) {
+          toastr.error('Invalid Excel File')
+          $('.alert-danger').empty().show()
+          if (error.invalidInfo.mandatoryColumns.length) {
+            let $mandatoryList = $('<ul>').appendTo($('.alert-danger').append('<h3>Blank Mandatory Column(s)</h3>'))
+            for (let col of error.invalidInfo.mandatoryColumns) {
+              $mandatoryList.append($('<li>').text(col))
+            }
+          } else if (error.invalidInfo.mismatchTypeRows.length) {
+            let $mismatchList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mismatch Data Type Row(s)</h3>'))
+            for (let row of error.invalidInfo.mismatchTypeRows) {
+              $mismatchList.append($('<li>').text(row))
+            }
+          }
+        } else {
+          toastr.error('Error!')
+        }
       }
     }
   </script>

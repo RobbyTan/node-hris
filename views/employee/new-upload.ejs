@@ -13,9 +13,7 @@
       </div>
     </form>
 
-    <div class="alert alert-danger" role="alert" style="display:none;">
-      
-    </div>
+    <div class="alert alert-danger" role="alert" style="display:none;"></div>
   </div>
 
   <% include ../partials/script %>
@@ -32,31 +30,37 @@
       paramName: 'file',
       dictDefaultMessage: 'Drag an excel file to upload, or click to select one',
       acceptedFiles: '.xlsx',
-      maxFilesize: 1, // MB
+      maxFilesize: 2, // MB
       accept: function (file, done) {
         done()
       },
       success: function (file, response) {
-        console.log(response)
-        console.log('success')
+        console.log('success', response)
         $('.alert-danger').empty().hide()
+        if (response.success) {
+          toastr.success('Uploaded!')
+        } else {
+          toastr.success(`Failed to upload ${response.failCounter} rows`)
+        }
       },
       error: function(file, error) {
         console.log('error', error)
         if (error.invalidInfo) {
+          toastr.error('Invalid Excel File')
           $('.alert-danger').empty().show()
-          if (error.invalidInfo.mandatoryColumns) {
-            let $mandatoryList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mandatory Column Issues</h3>'))
+          if (error.invalidInfo.mandatoryColumns.length) {
+            let $mandatoryList = $('<ul>').appendTo($('.alert-danger').append('<h3>Blank Mandatory Column(s)</h3>'))
             for (let col of error.invalidInfo.mandatoryColumns) {
               $mandatoryList.append($('<li>').text(col))
             }
-          }
-          if (error.invalidInfo.mismatchTypeCell) {
-            let $mismatchList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mismatch Data Type Cell Issues</h3>'))
+          } else if (error.invalidInfo.mismatchTypeCell.length) {
+            let $mismatchList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mismatch Data Type Cell(s)</h3>'))
             for (let cell of error.invalidInfo.mismatchTypeCell) {
               $mismatchList.append($('<li>').text(cell))
             }
           }
+        } else {
+          toastr.error('Error!')
         }
       }
     }

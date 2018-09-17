@@ -5,6 +5,7 @@ const { upload } = require('../middleware/upload')
 const db = require('../models')
 const moment = require('moment')
 const auth = require('../middleware/authentication')
+const HEADER_HEIGHT = 3
 
 // attendance route
 router.get('/view/menu', auth.isLoggedIn, (req, res) => {
@@ -28,56 +29,70 @@ router.get('/new/upload', auth.isLoggedIn, (req, res) => {
 })
 
 router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {
-  if (!req.file) {
-    return res.status(422).json({
-      error: 'Please Upload a file'
-    })
-  }
-  let workbook
-  let toJson = function toJson (workbook) {
-    let result = {}
-    workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
-      if (roa.length) result[sheetName] = roa
-    })
-    return JSON.stringify(result, 2, 2)
-  }
+  if (!req.file) return res.status(404).json({ error: true })
+  
   try {
-    workbook = xlsx.readFile(req.file.path)
+    let workbook = xlsx.readFile(req.file.path)
+    let rows = xlsx.utils.sheet_to_json(workbook.Sheets['Sheet1'], { header: 1 }).slice(HEADER_HEIGHT)
 
-    let result = {}
-    workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
-      if (roa.length) result[sheetName] = roa
-    })
-    let data = result['Sheet1']
-    console.log(data)
+    let invalidInfo = isAttendanceExcelInvalid(rows)
+    if (invalidInfo) {
+      return res.status(404).json({ invalidInfo })
+    }
 
-    data.forEach(async (attendance, idx) => {
-      if (idx === 0) return
-
-      let newAttendance = {
-        nik: attendance[2],
-        date: moment(attendance[0] + attendance[1], 'YYYYMMDDHHmmss').toDate(),
+    let newAttendances = rows.map(row => {
+      return {
+        nik: row[2],
+        date: moment(row[0] + row[1], 'YYYYMMDDHHmmss').toDate(),
         type: 'auto'
       }
-
-      await db.Absensi.create(newAttendance, function (err, newlyCreated) {
-        if (err) {
-          console.log(err)
-        } else {
-          // redirect back to events page
-          console.log('Absensi created')
-        }
-      })
     })
+
+    let failCounter = 0
+    for (let att of newAttendances) {
+      try {
+        await db.Absensi.update({ date: att.date }, att, { upsert: true })
+      } catch (err) { 
+        console.log(err) 
+        failCounter += 1
+      }
+    }
+    return res.json({ success: failCounter === 0, failCounter })
   } catch (err) {
     console.log(err)
-    return res.status(422).json({
-      error: 'Error'
-    })
+    return res.status(404).json({ success: false })
   }
-  return res.status(200).send(toJson(workbook))
 })
+
+function isAttendanceExcelInvalid(rows) {
+  let mandatoryColumns = [];
+  [0, 1, 2].forEach(idx => {
+    if (rows.filter(row => row[idx]).length !== rows.length) {
+      mandatoryColumns.push(colExcel(idx))
+    }
+  })
+
+  let mismatchTypeRows = []
+  rows.forEach((row, rowIndex) => {
+    if (!moment(row[0] + row[1], 'YYYYMMDDHHmmss', true).isValid()) {
+      mismatchTypeRows.push(HEADER_HEIGHT + rowIndex + 1)
+    }
+  })
+  
+  if (mandatoryColumns.length || mismatchTypeRows.length)
+    return { mandatoryColumns, mismatchTypeRows }
+  else return null
+}
+
+function colExcel (val) {
+  let result = ''
+  while (val) {
+    let mod = val % 26
+    result = String.fromCharCode('A'.charCodeAt(0) + mod) + result
+    val = Math.floor(val / 26)
+  }
+  if (result.length > 1) result = String.fromCharCode(result.charCodeAt(0) - 1) + result.substr(1)
+  return result
+}
 
 module.exports = router

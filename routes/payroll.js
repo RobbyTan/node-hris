@@ -8,6 +8,8 @@ const db = require('../models')
 const bcrypt = require('bcrypt')
 const authentication = require('../middleware/authentication.js')
 
+const HEADER_HEIGHT = 1
+
 router.use(methodOverride('_method'))
 
 router.get('/access', authentication.payrollAccess(true), (req, res) => {
@@ -83,48 +85,74 @@ router.get('/salary', authentication.payrollAccess(), async (req, res) => {
   res.render('payroll/uploadSalary')
 })
 router.put('/salary', authentication.payrollAccess(), upload.single('file'), async (req, res) => {
-  if (!req.file) {
-    return res.status(422).json({
-      error: 'Please Upload a file'
-    })
-  }
-  let toJson = function (workbook) {
-    let result = {}
-    workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
-      if (roa.length) result[sheetName] = roa
-    })
-    return JSON.stringify(result, 2, 2)
-  }
+  if (!req.file) return res.status(404).json({ error: true })
 
-  let workbook
   try {
-    let result = {}
-    workbook = xlsx.readFile(req.file.path)
-    workbook.SheetNames.forEach(function (sheetName) {
-      let roa = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 })
-      if (roa.length) result[sheetName] = roa
-    })
+    let workbook = xlsx.readFile(req.file.path)
+    let rows = xlsx.utils.sheet_to_json(workbook.Sheets['Sheet1'], { header: 1 }).slice(HEADER_HEIGHT)
 
-    let data = result['Sheet1']
-    data.forEach(async (row, idx) => {
-      if (idx === 0) return
+    let employeesDict = {};
+    (await db.Fulldata.find()).forEach(emp => { employeesDict[emp.nik] = emp })
+    
+    let invalidInfo = isPayrollExcelInvalid(rows, employeesDict)
+    if (invalidInfo) {
+      return res.status(404).json({ invalidInfo })
+    }
+
+    let failCounter = 0
+    for (let row of rows) {
       try {
-        let employee = await db.Fulldata.findOne({ nik: row[0] })
+        let employee = employeesDict[row[0]]
         let cleanedSalary = row[2].replace(/[^0-9]/g, '')
         employee.jumlah_gaji_saat_ini = parseInt(cleanedSalary)
         await employee.save()
       } catch (err) {
-        console.log('error updating salary', err)
+        console.log(err)
+        failCounter += 1
       }
-    })
+    }
+    return res.json({ success: failCounter === 0, failCounter })
   } catch (err) {
     console.log(err)
-    return res.status(422).json({
-      error: 'Error'
-    })
+    return res.status(404).json({ success: true })
   }
-  return res.status(200).send(toJson(workbook))
 })
+
+function isPayrollExcelInvalid(rows, employeesDict) {
+  let mandatoryColumns = [];
+  [0, 1, 2].forEach(idx => {
+    if (rows.filter(row => row[idx]).length !== rows.length) {
+      mandatoryColumns.push(colExcel(idx))
+    }
+  })
+
+  let mismatchTypeRows = []
+  rows.forEach((row, rowIndex) => {
+    if (!row[2].match(/^\d+$/)) {
+      mismatchTypeRows.push(HEADER_HEIGHT + rowIndex + 1)
+    }
+  })
+
+  let uninvitedPayrolls = rows.filter(row => !employeesDict[row[0]])
+  
+  if (uninvitedPayrolls.length || mandatoryColumns.length) {
+    return {
+      uninvitedPayrolls,
+      mandatoryColumns,
+      mismatchTypeRows
+    }
+  }
+}
+
+function colExcel (val) {
+  let result = ''
+  while (val) {
+    let mod = val % 26
+    result = String.fromCharCode('A'.charCodeAt(0) + mod) + result
+    val = Math.floor(val / 26)
+  }
+  if (result.length > 1) result = String.fromCharCode(result.charCodeAt(0) - 1) + result.substr(1)
+  return result
+}
 
 module.exports = router

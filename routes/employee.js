@@ -5,7 +5,7 @@ const moment = require('moment')
 const { upload } = require('../middleware/upload')
 const db = require('../models')
 const auth = require('../middleware/authentication.js')
-const cloudinary = require('cloudinary')
+const HEADER_HEIGHT = 3
 
 router.get('/view', auth.isLoggedIn, (req, res) => {
   res.render('employee/view')
@@ -19,7 +19,7 @@ router.get('/new/upload', auth.isLoggedIn, (req, res) => {
   res.render('employee/new-upload')
 })
 
-router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {  
+router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(404).json({ error: true })
   try {
     // let uploadResult = await cloudinary.v2.uploader.upload(req.file.path, { resource_type: 'raw' })
@@ -30,7 +30,7 @@ router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, r
     let fulldataFields = getFulldataFields()
 
     let workbook = xlsx.readFile(req.file.path)
-    let rows = xlsx.utils.sheet_to_json(workbook.Sheets['Sheet1'], { header: 1 }).slice(3)
+    let rows = xlsx.utils.sheet_to_json(workbook.Sheets['Sheet1'], { header: 1 }).slice(HEADER_HEIGHT)
 
     let invalidInfo = isFulldataExcelInvalid(rows)
     if (invalidInfo) {
@@ -39,16 +39,26 @@ router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, r
 
     let newEmployees = rows.map(row => {
       let empObj = {}
+      console.log(row)
       row.forEach((cell, idx) => {
         empObj[fulldataFields[idx].name] = fulldataFields[idx].parse(cell)
       })
       return empObj
     })
-    let createdEmployees = await db.Fulldata.create(newEmployees)
-    return res.json(createdEmployees)
+
+    let failCounter = 0
+    for (let emp of newEmployees) {
+      try {
+        await db.Fulldata.update({ nik: emp.nik }, emp, { upsert: true })
+      } catch (err) {
+        console.log(err) 
+        failCounter += 1
+      }
+    }
+    return res.json({ success: failCounter === 0, failCounter })
   } catch (err) {
     console.log(err)
-    return res.status(404).json({ error: true })
+    return res.status(404).json({ success: true })
   }
 })
 
@@ -57,20 +67,18 @@ function isFulldataExcelInvalid(rows) {
 
   let mandatoryColumns = [];
   [1, 2, 53].forEach(idx => {
-    if (rows.filter(row => row[idx]).length != rows.length) {
+    if (rows.filter(row => row[idx]).length !== rows.length) {
       mandatoryColumns.push(colExcel(idx))
     }
   })
 
   let mismatchTypeCell = []
-  let newEmployees = rows.map((row, rowIndex) => {
-    let empObj = {}
+  rows.forEach((row, rowIndex) => {
     row.forEach((cell, cellIndex) => {
       if (!fulldataFields[cellIndex].parse(cell)) {
-        mismatchTypeCell.push(`${rowIndex+1}${colExcel(cellIndex)}`)
+        mismatchTypeCell.push(`${HEADER_HEIGHT + rowIndex + 1}${colExcel(cellIndex)}`)
       }
     })
-    return empObj
   })
   if (mandatoryColumns.length || mismatchTypeCell.length)
     return { mandatoryColumns, mismatchTypeCell }
@@ -101,8 +109,8 @@ function getFulldataFields () {
       fields.push({
         name: name,
         parse: function (date) {
-          if (moment(date, 'D-MMM-YYYY', true).isValid()) {
-            return moment(date, 'D-MMM-YYYY').toDate()
+          if (moment(date, 'DD-MMM-YYYY', true).isValid()) {
+            return moment(date, 'DD-MMM-YYYY').toDate()
           } else return null
         }
       })
