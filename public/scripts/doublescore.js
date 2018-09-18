@@ -8,8 +8,22 @@ let __ = (function () {
     return h + m + s
   }
 
+  function toHHMMSS(milliseconds) {
+    function pad2(i) {
+      if (i <= 9) return '0' + i;
+      return i;
+    }
+    let h = Math.floor(milliseconds / (60 * 60 * 1000));
+    milliseconds %= (60 * 60 * 1000);
+    let m = Math.floor(milliseconds / (60 * 1000));
+    milliseconds %= (60 * 1000);
+    let s = Math.floor(milliseconds / (1000));
+    return `${pad2(h)}:${pad2(m)}:${pad2(s)}`;
+  }
+
   return {
-    toMiliSeconds
+    toMiliSeconds,
+    toHHMMSS
   }
 
 })()

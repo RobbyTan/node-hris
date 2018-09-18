@@ -47,13 +47,12 @@ router.get('/view/pph', authentication.reportAccess(), (req, res) => {
 router.get('/customReport', authentication.reportAccess(), (req, res) => {
   let columnNames = Object.keys(db.Fulldata.schema.tree)
   columnNames = columnNames.filter(name => !['id', '_id', '__v'].includes(name))
+
   const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3]
   if (!grantedUserIDs.includes(req.user._id.toString())) {
     columnNames = columnNames.filter(name => !['jumlah_gaji_saat_ini'].includes(name))
   }
-  res.render('./report/customReport', {
-    columnNames: columnNames
-  })
+  res.render('./report/customReport', { columnNames })
 })
 
 router.get('/punctualityReportMenu', authentication.reportAccess(), (req, res) => {
