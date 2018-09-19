@@ -31,32 +31,15 @@ router.get('/employee', async (req, res) => {
 
 // attendance
 
-router.get('/attendance/:nik', (req, res) => {
-  let nik = req.params.nik
-  let date = req.query.date
-
-  db.Absensi.aggregate([
-    {
-      $match: {
-        $and: [
-          { nik: nik },
-          { date: { $gte: new Date(date) } },
-          { date: { $lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate() } }
-        ]
-      }
-    },
-    {
-      $project: {
-        _id: 0,
-        date: 1,
-        type: 1
-      }
-    }
-  ]).then(data => {
-    res.json(data)
-  }).catch(err => {
+router.get('/attendance', async (req, res) => {
+  let startString = req.query.startString
+  let endString = req.query.endString
+  try {
+    if (!startString || !endString) throw new Error('from & to not specified')
+    res.json(await getAttendances(startString, endString))
+  } catch (err) {
     res.status(404).json({ error: true })
-  })
+  }
 })
 
 router.post('/attendance', (req, res) => {
@@ -88,15 +71,49 @@ router.get('/attendance/full', async (req, res) => {
   }
 })
 
-router.get('/attendance', async (req, res) => {
+router.get('/attendance/raw', async (req, res) => {
   let startString = req.query.startString
   let endString = req.query.endString
   try {
     if (!startString || !endString) throw new Error('from & to not specified')
-    res.json(await getAttendances(startString, endString))
+    let attendances = await db.Absensi.find({
+      $and: [
+        { date: { $gte: moment(startString, 'YYYY-MM-DD').toDate() } },
+        { date: { $lt: moment(endString, 'YYYY-MM-DD').add(1, 'days').toDate() } }
+      ]
+    })
+    res.json(attendances)
   } catch (err) {
     res.status(404).json({ error: true })
   }
+})
+
+router.get('/attendance/:nik', (req, res) => {
+  let nik = req.params.nik
+  let date = req.query.date
+
+  db.Absensi.aggregate([
+    {
+      $match: {
+        $and: [
+          { nik: nik },
+          { date: { $gte: new Date(date) } },
+          { date: { $lt: moment(date, 'YYYY-MM-DD').add(1, 'days').toDate() } }
+        ]
+      }
+    },
+    {
+      $project: {
+        _id: 0,
+        date: 1,
+        type: 1
+      }
+    }
+  ]).then(data => {
+    res.json(data)
+  }).catch(err => {
+    res.status(404).json({ error: true })
+  })
 })
 
 async function getAttendances (fromString, toString) {

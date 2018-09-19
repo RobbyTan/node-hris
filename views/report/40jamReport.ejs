@@ -21,11 +21,26 @@
 		</form>
 
 		<div id="spinner" class="preloader-wrapper big active" style="top: 50%; left: 50%; display:none;">
-			<table id="data_table" class="table stripe" cellspacing="0" width="100%">
+      <div class="spinner-layer spinner-blue-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div>
+        <div class="gap-patch">
+          <div class="circle"></div>
+        </div>
+        <div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="div-table" style="display:none;">
+			<table id="table" class="table stripe" cellspacing="0" width="100%">
 				<thead>
 					<tr>
 						<td>NIK</td>
 						<td>Nama</td>
+						<td>Kategori Pegawai</td>
 						<td>Departemen</td>
 						<td>Atasan Langsung</td>
 						<td>Jam Masuk</td>
@@ -46,78 +61,64 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
-	<script src="/scripts/attendances/doublescore"></script>
+	<script src="/scripts/doublescore.js"></script>
 	<script src="/scripts/attendances/clock-pairing.js"></script>
 	<script>
 		$('.button-collapse').sideNav()
 		$('.mdb-select').material_select()
 
-		let dosenTidakTetapMaxTime = '<%=configuration.dosenTidakTetapMaxTime%>';
+		let dosenTidakTetapMaxTime = '<%= configuration.dosenTidakTetapMaxTime %>'
 
-		function processPunctuality(attendances) {
-			attendances.forEach(att => {
-				att.absensi.forEach(abs => {
-					abs.date = moment(abs.date)
-				})
-			})
+		function processPunctuality(employees, attendances) {
+			// group attendances by nim then date
+			attendances = _.groupBy(attendances, 'nik')
+			for (let nik in attendances) {
+				attendances[nik] = _.groupBy(attendances[nik], (att) => moment(att.date).format('YYYY-MM-DD'))
+			}
 
-			let attendanceDict = {};
-			for (let att of attendances)
-				(attendanceDict[att.nik] = attendanceDict[att.nik] || []).push(att)
+			// generate weeklies report for every employees
+			let employeeDict = {}
+			for (let emp of employees) {
+				// jam kerja per minggu
+				let curDate = moment($('#txt-start').val()),
+					numberOfDays = moment($('#txt-end').val()).diff(moment($('#txt-start').val()), 'days') + 1,
+					listJamKerjaMs = [],
+					weeklyTotalJamKerjaMs = 0;
+				for (let dayCounter = 0; dayCounter < numberOfDays; dayCounter++) {
+					if (attendances[emp.nik] && attendances[emp.nik][curDate.format('YYYY-MM-DD')]) {
+						let clockPairingResult = ClockPairing.process(attendances[emp.nik][curDate.format('YYYY-MM-DD')], {
+							dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
+							department: emp.kategori_pegawai,
+							jamMasuk: emp.jam_masuk
+						})
+						weeklyTotalJamKerjaMs += __.toMiliSeconds(clockPairingResult.totalWorkingTime)
+					}
+					if (curDate.format('dddd') == 'Sunday') {
+						listJamKerjaMs.push(weeklyTotalJamKerjaMs)
+						weeklyTotalJamKerjaMs = 0
+					}
+					curDate.add(1, 'days')
+				}
 
-			let employeeDict = {};
-			for (let nik in attendanceDict) {
-				employeeDict[nik] = {
+				// formatting
+				employeeDict[emp.nik] = {
 					totalJamKerja: '',
 					listJamKerja: '',
-					...attendanceDict[nik][0]
+					...emp
 				}
-				attendanceDict[nik].sort((a, b) => a.absensi[0].date.valueOf - b.absensi[0].date.valueOf)
-
-				// attach clockPairingResult
-				for (let att of attendanceDict[nik]) {
-					let clockPairingResult = ClockPairing.process(att.absensi, {
-						dosenTidakTetapMaxTime: dosenTidakTetapMaxTime,
-						department: att.department,
-						jamMasuk: att.jam_masuk
-					})
-					att.clockPairingResult = clockPairingResult
-				}
-
-				// jam kerja per minggu
-				let startDate = moment($('#txt-start').val()),
-					numberOfDays = moment($('#txt-end').val()).diff(moment($('#txt-start').val()), 'days') + 1,
-					curTotalJamKerjaMs = 0,
-					totalJamKerjaMs = 0,
-					listJamKerjaMs = [],
-					attIndex = 0;
-				for (let dayCounter = 0; dayCounter < numberOfDays; dayCounter++) {
-					if (attIndex < attendanceDict[nik].length && startDate.format('DD-MM-YYYY') == attendanceDict[nik][attIndex].absensi[
-							0].date.format('DD-MM-YYYY')) {
-						curTotalJamKerjaMs += __.toMiliSeconds(attendanceDict[nik][attIndex].clockPairingResult.totalWorkingTime)
-						attIndex += 1
-					}
-					if (startDate.format('dddd') == 'Sunday') {
-						totalJamKerjaMs += curTotalJamKerjaMs
-						listJamKerjaMs.push(curTotalJamKerjaMs)
-						curTotalJamKerjaMs = 0
-					}
-					startDate.add(1, 'days')
-				}
-
-				// formatting jam kerja per minggu
-				employeeDict[nik].totalJamKerja = __.toHHMMSS(totalJamKerjaMs)
-				startDate = moment($('#txt-start').val())
+				employeeDict[emp.nik].totalJamKerja = __.toHHMMSS(listJamKerjaMs.reduce((a, b) => a + b))
+				curDate = moment($('#txt-start').val())
 				for (let jamKerjaMs of listJamKerjaMs) {
 					if (jamKerjaMs < 40 * 60 * 60 * 1000) {
-						employeeDict[nik].listJamKerja +=
-							`<span style="background:red;color:white;">${__.toHHMMSS(jamKerjaMs)}</span> (${startDate.format('D MMM')} - ${moment(startDate).add(6, 'days').format('D MMM')}) <br>`
-						employeeDict[nik].kurangJam = true
+						employeeDict[emp.nik].listJamKerja +=
+							`<span style="background:red;color:white;">${__.toHHMMSS(jamKerjaMs)}</span> 
+							(${curDate.add(0, 'days').format('D MMM')} - ${moment(curDate).add(6, 'days').format('D MMM')}) <br>`
+						employeeDict[emp.nik].kurangJam = true
 					} else {
-						employeeDict[nik].listJamKerja +=
-							`${__.toHHMMSS(jamKerjaMs)} (${startDate.format('D MMM')} - ${moment(startDate).add(6, 'days').format('D MMM')}) <br>`
+						employeeDict[emp.nik].listJamKerja +=
+							`${__.toHHMMSS(jamKerjaMs)} (${curDate.add(0, 'days').format('D MMM')} - ${moment(curDate).add(6, 'days').format('D MMM')}) <br>`
 					}
-					startDate.add(7, 'days')
+					curDate.add(1, 'days')
 				}
 			}
 			return employeeDict
@@ -126,20 +127,22 @@
 		function renderTable(employeeDict) {
 			let result = []
 			for (let nik in employeeDict) {
-				let emp = employeeDict[nik];
-				let sudahBanyakPelanggaran = emp.kurangJam;
-				if (!sudahBanyakPelanggaran) continue;
+				let emp = employeeDict[nik]
+				let sudahBanyakPelanggaran = emp.kurangJam
+				if (!sudahBanyakPelanggaran) continue
 				result.push([
 					emp.nik,
-					emp.nama_depan + ' ' + (emp.nama_belakang ? emp.nama_belakang : ''),
-        	emp.kategori_pegawai,
-					emp.department,
-					(emp.atasan_langsung ? emp.atasan_langsung : ''),
-					(emp.jam_masuk ? (emp.jam_masuk + ':00') : ''),
+					emp.nama_depan + ' ' + (emp.nama_belakang || ''),
+        	emp.kategori_pegawai || '-',
+					emp.department || '-',
+					emp.atasan_langsung || '-',
+					(emp.jam_masuk ? (emp.jam_masuk + ':00') : '-'),
 					emp.listJamKerja,
 					emp.totalJamKerja
 				])
 			}
+
+			console.log(result)
 
 			$('#table').DataTable({
 				destroy: true,
@@ -164,7 +167,6 @@
 
 		$('#txt-start').change(shiftDateInput)
 		$('#txt-end').change(shiftDateInput)
-
 		function shiftDateInput() {
 			let strFromDate = $('#txt-start').val()
 			if (strFromDate != '') {
@@ -195,11 +197,13 @@
 			$('#spinner').show()
 			$('#div-table').hide()
 			try {
-				let attendances = await $.getJSON('/api/attendance', {
+				let employees = (await $.getJSON('/api/employee'))
+						.filter(emp => (emp.status_pegawai || '').toUpperCase() !== 'NON-AKTIF')
+				let attendances = await $.getJSON('/api/attendance/raw', {
 					startString,
 					endString
 				})
-				let employeeDict = processPunctuality(attendances)
+				let employeeDict = processPunctuality(employees, attendances)
 				renderTable(employeeDict)
 				$('#div-table').show()
 			} catch (err) {
