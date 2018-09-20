@@ -1,15 +1,12 @@
 const querystring = require('querystring')
-let authentication = {}
 
 function isLoggedIn (req, res, next) {
-  return next()
   if (req.isAuthenticated()) return next()
   res.redirect('/user/login')
 }
 
 function reportAccess (dontDirectToAccess) {
   return function (req, res, next) {
-    return next()
     if (!req.isAuthenticated()) {
       res.redirect(`/user/login`)
     } else if (!dontDirectToAccess && !req.session.reportUserId) {
@@ -21,34 +18,38 @@ function reportAccess (dontDirectToAccess) {
   }
 }
 
-function payrollAccess (dontDirectToAccess) {
+function payrollAccessOther (dontDirectToAccess) {
   return function (req, res, next) {
-    return next()
     const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3]
     if (!req.isAuthenticated()) {
       res.redirect(`/user/login`)
     } else if (!grantedUserIDs.includes(req.user._id.toString())) {
       res.redirect('back')
-    } else if (!dontDirectToAccess && !grantedUserIDs.includes(req.session.payrollUserId || '')) {
+    } else if (!dontDirectToAccess && !grantedUserIDs.includes(req.session.otherPayrollUserId || '')) {
       const queryString = querystring.stringify({ continueUrl: req.originalUrl })
-      res.redirect('/payroll/access?' + queryString)
+      res.render('./partials/accessView', {
+        title: 'Payroll',
+        postUrl: '/payroll/access-other?' + queryString
+      })
     } else {
       next()
     }
   }
 }
 
-function payrollAccessUploadMonthly (dontDirectToAccess) {
+function payrollAccessMonthly (dontDirectToAccess) {
   return function (req, res, next) {
-    return next()
     const grantedUserIDs = [process.env.SUPERUSER1, process.env.SUPERUSER2, process.env.SUPERUSER3]
     if (!req.isAuthenticated()) {
       res.redirect(`/user/login`)
     } else if (!grantedUserIDs.includes(req.user._id.toString())) {
       res.redirect('back')
-    } else if (!dontDirectToAccess && !grantedUserIDs.includes(req.session.payrollUserId || '')) {
+    } else if (!dontDirectToAccess && !grantedUserIDs.includes(req.session.monthlyPayrollUserId || '')) {
       const queryString = querystring.stringify({ continueUrl: req.originalUrl })
-      res.redirect('/payroll/access?' + queryString)
+      res.render('./partials/accessView', {
+        title: 'Payroll',
+        postUrl: '/payroll/access-monthly?' + queryString
+      })
     } else {
       next()
     }
@@ -65,7 +66,7 @@ function blocked (blocked) {
 module.exports = {
   isLoggedIn,
   reportAccess,
-  payrollAccess,
-  payrollAccessUploadMonthly,
+  payrollAccessOther,
+  payrollAccessMonthly,
   blocked
 }

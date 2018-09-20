@@ -236,92 +236,18 @@
           orientation: 'landscape'
         }
       ],
-      data: result,
-      columns: [{
-          title: 'Kategori Pegawai'
-        },
-        {
-          title: 'NIK'
-        },
-
-        // nama lengkap sesuai KTP
-        {
-          title: 'Nama depan'
-        },
-        {
-          title: 'Nama tengah'
-        },
-        {
-          title: 'Nama belakang'
-        },
-
-        // posisi kerja
-        {
-          title: 'Departemen'
-        },
-        {
-          title: 'Spesialisasi'
-        },
-        {
-          title: 'Cost Center'
-        },
-
-        // data jadwal dosen
-        {
-          title: 'Nama Mata Kuliah'
-        },
-        {
-          title: 'Jumlah Sesi Tutorial'
-        },
-        {
-          title: 'Jumlah Sesi Lecture'
-        },
-        {
-          title: 'Total Sesi'
-        },
-
-        // data payroll
-        {
-          title: 'Perhitungan gaji'
-        },
-        {
-          title: 'Jenis mata uang'
-        },
-        {
-          title: 'Jumlah gaji saat ini'
-        },
-        {
-          title: 'Penerimaan gaji'
-        },
-
-        // Perhitungan Jam Kerja dan Payroll
-        {
-          title: 'Total durasi kerja'
-        },
-        {
-          title: 'Gaji pokok/Total gaji per jam'
-        },
-        {
-          title: 'Penambahan/Pengurangan'
-        },
-        {
-          title: 'Keterangan Penambahan/Pengurangan'
-        },
-        {
-          title: 'Total gaji yang diterima'
-        }
-      ]
+      data: result
     });
   }
 
   $('#generate_button').on('click', () => {
     if (!dateInputValidator.isValid()) return;
-    let fromString = $('#from_txt').val();
-    let toString = $('#to_txt').val();
+    let startString = $('#from_txt').val();
+    let endString = $('#to_txt').val();
     loadingSpinner.start();
-    $.getJSON("/api/attendances", {
-      from: fromString,
-      to: toString
+    $.getJSON("/api/attendance", {
+      startString,
+      endString
     }).then(attendances => {
       let payrollResult = PayrollDosenCalculator.process(attendances, {
         dosenTidakTetapMaxTime: dosenTidakTetapMaxTime

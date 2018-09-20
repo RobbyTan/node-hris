@@ -5,11 +5,6 @@
 <style>
   #data_table tbody td:nth-child(19), #data_table tbody td:nth-child(20) {
     cursor: pointer;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
   }
   #data_table tbody td:nth-child(19):hover, #data_table tbody td:nth-child(20):hover {
@@ -301,13 +296,14 @@
     }
 
     function reloadTable() {
-      let fromString = $('#input_from').val();
-      let toString = $('#input_to').val();
+      let startString = $('#input_from').val();
+      let endString = $('#input_to').val();
       loadingSpinner.start();
-      $.getJSON("/api/attendances", {
-        from: fromString,
-        to: toString
+      $.getJSON("/api/attendance", {
+        startString,
+        endString
       }).then(attendances => {
+        console.log('att', attendances)
         let payrollResult = PayrollDosenCalculator.process(attendances, {
           dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
         });
@@ -322,11 +318,13 @@
           payrollResult.forEach(e => {
             e.keteranganList = nikToKeteranganList[e.nik] || [];
           });
+          console.log(payrollResult)
           renderTable(payrollResult);
           bindFormKeterangan();
           loadingSpinner.stop();
         });
       }).catch(err => {
+        console.log(err)
         loadingSpinner.init();
       });
     }

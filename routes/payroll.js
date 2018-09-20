@@ -12,18 +12,22 @@ const HEADER_HEIGHT = 1
 
 router.use(methodOverride('_method'))
 
-router.get('/access', authentication.payrollAccess(true), (req, res) => {
-  const queryString = querystring.stringify({ continueUrl: req.query.continueUrl })
-  res.render('./partials/accessView', {
-    title: 'Payroll',
-    postUrl: '/payroll/access?' + queryString
-  })
-})
-router.post('/access', authentication.payrollAccess(true), async (req, res) => {
+router.post('/access-other', authentication.payrollAccessOther(true), async (req, res) => {
   let configuration = await db.Configuration.findOne({})
   let hash = configuration.payrollPassword
   if (bcrypt.compareSync(req.body.password, hash)) {
-    req.session.payrollUserId = req.user._id.toString()
+    req.session.otherPayrollUserId = req.user._id.toString()
+    res.redirect(req.query.continueUrl)
+  } else {
+    res.redirect('back')
+  }
+})
+
+router.post('/access-monthly', authentication.payrollAccessMonthly(true), async (req, res) => {
+  let configuration = await db.Configuration.findOne({})
+  let hash = configuration.payrollPassword
+  if (bcrypt.compareSync(req.body.password, hash)) {
+    req.session.monthlyPayrollUserId = req.user._id.toString()
     res.redirect(req.query.continueUrl)
   } else {
     res.redirect('back')
@@ -34,7 +38,7 @@ router.get('/menu',(req,res)=>{
   res.render('./payroll/uploadSalaryMenu')
 })
 
-router.get('/access/upload', authentication.payrollAccessUploadMonthly(true), (req, res) => {
+router.get('/access/upload', authentication.payrollAccessMonthly(true), (req, res) => {
   const queryString = querystring.stringify({ continueUrl: req.query.continueUrl })
   res.render('./partials/accessView', {
     title: 'Upload Payroll Monthly',
@@ -42,22 +46,11 @@ router.get('/access/upload', authentication.payrollAccessUploadMonthly(true), (r
   })
 })
 
-router.post('/access/upload', authentication.payrollAccess(true), async (req, res) => {
-  let configuration = await db.Configuration.findOne({})
-  let hash = configuration.payrollPassword
-  if (bcrypt.compareSync(req.body.password, hash)) {
-    req.session.payrollUserId = req.user._id.toString()
-    res.redirect(req.query.continueUrl)
-  } else {
-    res.redirect('back')
-  }
-})
-
-router.get('/', authentication.payrollAccess(), (req, res) => {
+router.get('/', authentication.payrollAccessMonthly(), (req, res) => {
   res.render('./payroll/viewPayroll')
 })
 
-router.get('/view/manual', authentication.payrollAccess(), (req, res) => {
+router.get('/view/manual', authentication.payrollAccessMonthly(), (req, res) => {
   db.Configuration.findOne({}, (err, configuration) => {
     if (err) console.log(err)
     else {
@@ -66,13 +59,13 @@ router.get('/view/manual', authentication.payrollAccess(), (req, res) => {
   })
 })
 
-router.get('/view/generatedpayroll', authentication.payrollAccess(), (req, res) => {
+router.get('/view/generatedpayroll', authentication.payrollAccessMonthly(), (req, res) => {
   db.PayrollReport.find({}).sort({ endDate: -1 }).exec(function (err, payrollReports) {
     console.log(payrollReports)
     res.render('./payroll/generatedPayroll', { payrollReports: payrollReports })
   })
 })
-router.get('/view/generatedpayroll/:id', authentication.payrollAccess(), async (req, res) => {
+router.get('/view/generatedpayroll/:id', authentication.payrollAccessMonthly(), async (req, res) => {
   let configuration = await db.Configuration.findOne({})
   let payrollReport = await db.PayrollReport.findById(req.params.id)
   res.render('./payroll/generatedPayrollDetail', {
@@ -81,10 +74,10 @@ router.get('/view/generatedpayroll/:id', authentication.payrollAccess(), async (
   })
 })
 
-router.get('/salary', authentication.payrollAccess(), async (req, res) => {
+router.get('/salary', authentication.payrollAccessMonthly(), async (req, res) => {
   res.render('payroll/uploadSalary')
 })
-router.put('/salary', authentication.payrollAccess(), upload.single('file'), async (req, res) => {
+router.put('/salary', authentication.payrollAccessMonthly(), upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(404).json({ error: true })
 
   try {

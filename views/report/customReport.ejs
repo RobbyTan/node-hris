@@ -184,7 +184,7 @@
 					$('.no-col').show();
 				} else {
 					$(this).removeClass().hide();
-					$('#btn_' + $(this).attr('id').substring(7)).show();
+					$('#btn_' + $(this).attr('id').substring(7).trim()).show();
 					$('.no-col').hide();
 				}
 			});
@@ -197,7 +197,7 @@
 			//column buttons clicked event handler
 			$('#selected_option_container button').click(function () {
 				$(this).hide();
-				$('#option_' + $(this).attr('id').substring(4)).show();
+				$('#option_' + $(this).attr('id').substring(4).trim()).show()
 				if ($('#selected_option_container button').length === 0) $('.no-col').show();
 			});
 
@@ -206,9 +206,9 @@
 		})();
 
 		createTable();
-		$('#option_nik').click();
-		$('#option_nama_depan').click();
-		$('#option_nama_belakang').click();
+		$('#option_nik').delay(1000).click();
+		$('#option_nama_depan').delay(1000).click();
+		$('#option_nama_belakang').delay(1000).click();
 
 		let loadingSpinner = LoadingSpinner.bind({
 			spinner: 'spinner',
