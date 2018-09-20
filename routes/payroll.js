@@ -14,7 +14,7 @@ router.use(methodOverride('_method'))
 
 router.post('/access-other', authentication.payrollAccessOther(true), async (req, res) => {
   let configuration = await db.Configuration.findOne({})
-  let hash = configuration.payrollPassword
+  let hash = configuration.payrollPasswordOther
   if (bcrypt.compareSync(req.body.password, hash)) {
     req.session.otherPayrollUserId = req.user._id.toString()
     res.redirect(req.query.continueUrl)
@@ -25,7 +25,7 @@ router.post('/access-other', authentication.payrollAccessOther(true), async (req
 
 router.post('/access-monthly', authentication.payrollAccessMonthly(true), async (req, res) => {
   let configuration = await db.Configuration.findOne({})
-  let hash = configuration.payrollPassword
+  let hash = configuration.payrollPasswordMonthly
   if (bcrypt.compareSync(req.body.password, hash)) {
     req.session.monthlyPayrollUserId = req.user._id.toString()
     res.redirect(req.query.continueUrl)
@@ -34,16 +34,8 @@ router.post('/access-monthly', authentication.payrollAccessMonthly(true), async 
   }
 })
 
-router.get('/menu',(req,res)=>{
+router.get('/menu', authentication.isLoggedIn, (req,res) => {
   res.render('./payroll/uploadSalaryMenu')
-})
-
-router.get('/access/upload', authentication.payrollAccessMonthly(true), (req, res) => {
-  const queryString = querystring.stringify({ continueUrl: req.query.continueUrl })
-  res.render('./partials/accessView', {
-    title: 'Upload Payroll Monthly',
-    postUrl: '/payroll/access?' + queryString
-  })
 })
 
 router.get('/', authentication.payrollAccessMonthly(), (req, res) => {
@@ -74,10 +66,15 @@ router.get('/view/generatedpayroll/:id', authentication.payrollAccessMonthly(), 
   })
 })
 
-router.get('/salary', authentication.payrollAccessMonthly(), async (req, res) => {
-  res.render('payroll/uploadSalary')
+router.get('/salary/monthly', authentication.payrollAccessMonthly(), async (req, res) => {
+  res.render('payroll/upload-salary-monthly')
 })
-router.put('/salary', authentication.payrollAccessMonthly(), upload.single('file'), async (req, res) => {
+
+router.get('/salary/other', authentication.payrollAccessOther(), async (req, res) => {
+  res.render('payroll/upload-salary-other')
+})
+router.put('/salary/:type', upload.single('file'), async (req, res) => {
+  console.log('salary')
   if (!req.file) return res.status(404).json({ error: true })
 
   try {
@@ -85,7 +82,10 @@ router.put('/salary', authentication.payrollAccessMonthly(), upload.single('file
     let rows = xlsx.utils.sheet_to_json(workbook.Sheets['Sheet1'], { header: 1 }).slice(HEADER_HEIGHT)
 
     let employeesDict = {};
-    (await db.Fulldata.find()).forEach(emp => { employeesDict[emp.nik] = emp })
+    (await db.Fulldata.find()).forEach(emp => { 
+      if (emp.perhitungan_gaji.includes('bulan') ^ !req.params.type === 'monthly')
+        employeesDict[emp.nik] = emp
+    })
     
     let invalidInfo = isPayrollExcelInvalid(rows, employeesDict)
     if (invalidInfo) {
@@ -96,6 +96,7 @@ router.put('/salary', authentication.payrollAccessMonthly(), upload.single('file
     for (let row of rows) {
       try {
         let employee = employeesDict[row[0]]
+        if (!employee) continue
         let cleanedSalary = row[2].replace(/[^0-9]/g, '')
         employee.jumlah_gaji_saat_ini = parseInt(cleanedSalary)
         await employee.save()

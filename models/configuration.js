@@ -3,7 +3,8 @@ let mongoose = require('mongoose')
 let configurationSchema = new mongoose.Schema({
   dosenTidakTetapMaxTime: String,
   password: String,
-  payrollPassword: String
+  payrollPasswordOther: String,
+  payrollPasswordMonthly: String
 })
 
 let Configuration = mongoose.model('Configuration', configurationSchema)

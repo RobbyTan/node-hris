@@ -53,7 +53,8 @@
             for (let col of error.invalidInfo.mandatoryColumns) {
               $mandatoryList.append($('<li>').text(col))
             }
-          } else if (error.invalidInfo.mismatchTypeCell.length) {
+          } 
+          if (error.invalidInfo.mismatchTypeCell.length) {
             let $mismatchList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mismatch Data Type Cell(s)</h3>'))
             for (let cell of error.invalidInfo.mismatchTypeCell) {
               $mismatchList.append($('<li>').text(cell))

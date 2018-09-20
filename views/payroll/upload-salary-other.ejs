@@ -7,7 +7,7 @@
     <% include ../partials/nav %>
 
   <div class="container mt-3">
-    <h2>Upload Salary Excel</h2>
+    <h2>Upload Salary Excel (Other)</h2>
     <form method="POST" action="" class="dropzone" id="uploadExcel" enctype="multipart/form-data">
       <div class="fallback">
         <input name="file" type="file" multiple />
@@ -22,7 +22,7 @@
     $(".button-collapse").sideNav();
     //Dropzone
     Dropzone.options.uploadExcel = {
-      url: '/payroll/salary?_method=PUT',
+      url: '/payroll/salary/other?_method=PUT',
       paramName: 'file', // The name that will be used to transfer the file
       dictDefaultMessage: 'Drag an excel file to upload, or click to select one',
       acceptedFiles: '.xlsx',
@@ -49,12 +49,14 @@
             for (let col of error.invalidInfo.mandatoryColumns) {
               $mandatoryList.append($('<li>').text(col))
             }
-          } else if (error.invalidInfo.mismatchTypeRows) {
+          }
+          if (error.invalidInfo.mismatchTypeRows.length) {
             let $mismatchList = $('<ul>').appendTo($('.alert-danger').append('<h3>Mismatch Data Type Row(s)</h3>'))
             for (let rows of error.invalidInfo.mismatchTypeRows) {
               $mismatchList.append($('<li>').text(rows))
             }
-          } else if (error.invalidInfo.uninvitedPayrolls) {
+          }
+          if (error.invalidInfo.uninvitedPayrolls.length) {
             let $uninvitedPayrollList = $('<ul>').appendTo($('.alert-danger').append('<h3>Non-existing Employee ID(s)</h3>'))
             for (let payroll of error.invalidInfo.uninvitedPayrolls) {
               $uninvitedPayrollList.append($('<li>').text(payroll[0]))
