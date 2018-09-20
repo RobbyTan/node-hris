@@ -303,7 +303,7 @@
         startString,
         endString
       }).then(attendances => {
-        console.log('att', attendances)
+        attendances = attendances.filter(att => att.kategori_pegawai.toUpperCase().trim() === 'DOSEN TIDAK TETAP')
         let payrollResult = PayrollDosenCalculator.process(attendances, {
           dosenTidakTetapMaxTime: dosenTidakTetapMaxTime
         });
@@ -318,7 +318,6 @@
           payrollResult.forEach(e => {
             e.keteranganList = nikToKeteranganList[e.nik] || [];
           });
-          console.log(payrollResult)
           renderTable(payrollResult);
           bindFormKeterangan();
           loadingSpinner.stop();

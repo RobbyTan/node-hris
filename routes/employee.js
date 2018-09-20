@@ -7,19 +7,19 @@ const db = require('../models')
 const auth = require('../middleware/authentication.js')
 const HEADER_HEIGHT = 3
 
-router.get('/view', auth.isLoggedIn, (req, res) => {
+router.get('/view', auth.reportAccess(), (req, res) => {
   res.render('employee/view')
 })
 
-router.get('/new/menu', auth.isLoggedIn, (req, res) => {
+router.get('/new/menu', auth.reportAccess(), (req, res) => {
   res.render('employee/new-menu')
 })
 
-router.get('/new/upload', auth.isLoggedIn, (req, res) => {
+router.get('/new/upload', auth.reportAccess(), (req, res) => {
   res.render('employee/new-upload')
 })
 
-router.post('/new/upload', auth.isLoggedIn, upload.single('file'), async (req, res) => {
+router.post('/new/upload', auth.reportAccess(), upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(404).json({ error: true })
   try {
     // let uploadResult = await cloudinary.v2.uploader.upload(req.file.path, { resource_type: 'raw' })
