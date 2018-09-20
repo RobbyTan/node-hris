@@ -157,7 +157,7 @@
 			//set ID of each select options
 			//set proper text for each select options
 			$('.mdb-select ul li').each(function () {
-				let text = $(this).find('span').text();
+				let text = $(this).find('span').text().trim();
 				$(this).attr('id', 'option_' + text);
 				$(this).find('span').text(toProperCase(text));
 			});
@@ -206,10 +206,12 @@
 		})();
 
 		createTable();
-		$('#option_nik').delay(1000).click();
-		$('#option_nama_depan').delay(1000).click();
-		$('#option_nama_belakang').delay(1000).click();
-
+		$(document).ready(() => {
+			$('#option_nik').delay(1000).click();
+			$('#option_nama_depan').delay(1000).click();
+			$('#option_nama_belakang').delay(1000).click();
+		})
+		
 		let loadingSpinner = LoadingSpinner.bind({
 			spinner: 'spinner',
 			hideableNodes: ['data_table_wrapper'],

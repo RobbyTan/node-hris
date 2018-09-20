@@ -7,7 +7,6 @@ function isLoggedIn (req, res, next) {
 
 function reportAccess (dontDirectToAccess) {
   return function (req, res, next) {
-    return next()
     if (!req.isAuthenticated()) {
       res.redirect(`/user/login`)
     } else if (!dontDirectToAccess && !req.session.reportUserId) {
