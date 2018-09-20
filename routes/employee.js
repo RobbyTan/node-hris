@@ -22,7 +22,7 @@ router.get('/new/upload', auth.reportAccess(), (req, res) => {
 router.post('/new/upload', auth.reportAccess(), upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(404).json({ error: true })
   try {
-    // let uploadResult = await cloudinary.v2.uploader.upload(req.file.path, { resource_type: 'raw' })
+    let uploadResult = await cloudinary.v2.uploader.upload(req.file.path, { resource_type: 'raw' })
   } catch (err) {
     console.log('Fail cloudinary upload')
   }
